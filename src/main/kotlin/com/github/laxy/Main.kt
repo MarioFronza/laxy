@@ -1,4 +1,4 @@
-package com.github.laxy
+package com.github.laxy.com.github.laxy
 
 fun main() {
     println("Hello World!")
