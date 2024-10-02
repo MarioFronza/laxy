@@ -8,12 +8,12 @@ import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
 
 fun main() {
-  embeddedServer(Netty, port = 9292, host = "0.0.0.0", module = Application::module)
-    .start(wait = true)
+    embeddedServer(Netty, port = 9292, host = "0.0.0.0", module = Application::module)
+        .start(wait = true)
 }
 
 fun Application.module() {
-  val env = Env()
-  val dependencies = dependencies(env)
-  health(dependencies.healthCheck)
+    val env = Env()
+    val dependencies = dependencies(env)
+    health(dependencies.healthCheck)
 }

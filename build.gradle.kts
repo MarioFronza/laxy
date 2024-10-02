@@ -1,5 +1,4 @@
 import com.github.laxy.setupDetekt
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     application
