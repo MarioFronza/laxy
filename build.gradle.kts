@@ -19,7 +19,7 @@ application {
 
 sqldelight {
     databases {
-        create("SqlDelight"){
+        create("SqlDelight") {
             packageName = "com.github.laxy.sqldelight"
             dialect(libs.sqldelight.postgresql.get())
         }
@@ -52,7 +52,7 @@ ktor {
 spotless {
     kotlin {
         targetExclude("**/build/**")
-        ktfmt("0.46").googleStyle()
+        ktfmt("0.46").kotlinlangStyle()
     }
 }
 
