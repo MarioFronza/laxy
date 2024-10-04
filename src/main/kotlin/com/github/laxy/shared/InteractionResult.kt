@@ -8,32 +8,6 @@ sealed class InteractionResult<E, D> {
     abstract fun <ME> mapFailure(transform: (E) -> ME): InteractionResult<ME, D>
 
     abstract fun <MD> mapSuccess(transform: (D) -> MD): InteractionResult<E, MD>
-    //    data class Success< D>(val data: D) : Result<Nothing, D>()
-    //    data class Failure<E>(val error: E) : Result<E, Nothing>()
-    //
-    //    fun isSuccess(): Boolean = this is Success<D>
-    //    fun isFailure(): Boolean = this is Failure<E>
-    //
-    //    fun getOrNull(): D? = (this as? Success)?.data
-    //    fun errorOrNull(): E? = (this as? Failure)?.error
-    //
-    //    fun <R> map(transform: (D) -> R): Result<out E, out R> = when (this) {
-    //        is Success -> Success(transform(data))
-    //        is Failure -> this
-    //    }
-    //
-    //    fun <R> flatMap(transform: (D) -> Result<E, R>): Result<E, out R> = when (this) {
-    //        is Success -> transform(data)
-    //        is Failure -> this
-    //    }
-    //
-    //    fun <R> fold(
-    //        onSuccess: (D) -> R,
-    //        onFailure: (E) -> R
-    //    ): R = when (this) {
-    //        is Success -> onSuccess(data)
-    //        is Failure -> onFailure(error)
-    //    }
 }
 
 data class Failure<E, D>(val error: E) : InteractionResult<E, D>() {
