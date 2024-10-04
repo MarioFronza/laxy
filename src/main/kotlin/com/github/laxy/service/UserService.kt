@@ -4,21 +4,11 @@ import com.github.laxy.persistence.UserId
 import com.github.laxy.shared.DomainError
 import com.github.laxy.shared.InteractionResult
 
-data class RegisterUser(
-    val username: String,
-    val email: String
-)
+data class RegisterUser(val username: String, val email: String)
 
-data class UpdateUser(
-    val userId: UserId,
-    val username: String?,
-    val email: String?
-)
+data class UpdateUser(val userId: UserId, val username: String?, val email: String?)
 
-data class UserInfo(
-    val username: String,
-    val email: String
-)
+data class UserInfo(val username: String, val email: String)
 
 interface UserService {
     suspend fun register(input: RegisterUser): InteractionResult<DomainError, UserInfo>

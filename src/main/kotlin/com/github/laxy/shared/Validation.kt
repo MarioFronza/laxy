@@ -20,11 +20,8 @@ private val emailPattern = ".+@.+\\..+".toRegex()
 
 private fun String.validateEmail(): InteractionResult<InvalidEmail, String> {
     val trimmed = trim()
-    return listOf(
-        trimmed.notBlank(),
-        trimmed.maxSize(MAX_EMAIL_LENGTH),
-        trimmed.looksLikeEmail()
-    ).accumulateErrors(trimmed)
+    return listOf(trimmed.notBlank(), trimmed.maxSize(MAX_EMAIL_LENGTH), trimmed.looksLikeEmail())
+        .accumulateErrors(trimmed)
 }
 
 private fun String.notBlank(): InteractionResult<String, String> =
