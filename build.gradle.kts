@@ -20,7 +20,7 @@ application {
 sqldelight {
     databases {
         create("SqlDelight") {
-            packageName = "com.github.laxy.sqldelight"
+            packageName.set("com.github.laxy.sqldelight")
             dialect(libs.sqldelight.postgresql.get())
         }
     }

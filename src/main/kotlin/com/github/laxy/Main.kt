@@ -3,7 +3,7 @@ package com.github.laxy
 import com.github.laxy.env.Dependencies
 import com.github.laxy.env.Env
 import com.github.laxy.env.dependencies
-import com.github.laxy.routes.health
+import com.github.laxy.route.health
 import io.ktor.server.application.Application
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty

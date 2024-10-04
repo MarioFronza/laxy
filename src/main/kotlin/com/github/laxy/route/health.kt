@@ -1,4 +1,4 @@
-package com.github.laxy.routes
+package com.github.laxy.route
 
 import com.sksamuel.cohort.Cohort
 import com.sksamuel.cohort.HealthCheckRegistry
