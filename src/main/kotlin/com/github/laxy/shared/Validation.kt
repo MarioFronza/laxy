@@ -18,31 +18,32 @@ private const val MIN_USERNAME_LENGTH = 1
 private const val MAX_USERNAME_LENGTH = 25
 private val emailPattern = ".+@.+\\..+".toRegex()
 
-private fun String.validateEmail(): InteractionResult<InvalidEmail, String> {
+private fun String.validateEmail(): InteractionResult<InvalidField, String> {
     val trimmed = trim()
     return listOf(trimmed.notBlank(), trimmed.maxSize(MAX_EMAIL_LENGTH), trimmed.looksLikeEmail())
-        .accumulateErrors(trimmed)
+        .accumulateErrors(trimmed) { errors -> InvalidEmail(errors) }
 }
 
 private fun String.notBlank(): InteractionResult<String, String> =
-    if (isNotBlank()) Success("valid") else Failure("cannot be blank")
+    if (isNotBlank()) Success(this) else Failure("cannot be blank")
 
 private fun String.minSize(size: Int): InteractionResult<String, String> =
-    if (length >= size) Success("valid") else Failure("is too short (minimum is $size characters)")
+    if (length >= size) Success(this) else Failure("is too short (minimum is $size characters)")
 
 private fun String.maxSize(size: Int): InteractionResult<String, String> =
-    if (length <= size) Success("valid") else Failure("is too long (maximum is $size characters)")
+    if (length <= size) Success(this) else Failure("is too long (maximum is $size characters)")
 
 private fun String.looksLikeEmail(): InteractionResult<String, String> =
     if (emailPattern.matches(this)) Success("valid") else Failure("'$this' is invalid email ")
 
 private fun List<InteractionResult<String, String>>.accumulateErrors(
     value: String,
-): InteractionResult<InvalidEmail, String> {
+    onError: (List<String>) -> InvalidField
+): InteractionResult<InvalidField, String> {
     val errors = this.filterIsInstance<Failure<String, String>>().map { it.error }
     return if (errors.isEmpty()) {
         Success(value)
     } else {
-        Failure(InvalidEmail(errors))
+        Failure(onError(errors))
     }
 }
