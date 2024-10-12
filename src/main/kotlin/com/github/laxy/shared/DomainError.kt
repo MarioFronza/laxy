@@ -4,6 +4,10 @@ sealed interface DomainError
 
 sealed interface ValidationError : DomainError
 
+data class IncorrectInput(val errors: List<InvalidField>) : ValidationError {
+    constructor(head: InvalidField) : this(listOf(head))
+}
+
 sealed interface UserError : DomainError
 
 data class UserNotFound(val property: String) : UserError

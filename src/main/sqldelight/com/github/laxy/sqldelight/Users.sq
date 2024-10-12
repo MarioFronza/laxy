@@ -1,7 +1,34 @@
+import com.github.laxy.persistence.UserId;
+
 CREATE TABLE IF NOT EXISTS users (
-    id BIGSERIAL PRIMARY KEY,
+    id BIGSERIAL AS UserId PRIMARY KEY,
     username VARCHAR(255) NOT NULL,
     email VARCHAR(255) NOT NULL UNIQUE,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
+
+selectByEmail:
+SELECT email, username
+FROM users
+WHERE email = :email;
+
+selectByUsername:
+SELECT email, username
+FROM users
+WHERE username = :username;
+
+selectById:
+SELECT email username
+FROM users
+WHERE id = :id;
+
+insertAndGetId:
+INSERT INTO users(email, username)
+VALUES (:email, :username)
+RETURNING id;
+
+update:
+UPDATE users
+SET email = :email, username = :username
+WHERE id = :userId;
