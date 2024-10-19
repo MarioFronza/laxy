@@ -9,6 +9,7 @@ class Dependencies(val healthCheck: HealthCheckRegistry)
 
 fun dependencies(env: Env): Dependencies {
     val hikari = hikari(env.dataSource)
+    val sqlDelight = sqlDelight(hikari)
     val checks =
         HealthCheckRegistry(Dispatchers.Default) {
             register(
