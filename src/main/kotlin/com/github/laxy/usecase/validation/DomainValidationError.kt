@@ -1,4 +1,4 @@
-package com.github.laxy.shared
+package com.github.laxy.usecase.validation
 
 sealed interface DomainError
 

@@ -1,17 +1,16 @@
 package com.github.laxy.persistence
 
 import com.github.laxy.service.UserInfo
-import com.github.laxy.shared.DomainError
 import com.github.laxy.shared.Failure
 import com.github.laxy.shared.InteractionResult
 import com.github.laxy.shared.Success
-import com.github.laxy.shared.UsernameAlreadyExists
 import com.github.laxy.sqldelight.UsersQueries
+import com.github.laxy.usecase.validation.DomainError
+import com.github.laxy.usecase.validation.UsernameAlreadyExists
 import org.postgresql.util.PSQLException
 import org.postgresql.util.PSQLState
 
-@JvmInline
-value class UserId(val serial: Long)
+@JvmInline value class UserId(val serial: Long)
 
 interface UserPersistence {
     suspend fun insert(username: String, email: String): InteractionResult<DomainError, UserId>
@@ -27,11 +26,12 @@ interface UserPersistence {
     ): InteractionResult<DomainError, UserInfo>
 }
 
-fun userPersistence(
-    usersQueries: UsersQueries
-) =
+fun userPersistence(usersQueries: UsersQueries) =
     object : UserPersistence {
-        override suspend fun insert(username: String, email: String): InteractionResult<DomainError, UserId> {
+        override suspend fun insert(
+            username: String,
+            email: String
+        ): InteractionResult<DomainError, UserId> {
             return try {
                 Success(usersQueries.create(username, email))
             } catch (e: PSQLException) {
@@ -56,14 +56,7 @@ fun userPersistence(
         ): InteractionResult<DomainError, UserInfo> {
             TODO("Not yet implemented")
         }
-
     }
 
-private fun UsersQueries.create(
-    username: String,
-    email: String
-): UserId =
-    insertAndGetId(
-        username = username,
-        email = email
-    ).executeAsOne()
+private fun UsersQueries.create(username: String, email: String): UserId =
+    insertAndGetId(username = username, email = email).executeAsOne()

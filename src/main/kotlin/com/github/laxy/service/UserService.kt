@@ -1,8 +1,8 @@
 package com.github.laxy.service
 
 import com.github.laxy.persistence.UserId
-import com.github.laxy.shared.DomainError
 import com.github.laxy.shared.InteractionResult
+import com.github.laxy.usecase.validation.DomainError
 
 data class RegisterUser(val username: String, val email: String)
 

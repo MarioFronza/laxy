@@ -22,10 +22,7 @@ fun hikari(env: Env.DataSource) =
 fun sqlDelight(dataSource: DataSource): SqlDelight {
     val driver = dataSource.asJdbcDriver()
     SqlDelight.Schema.create(driver)
-    return SqlDelight(
-        driver,
-        Users.Adapter(userIdAdapter)
-    )
+    return SqlDelight(driver, Users.Adapter(userIdAdapter))
 }
 
 private val userIdAdapter = columnAdapter(::UserId, UserId::serial)
@@ -36,5 +33,6 @@ private inline fun <A : Any, B> columnAdapter(
 ): ColumnAdapter<A, B> =
     object : ColumnAdapter<A, B> {
         override fun decode(databaseValue: B): A = decode(databaseValue)
+
         override fun encode(value: A): B = encode(value)
     }
