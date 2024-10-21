@@ -4,6 +4,8 @@ CREATE TABLE IF NOT EXISTS users (
     id BIGSERIAL AS UserId PRIMARY KEY,
     username VARCHAR(255) NOT NULL,
     email VARCHAR(255) NOT NULL UNIQUE,
+    salt BYTEA NOT NULL,
+    hashed_password BYTEA NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
@@ -24,8 +26,8 @@ FROM users
 WHERE id = :id;
 
 insertAndGetId:
-INSERT INTO users(email, username)
-VALUES (:email, :username)
+INSERT INTO users(username,email, salt, hashed_password)
+VALUES (:username, :email, :salt, :hashed_password)
 RETURNING id;
 
 update:

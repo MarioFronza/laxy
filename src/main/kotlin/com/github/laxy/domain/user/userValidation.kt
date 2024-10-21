@@ -1,18 +1,16 @@
-package com.github.laxy.usecase.user
+package com.github.laxy.domain.user
 
-import com.github.laxy.service.RegisterUser
-import com.github.laxy.service.UpdateUser
+import com.github.laxy.domain.validation.IncorrectInput
+import com.github.laxy.domain.validation.InvalidEmail
+import com.github.laxy.domain.validation.InvalidField
+import com.github.laxy.domain.validation.InvalidUsername
+import com.github.laxy.domain.validation.accumulateErrors
+import com.github.laxy.domain.validation.maxSize
+import com.github.laxy.domain.validation.minSize
+import com.github.laxy.domain.validation.notBlank
 import com.github.laxy.shared.Failure
 import com.github.laxy.shared.InteractionResult
 import com.github.laxy.shared.Success
-import com.github.laxy.usecase.validation.IncorrectInput
-import com.github.laxy.usecase.validation.InvalidEmail
-import com.github.laxy.usecase.validation.InvalidField
-import com.github.laxy.usecase.validation.InvalidUsername
-import com.github.laxy.usecase.validation.accumulateErrors
-import com.github.laxy.usecase.validation.maxSize
-import com.github.laxy.usecase.validation.minSize
-import com.github.laxy.usecase.validation.notBlank
 
 fun RegisterUser.validate(): InteractionResult<IncorrectInput, RegisterUser> {
     return listOf(username.validUsername(), email.validateEmail()).accumulateErrors(this) { errors

@@ -2,6 +2,7 @@ package com.github.laxy
 
 import com.github.laxy.env.Dependencies
 import com.github.laxy.env.Env
+import com.github.laxy.env.configure
 import com.github.laxy.env.dependencies
 import com.github.laxy.route.health
 import io.ktor.server.application.Application
@@ -22,5 +23,6 @@ fun main() {
 }
 
 fun Application.module(dependencies: Dependencies) {
+    configure()
     health(dependencies.healthCheck)
 }

@@ -1,4 +1,4 @@
-package com.github.laxy.usecase.validation
+package com.github.laxy.domain.validation
 
 import com.github.laxy.shared.Failure
 import com.github.laxy.shared.InteractionResult
