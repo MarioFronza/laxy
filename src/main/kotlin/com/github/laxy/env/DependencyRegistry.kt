@@ -7,9 +7,9 @@ import com.sksamuel.cohort.hikari.HikariConnectionsHealthCheck
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.Dispatchers
 
-class Dependencies(val healthCheck: HealthCheckRegistry, userPersistence: UserPersistence)
+class DependencyRegistry(val healthCheck: HealthCheckRegistry, userPersistence: UserPersistence)
 
-fun dependencies(env: Env): Dependencies {
+fun dependencies(env: Env): DependencyRegistry {
     val hikari = hikari(env.dataSource)
     val sqlDelight = sqlDelight(hikari)
     val userPersistence = userPersistence(sqlDelight.usersQueries)
@@ -21,5 +21,5 @@ fun dependencies(env: Env): Dependencies {
                 checkInterval = 5.seconds
             )
         }
-    return Dependencies(healthCheck = checks, userPersistence = userPersistence)
+    return DependencyRegistry(healthCheck = checks, userPersistence = userPersistence)
 }

@@ -7,7 +7,7 @@ sealed class InteractionResult<E, D> {
 
     abstract fun <ME> mapFailure(transform: (E) -> ME): InteractionResult<ME, D>
 
-    abstract fun <MD> mapSuccess(transform: (D) -> MD): InteractionResult<E, MD>
+    abstract suspend fun <MD> mapSuccess(transform: (D) -> MD): InteractionResult<E, MD>
 }
 
 data class Failure<E, D>(val error: E) : InteractionResult<E, D>() {
@@ -19,10 +19,10 @@ data class Failure<E, D>(val error: E) : InteractionResult<E, D>() {
     override fun <ME> mapFailure(transform: (E) -> ME): InteractionResult<ME, D> =
         Failure(transform(error))
 
-    override fun <MD> mapSuccess(transform: (D) -> MD): InteractionResult<E, MD> = Failure(error)
+    override suspend fun <MD> mapSuccess(transform: (D) -> MD): InteractionResult<E, MD> = Failure(error)
 }
 
-data class Success<E, D>(private val data: D) : InteractionResult<E, D>() {
+data class Success<E, D>(val data: D) : InteractionResult<E, D>() {
     override fun fold(onFailure: (E) -> Unit, onSuccess: (D) -> Unit) = onSuccess(data)
 
     override fun <ME, MD> map(failure: (E) -> ME, success: (D) -> MD) =
@@ -30,6 +30,6 @@ data class Success<E, D>(private val data: D) : InteractionResult<E, D>() {
 
     override fun <ME> mapFailure(transform: (E) -> ME): InteractionResult<ME, D> = Success(data)
 
-    override fun <MD> mapSuccess(transform: (D) -> MD): InteractionResult<E, MD> =
+    override suspend fun <MD> mapSuccess(transform: (D) -> MD): InteractionResult<E, MD> =
         Success(transform(data))
 }

@@ -1,6 +1,6 @@
 package com.github.laxy
 
-import com.github.laxy.env.Dependencies
+import com.github.laxy.env.DependencyRegistry
 import com.github.laxy.env.Env
 import com.github.laxy.env.configure
 import com.github.laxy.env.dependencies
@@ -22,7 +22,7 @@ fun main() {
         .start(wait = true)
 }
 
-fun Application.module(dependencies: Dependencies) {
+fun Application.module(dependencyRegistry: DependencyRegistry) {
     configure()
-    health(dependencies.healthCheck)
+    health(dependencyRegistry.healthCheck)
 }
