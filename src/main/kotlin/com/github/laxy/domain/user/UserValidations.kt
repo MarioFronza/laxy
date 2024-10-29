@@ -13,8 +13,7 @@ import com.github.laxy.shared.InteractionResult
 import com.github.laxy.shared.Success
 
 fun RegisterUser.validate(): InteractionResult<IncorrectInput, RegisterUser> {
-    return listOf(username.validUsername(), email.validateEmail()).accumulateErrors(this) { errors
-        ->
+    return listOf(username.validUsername(), email.validateEmail()).accumulateErrors(this) { errors ->
         IncorrectInput(errors)
     }
 }
@@ -36,10 +35,10 @@ private fun String.validateEmail(): InteractionResult<InvalidField, String> {
 private fun String.validUsername(): InteractionResult<InvalidField, String> {
     val trimmed = trim()
     return listOf(
-            trimmed.notBlank(),
-            trimmed.minSize(MIN_USERNAME_LENGTH),
-            trimmed.maxSize(MAX_USERNAME_LENGTH)
-        )
+        trimmed.notBlank(),
+        trimmed.minSize(MIN_USERNAME_LENGTH),
+        trimmed.maxSize(MAX_USERNAME_LENGTH)
+    )
         .accumulateErrors(trimmed) { errors -> InvalidUsername(errors) }
 }
 
