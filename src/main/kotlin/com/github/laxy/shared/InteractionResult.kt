@@ -1,7 +1,7 @@
 package com.github.laxy.shared
 
 
-sealed class InteractionResult<E, D> {
+sealed class InteractionResult<out E, D> {
     fun bind(): D = when (this) {
         is Failure -> throw InteractionException(this.error)
         is Success -> this.data

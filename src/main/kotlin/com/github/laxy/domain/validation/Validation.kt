@@ -25,13 +25,13 @@ data class InvalidUsername(override val errors: List<ApplicationError>) : Invali
     override val field = "username"
 }
 
-fun String.notBlank(): InteractionResult<ApplicationError, String> =
+fun String.notBlank(): InteractionResult<TextError, String> =
     if (isNotBlank()) Success(this) else Failure(textError("cannot be blank"))
 
-fun String.minSize(size: Int): InteractionResult<ApplicationError, String> =
+fun String.minSize(size: Int): InteractionResult<TextError, String> =
     if (length >= size) Success(this) else Failure(textError("is too short (minimum is $size characters)"))
 
-fun String.maxSize(size: Int): InteractionResult<ApplicationError, String> =
+fun String.maxSize(size: Int): InteractionResult<TextError, String> =
     if (length <= size) Success(this) else Failure(textError("is too long (maximum is $size characters)"))
 
 fun <ID, OD> List<InteractionResult<ApplicationError, ID>>.accumulateErrors(
