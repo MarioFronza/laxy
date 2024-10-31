@@ -1,10 +1,12 @@
 package com.github.laxy.domain.validation
 
-sealed interface DomainError
+import com.github.laxy.shared.ApplicationError
+
+sealed interface DomainError : ApplicationError
 
 sealed interface ValidationError : DomainError
 
-data class IncorrectInput(val errors: List<InvalidField>) : ValidationError {
+data class IncorrectInput(val errors: List<ApplicationError>) : ValidationError {
     constructor(head: InvalidField) : this(listOf(head))
 }
 

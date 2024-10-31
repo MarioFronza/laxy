@@ -1,13 +1,11 @@
 package com.github.laxy.domain.user
 
 import com.github.laxy.domain.validation.DomainError
-import com.github.laxy.domain.validation.IncorrectInput
 import com.github.laxy.persistence.UserId
 import com.github.laxy.persistence.UserPersistence
-import com.github.laxy.shared.Failure
 import com.github.laxy.shared.InteractionResult
 import com.github.laxy.shared.Success
-import com.github.laxy.shared.either
+import com.github.laxy.shared.interaction
 
 data class RegisterUser(val username: String, val email: String, val password: String)
 
@@ -27,21 +25,13 @@ interface UserService {
 
 fun userService(persistence: UserPersistence) =
     object : UserService {
-        override suspend fun register(input: RegisterUser): InteractionResult<DomainError, UserId> {
-            when (val validationResponse = input.validate()) {
-                is Failure -> return Failure(validationResponse.error)
-                is Success -> {
-                    val (username, email, password) = validationResponse.data
-                    return when (val persistenceResponse = persistence.insert(username, email, password)) {
-                        is Failure -> Failure(persistenceResponse.error)
-                        is Success -> Success(persistenceResponse.data)
-                    }
-                }
-
-            }
+        override suspend fun register(input: RegisterUser): InteractionResult<DomainError, UserId> = interaction {
+            val (username, email, password) = input.validate().bind()
+            val userId = persistence.insert(username, email, password).bind()
+            return Success(userId)
         }
 
-        override suspend fun update(input: UpdateUser): InteractionResult<DomainError, UserInfo> = either {
+        override suspend fun update(input: UpdateUser): InteractionResult<DomainError, UserInfo> = interaction {
             TODO("Not yet implemented")
         }
 
