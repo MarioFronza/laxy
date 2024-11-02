@@ -3,6 +3,7 @@ package com.github.laxy.domain.user
 import com.github.laxy.domain.validation.IncorrectInput
 import com.github.laxy.domain.validation.InvalidEmail
 import com.github.laxy.domain.validation.InvalidUsername
+import com.github.laxy.domain.validation.TextError
 import com.github.laxy.domain.validation.TextError.Companion.textError
 import com.github.laxy.domain.validation.accumulateErrors
 import com.github.laxy.domain.validation.maxSize
@@ -42,7 +43,7 @@ private fun String.validUsername(): InteractionResult<ApplicationError, String> 
     ).accumulateErrors(trimmed) { errors -> InvalidUsername(errors) }
 }
 
-private fun String.looksLikeEmail(): InteractionResult<ApplicationError, String> =
+private fun String.looksLikeEmail(): InteractionResult<TextError, String> =
     if (emailPattern.matches(this)) Success("valid") else Failure(textError("'$this' is invalid email "))
 
 private const val MAX_EMAIL_LENGTH = 350
