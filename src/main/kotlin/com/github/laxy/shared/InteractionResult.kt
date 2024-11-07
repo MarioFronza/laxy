@@ -1,11 +1,11 @@
 package com.github.laxy.shared
 
-
 sealed class InteractionResult<out E, D> {
-    fun bind(): D = when (this) {
-        is Failure -> throw InteractionException(this.error)
-        is Success -> this.data
-    }
+    fun bind(): D =
+        when (this) {
+            is Failure -> throw InteractionException(this.error)
+            is Success -> this.data
+        }
 }
 
 data class Failure<E, D>(val error: ApplicationError) : InteractionResult<E, D>()

@@ -2,7 +2,6 @@ package com.github.laxy.env
 
 import com.github.laxy.domain.user.UserService
 import com.github.laxy.domain.user.userService
-import com.github.laxy.persistence.UserPersistence
 import com.github.laxy.persistence.userPersistence
 import com.sksamuel.cohort.HealthCheckRegistry
 import com.sksamuel.cohort.hikari.HikariConnectionsHealthCheck

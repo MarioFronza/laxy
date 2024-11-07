@@ -25,23 +25,41 @@ data class InvalidUsername(override val errors: List<ApplicationError>) : Invali
     override val field = "username"
 }
 
+data class InvalidPassword(override val errors: List<ApplicationError>) : InvalidField {
+    override val field: String = "password"
+}
+
+fun String.validPassword(): InteractionResult<ApplicationError, String> =
+    listOf(
+        notBlank(),
+        minSize(MIN_PASSWORD_LENGTH),
+        maxSize(MAX_PASSWORD_LENGTH)
+    ).accumulateErrors(this) { errors ->
+        InvalidPassword(errors)
+    }
+
 fun String.notBlank(): InteractionResult<TextError, String> =
     if (isNotBlank()) Success(this) else Failure(textError("cannot be blank"))
 
 fun String.minSize(size: Int): InteractionResult<TextError, String> =
-    if (length >= size) Success(this) else Failure(textError("is too short (minimum is $size characters)"))
+    if (length >= size) Success(this)
+    else Failure(textError("is too short (minimum is $size characters)"))
 
 fun String.maxSize(size: Int): InteractionResult<TextError, String> =
-    if (length <= size) Success(this) else Failure(textError("is too long (maximum is $size characters)"))
+    if (length <= size) Success(this)
+    else Failure(textError("is too long (maximum is $size characters)"))
 
-fun <ID, OD> List<InteractionResult<ApplicationError, ID>>.accumulateErrors(
+fun <E : ApplicationError, ID, OD> List<InteractionResult<E, ID>>.accumulateErrors(
     value: OD,
-    onError: (List<ApplicationError>) -> ApplicationError
-): InteractionResult<ApplicationError, OD> {
-    val errors = this.filterIsInstance<Failure<ApplicationError, ID>>().map { it.error }
+    onError: (List<ApplicationError>) -> E
+): InteractionResult<E, OD> {
+    val errors = this.filterIsInstance<Failure<E, ID>>().map { it.error }
     return if (errors.isEmpty()) {
         Success(value)
     } else {
         Failure(onError(errors))
     }
 }
+
+private const val MIN_PASSWORD_LENGTH = 8
+private const val MAX_PASSWORD_LENGTH = 100

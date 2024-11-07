@@ -9,5 +9,4 @@ fun Application.routes(dependencyRegistry: DependencyRegistry) = routing {
     userRoutes(dependencyRegistry.userService)
 }
 
-@Resource("/api")
-data object RootResource
+@Resource("/api") data object RootResource
