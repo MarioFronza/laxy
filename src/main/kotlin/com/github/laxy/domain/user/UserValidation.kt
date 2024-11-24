@@ -4,28 +4,27 @@ import com.github.laxy.domain.validation.accumulateErrors
 import com.github.laxy.domain.validation.maxSize
 import com.github.laxy.domain.validation.minSize
 import com.github.laxy.domain.validation.notBlank
-import com.github.laxy.shared.ApplicationError
 import com.github.laxy.shared.Failure
 import com.github.laxy.shared.InteractionResult
 import com.github.laxy.shared.Success
 import com.github.laxy.shared.IllegalStateError.Companion.illegalState
 
 
-fun RegisterUser.validate(): InteractionResult<ApplicationError, RegisterUser> {
+fun RegisterUser.validate(): InteractionResult<RegisterUser> {
     return listOf(username.validUsername(), email.validateEmail()).accumulateErrors(this)
 }
 
-fun UpdateUser.validate(): InteractionResult<ApplicationError, UpdateUser> {
+fun UpdateUser.validate(): InteractionResult<UpdateUser> {
     return listOfNotNull(username?.validUsername(), email?.validateEmail()).accumulateErrors(this)
 }
 
-fun String.validateEmail(): InteractionResult<ApplicationError, String> {
+fun String.validateEmail(): InteractionResult<String> {
     val trimmed = trim()
     return listOf(trimmed.notBlank(), trimmed.maxSize(MAX_EMAIL_LENGTH), trimmed.looksLikeEmail())
         .accumulateErrors(trimmed)
 }
 
-fun String.validUsername(): InteractionResult<ApplicationError, String> {
+fun String.validUsername(): InteractionResult<String> {
     val trimmed = trim()
     return listOf(
             trimmed.notBlank(),
@@ -35,14 +34,14 @@ fun String.validUsername(): InteractionResult<ApplicationError, String> {
         .accumulateErrors(trimmed)
 }
 
-fun String.validPassword(): InteractionResult<ApplicationError, String> =
+fun String.validPassword(): InteractionResult<String> =
     listOf(
         notBlank(),
         minSize(MIN_PASSWORD_LENGTH),
         maxSize(MAX_PASSWORD_LENGTH)
     ).accumulateErrors(this)
 
-private fun String.looksLikeEmail(): InteractionResult<ApplicationError, String> =
+private fun String.looksLikeEmail(): InteractionResult<String> =
     if (emailPattern.matches(this)) Success("valid")
     else Failure(illegalState("'$this' is invalid email "))
 

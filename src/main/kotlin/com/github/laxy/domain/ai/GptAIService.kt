@@ -3,7 +3,6 @@ package com.github.laxy.domain.ai
 import com.cjcrafter.openai.chat.ChatMessage.Companion.toSystemMessage
 import com.cjcrafter.openai.chat.chatRequest
 import com.cjcrafter.openai.openAI
-import com.github.laxy.domain.validation.DomainError
 import com.github.laxy.domain.validation.notNull
 import com.github.laxy.shared.InteractionResult
 import com.github.laxy.shared.Success
@@ -14,12 +13,12 @@ data class ChatCompletionContent(
 )
 
 interface GptAIService {
-    suspend fun chatCompletion(input: ChatCompletionContent): InteractionResult<DomainError, String>
+    suspend fun chatCompletion(input: ChatCompletionContent): InteractionResult<String>
 }
 
 fun gptAIService(openAIKey: String) =
     object: GptAIService{
-        override suspend fun chatCompletion(input: ChatCompletionContent): InteractionResult<DomainError, String> = interaction{
+        override suspend fun chatCompletion(input: ChatCompletionContent): InteractionResult<String> = interaction{
             val openAI = openAI {
                 apiKey(openAIKey)
             }

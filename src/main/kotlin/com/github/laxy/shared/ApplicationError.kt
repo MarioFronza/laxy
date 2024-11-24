@@ -7,3 +7,7 @@ data class IllegalStateError(val message: String) : ApplicationError {
         fun illegalState(message: String) = IllegalStateError(message)
     }
 }
+
+data class IncorrectBehaviors(
+    val errors: List<ApplicationError>
+): ApplicationError

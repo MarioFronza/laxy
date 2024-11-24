@@ -1,7 +1,6 @@
 package com.github.laxy.domain.user
 
 import com.github.laxy.domain.auth.JwtToken
-import com.github.laxy.domain.validation.DomainError
 import com.github.laxy.persistence.UserId
 import com.github.laxy.persistence.UserPersistence
 import com.github.laxy.shared.InteractionResult
@@ -17,39 +16,39 @@ data class Login(val email: String, val password: String)
 data class UserInfo(val username: String, val email: String)
 
 interface UserService {
-    suspend fun register(input: RegisterUser): InteractionResult<DomainError, UserId>
+    suspend fun register(input: RegisterUser): InteractionResult<UserId>
 
-    suspend fun login(input: Login): InteractionResult<DomainError, Pair<JwtToken, UserInfo>>
+    suspend fun login(input: Login): InteractionResult<Pair<JwtToken, UserInfo>>
 
-    suspend fun update(input: UpdateUser): InteractionResult<DomainError, UserInfo>
+    suspend fun update(input: UpdateUser): InteractionResult<UserInfo>
 
-    suspend fun getUser(userId: UserId): InteractionResult<DomainError, UserInfo>
+    suspend fun getUser(userId: UserId): InteractionResult<UserInfo>
 
-    suspend fun getUser(username: String): InteractionResult<DomainError, UserInfo>
+    suspend fun getUser(username: String): InteractionResult<UserInfo>
 }
 
 fun userService(persistence: UserPersistence) =
     object : UserService {
-        override suspend fun register(input: RegisterUser): InteractionResult<DomainError, UserId> =
+        override suspend fun register(input: RegisterUser): InteractionResult<UserId> =
             interaction {
                 val (username, email, password) = input.validate().bind()
                 val userId = persistence.insert(username, email, password).bind()
                 return Success(userId)
             }
 
-        override suspend fun login(input: Login): InteractionResult<DomainError, Pair<JwtToken, UserInfo>>  = interaction {
+        override suspend fun login(input: Login): InteractionResult<Pair<JwtToken, UserInfo>>  = interaction {
             TODO("Not yet implemented")
         }
 
-        override suspend fun update(input: UpdateUser): InteractionResult<DomainError, UserInfo> {
+        override suspend fun update(input: UpdateUser): InteractionResult<UserInfo> {
             TODO("Not yet implemented")
         }
 
-        override suspend fun getUser(userId: UserId): InteractionResult<DomainError, UserInfo> {
+        override suspend fun getUser(userId: UserId): InteractionResult<UserInfo> {
             TODO("Not yet implemented")
         }
 
-        override suspend fun getUser(username: String): InteractionResult<DomainError, UserInfo> {
+        override suspend fun getUser(username: String): InteractionResult<UserInfo> {
             TODO("Not yet implemented")
         }
     }
