@@ -5,7 +5,6 @@ import com.cjcrafter.openai.chat.chatRequest
 import com.cjcrafter.openai.openAI
 import com.github.laxy.domain.validation.DomainError
 import com.github.laxy.domain.validation.notNull
-import com.github.laxy.shared.Failure
 import com.github.laxy.shared.InteractionResult
 import com.github.laxy.shared.Success
 import com.github.laxy.shared.interaction
