@@ -38,6 +38,7 @@ fun userService(persistence: UserPersistence) =
             }
 
         override suspend fun login(input: Login): InteractionResult<DomainError, Pair<JwtToken, UserInfo>>  = interaction {
+            TODO("Not yet implemented")
         }
 
         override suspend fun update(input: UpdateUser): InteractionResult<DomainError, UserInfo> {

@@ -16,6 +16,7 @@ kjwt="0.9.0"
 kotest-testcontainers="2.0.2"
 cohort="2.3.0"
 spotless="6.22.0"
+openai="2.1.0"
 
 [libraries]
 coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm", version.ref = "coroutines" }
@@ -53,6 +54,7 @@ postgresql = { module="org.postgresql:postgresql", version.ref="postgresql" }
 kjwt-core = { module="io.github.nefilim.kjwt:kjwt-core", version.ref="kjwt" }
 cohort-core = { module="com.sksamuel.cohort:cohort-core", version.ref="cohort" }
 cohort-hikari = { module="com.sksamuel.cohort:cohort-hikari", version.ref="cohort" }
+openai = { module = "com.cjcrafter:openai", version.ref = "openai" }
 
 [bundles]
 ktor-server = [

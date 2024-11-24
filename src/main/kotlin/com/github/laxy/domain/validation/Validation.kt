@@ -6,37 +6,14 @@ import com.github.laxy.shared.Failure
 import com.github.laxy.shared.InteractionResult
 import com.github.laxy.shared.Success
 
-sealed interface InvalidField : ApplicationError {
-    val errors: List<ApplicationError>
-    val field: String
-}
-
 data class TextError(val message: String) : ApplicationError {
     companion object {
         fun textError(message: String) = TextError(message)
     }
 }
 
-data class InvalidEmail(override val errors: List<ApplicationError>) : InvalidField {
-    override val field = "email"
-}
-
-data class InvalidUsername(override val errors: List<ApplicationError>) : InvalidField {
-    override val field = "username"
-}
-
-data class InvalidPassword(override val errors: List<ApplicationError>) : InvalidField {
-    override val field: String = "password"
-}
-
-fun String.validPassword(): InteractionResult<ApplicationError, String> =
-    listOf(
-        notBlank(),
-        minSize(MIN_PASSWORD_LENGTH),
-        maxSize(MAX_PASSWORD_LENGTH)
-    ).accumulateErrors(this) { errors ->
-        InvalidPassword(errors)
-    }
+fun String?.notNull(): InteractionResult<TextError, String> =
+    if (this != null) Success(this) else Failure(textError("cannot be null"))
 
 fun String.notBlank(): InteractionResult<TextError, String> =
     if (isNotBlank()) Success(this) else Failure(textError("cannot be blank"))
@@ -61,5 +38,13 @@ fun <E : ApplicationError, ID, OD> List<InteractionResult<E, ID>>.accumulateErro
     }
 }
 
-private const val MIN_PASSWORD_LENGTH = 8
-private const val MAX_PASSWORD_LENGTH = 100
+fun InteractionResult<ApplicationError, String>.bindInteraction(
+    value: String,
+    onError: (ApplicationError) -> ApplicationError
+): InteractionResult<ApplicationError, String> {
+    return when (this) {
+        is Failure<ApplicationError, String> -> Failure(onError(this.error))
+        is Success<ApplicationError, String> -> Success(value)
+    }
+}
+
