@@ -1,10 +1,9 @@
 package com.github.laxy.persistence
 
 import com.github.laxy.domain.user.UserInfo
-import com.github.laxy.domain.validation.DomainError
-import com.github.laxy.domain.validation.UsernameAlreadyExists
 import com.github.laxy.shared.Failure
 import com.github.laxy.shared.InteractionResult
+import com.github.laxy.shared.IllegalStateError.Companion.illegalState
 import com.github.laxy.shared.Success
 import com.github.laxy.sqldelight.UsersQueries
 import java.util.UUID.randomUUID
@@ -20,23 +19,24 @@ interface UserPersistence {
         username: String,
         email: String,
         password: String
-    ): InteractionResult<DomainError, UserId>
+    ): InteractionResult<UserId>
 
     suspend fun verifyPassword(
         email: String,
         password: String
-    ): InteractionResult<DomainError, Pair<UserId, UserInfo>>
+    ): InteractionResult<Pair<UserId, UserInfo>>
 
-    suspend fun select(userId: UserId): InteractionResult<DomainError, UserInfo>
+    suspend fun select(userId: UserId): InteractionResult<UserInfo>
 
-    suspend fun select(username: String): InteractionResult<DomainError, UserId>
+    suspend fun select(username: String): InteractionResult<UserId>
 
     suspend fun update(
         userId: UserId,
         email: String?,
         username: String?,
         password: String?
-    ): InteractionResult<DomainError, UserInfo>
+    ): InteractionResult<UserInfo>
+
 }
 
 fun userPersistence(
@@ -50,14 +50,14 @@ fun userPersistence(
             username: String,
             email: String,
             password: String
-        ): InteractionResult<DomainError, UserId> {
+        ): InteractionResult<UserId> {
             val salt = generateSalt()
             val key = generateKey(password, salt)
             return try {
                 Success(usersQueries.create(username, email, salt, key))
             } catch (e: PSQLException) {
                 if (e.sqlState == PSQLState.UNIQUE_VIOLATION.state)
-                    Failure(UsernameAlreadyExists(username))
+                    Failure(illegalState(username))
                 else throw e
             }
         }
@@ -65,15 +65,15 @@ fun userPersistence(
         override suspend fun verifyPassword(
             email: String,
             password: String
-        ): InteractionResult<DomainError, Pair<UserId, UserInfo>> {
+        ): InteractionResult<Pair<UserId, UserInfo>> {
             TODO("Not yet implemented")
         }
 
-        override suspend fun select(userId: UserId): InteractionResult<DomainError, UserInfo> {
+        override suspend fun select(userId: UserId): InteractionResult<UserInfo> {
             TODO("Not yet implemented")
         }
 
-        override suspend fun select(username: String): InteractionResult<DomainError, UserId> {
+        override suspend fun select(username: String): InteractionResult<UserId> {
             TODO("Not yet implemented")
         }
 
@@ -82,7 +82,7 @@ fun userPersistence(
             email: String?,
             username: String?,
             password: String?
-        ): InteractionResult<DomainError, UserInfo> {
+        ): InteractionResult<UserInfo> {
             TODO("Not yet implemented")
         }
 
