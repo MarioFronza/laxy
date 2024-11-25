@@ -1,6 +1,8 @@
 package com.github.laxy.domain.auth
 
 import arrow.core.Either
+import arrow.core.Either.Left
+import arrow.core.Either.Right
 import com.github.laxy.env.Env
 import com.github.laxy.persistence.UserId
 import com.github.laxy.persistence.UserPersistence
@@ -43,19 +45,18 @@ fun jwtService(env: Env.Auth, persistence: UserPersistence) =
                 .map { JwtToken(it.rendered) }
 
             return when (jwt) {
-                is Either.Left -> Failure(jwt.value)
-                is Either.Right -> Success(jwt.value)
+                is Left -> Failure(jwt.value)
+                is Right -> Success(jwt.value)
             }
         }
 
         override suspend fun verifyJwtToken(token: JwtToken): InteractionResult<UserId> = interaction {
-            val jwt = JWT.decodeT(token.value, JWSES512Algorithm)
-            return when (jwt) {
-                is Either.Left -> Failure(illegalState("Invalid JWT"))
-                is Either.Right -> {
-                    val userId = jwt.value.claimValueAsLong("id").orNull()
+            return when (val decodeResponse = JWT.decodeT(token.value, JWSES512Algorithm)) {
+                is Left -> Failure(illegalState("Invalid JWT"))
+                is Right -> {
+                    val userId = decodeResponse.value.claimValueAsLong("id").orNull()
                         ?: return Failure(illegalState("id missing from JWT Token"))
-                    val expiresAt = jwt.value.expiresAt().orNull()
+                    val expiresAt = decodeResponse.value.expiresAt().orNull()
                     if(expiresAt == null || expiresAt.isAfter(Instant.now(Clock.systemUTC()))){
                         return Failure(illegalState("JWT Token expired"))
                     }
