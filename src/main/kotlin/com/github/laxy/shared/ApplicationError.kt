@@ -1,13 +1,13 @@
 package com.github.laxy.shared
 
-interface ApplicationError
-
-data class IllegalStateError(val message: String) : ApplicationError {
-    companion object {
-        fun illegalState(message: String) = IllegalStateError(message)
-    }
+sealed interface ApplicationError {
+    val errors: List<String>
 }
 
-data class IncorrectBehaviors(
-    val errors: List<ApplicationError>
-): ApplicationError
+data class IllegalStateError(override val errors: List<String>) : ApplicationError {
+    companion object {
+        fun illegalState(message: String) = IllegalStateError(listOf(message))
+
+        fun illegalStates(errors: List<String>) = IllegalStateError(errors)
+    }
+}

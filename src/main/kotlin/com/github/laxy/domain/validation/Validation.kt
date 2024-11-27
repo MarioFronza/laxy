@@ -1,11 +1,11 @@
 package com.github.laxy.domain.validation
 
+import com.github.laxy.shared.ApplicationError
 import com.github.laxy.shared.Failure
 import com.github.laxy.shared.InteractionResult
 import com.github.laxy.shared.IllegalStateError.Companion.illegalState
-import com.github.laxy.shared.IncorrectBehaviors
+import com.github.laxy.shared.IllegalStateError.Companion.illegalStates
 import com.github.laxy.shared.Success
-
 
 
 fun String?.notNull(): InteractionResult<String> =
@@ -25,11 +25,11 @@ fun String.maxSize(size: Int): InteractionResult<String> =
 fun <ID, OD> List<InteractionResult<ID>>.accumulateErrors(
     value: OD
 ): InteractionResult<OD> {
-    val errors = this.filterIsInstance<Failure<ID>>().map { it.error }
+    val errors = this.filterIsInstance<Failure<ApplicationError>>().flatMap { it.applicationError.errors }
     return if (errors.isEmpty()) {
         Success(value)
     } else {
-        Failure(IncorrectBehaviors(errors))
+        Failure(illegalStates(errors))
     }
 }
 
