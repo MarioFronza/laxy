@@ -1,7 +1,10 @@
 package com.github.laxy.route
 
 import com.github.laxy.shared.ApplicationError
+import com.github.laxy.shared.Failure
 import com.github.laxy.shared.IllegalStateError
+import com.github.laxy.shared.InteractionResult
+import com.github.laxy.shared.Success
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.ApplicationCall
 import io.ktor.server.application.call
@@ -14,6 +17,14 @@ data class GenericErrorModel(val errors: GenericErrorModelErrors)
 
 @Serializable
 data class GenericErrorModelErrors(val body: List<String>)
+
+context(PipelineContext<Unit, ApplicationCall>)
+suspend inline fun <reified D : Any> InteractionResult<D>.respond(status: HttpStatusCode): Unit {
+    when (this) {
+        is Failure -> respond(applicationError)
+        is Success -> call.respond(status, data)
+    }
+}
 
 suspend fun PipelineContext<Unit, ApplicationCall>.respond(error: ApplicationError) {
     when (error) {

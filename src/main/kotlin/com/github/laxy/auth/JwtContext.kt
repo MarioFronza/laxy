@@ -1,5 +1,6 @@
-package com.github.laxy.domain.auth
+package com.github.laxy.auth
 
+import com.github.laxy.domain.auth.JwtService
 import com.github.laxy.persistence.UserId
 import com.github.laxy.route.respond
 import com.github.laxy.shared.Failure

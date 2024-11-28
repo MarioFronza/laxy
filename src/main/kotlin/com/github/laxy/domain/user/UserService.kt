@@ -1,6 +1,6 @@
 package com.github.laxy.domain.user
 
-import com.github.laxy.domain.auth.JwtToken
+import com.github.laxy.auth.JwtToken
 import com.github.laxy.persistence.UserId
 import com.github.laxy.persistence.UserPersistence
 import com.github.laxy.shared.InteractionResult

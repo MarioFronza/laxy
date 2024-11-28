@@ -1,4 +1,5 @@
 import com.github.laxy.setupDetekt
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     application
@@ -36,6 +37,12 @@ repositories {
 }
 
 tasks {
+    withType<KotlinCompile>().configureEach {
+        compilerOptions {
+            freeCompilerArgs.add("-Xcontext-receivers")
+        }
+    }
+
     test {
         useJUnitPlatform()
     }
