@@ -8,7 +8,10 @@ sealed class InteractionResult<out E> {
         }
 }
 
-data class Failure<E>(val applicationError: ApplicationError) : InteractionResult<E>()
+data class Failure<E>(val applicationError: ApplicationError) : InteractionResult<E>() {
+    val errors
+        get() = applicationError.errors
+}
 
 data class Success<E>(val data: E) : InteractionResult<E>()
 
