@@ -19,7 +19,7 @@ data class GenericErrorModel(val errors: GenericErrorModelErrors)
 data class GenericErrorModelErrors(val body: List<String>)
 
 context(PipelineContext<Unit, ApplicationCall>)
-suspend inline fun <reified D : Any> InteractionResult<D>.respond(status: HttpStatusCode): Unit {
+suspend inline fun <reified D : Any> InteractionResult<D>.respond(status: HttpStatusCode) {
     when (this) {
         is Failure -> respond(applicationError)
         is Success -> call.respond(status, data)

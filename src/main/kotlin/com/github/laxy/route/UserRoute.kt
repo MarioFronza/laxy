@@ -1,7 +1,10 @@
 package com.github.laxy.route
 
+import com.github.laxy.auth.jwtAuth
 import com.github.laxy.domain.auth.JwtService
+import com.github.laxy.domain.user.Login
 import com.github.laxy.domain.user.RegisterUser
+import com.github.laxy.domain.user.UpdateUser
 import com.github.laxy.domain.user.UserService
 import com.github.laxy.shared.Failure
 import com.github.laxy.shared.IllegalStateError
@@ -13,6 +16,8 @@ import io.ktor.resources.Resource
 import io.ktor.server.application.ApplicationCall
 import io.ktor.server.application.call
 import io.ktor.server.request.receive
+import io.ktor.server.resources.get
+import io.ktor.server.resources.put
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
 import io.ktor.util.pipeline.PipelineContext
@@ -31,21 +36,17 @@ data class NewUser(
 )
 
 @Serializable
-data class UpdateUser(
+data class UpdateUserRequest(
     val email: String? = null,
     val username: String? = null,
-    val password: String? = null,
-    val bio: String? = null,
-    val image: String? = null
+    val password: String? = null
 )
 
 @Serializable
 data class User(
     val email: String,
     val token: String,
-    val username: String,
-    val bio: String,
-    val image: String
+    val username: String
 )
 
 @Serializable
@@ -67,13 +68,43 @@ fun Route.userRoutes(
     userService: UserService,
     jwtService: JwtService
 ) {
-    post<UserResource> {
+    post<UsersResource> {
         interaction {
             val (username, email, password) = receiveCatching<UserWrapper<NewUser>>().bind().user
             val token = userService.register(RegisterUser(username, email, password)).bind().serial
-            val wrapper = UserWrapper(User(email, token.toString(), username, "", ""))
+            val wrapper = UserWrapper(User(email, token.toString(), username))
             Success(wrapper)
         }.respond(HttpStatusCode.OK)
+    }
+
+    post<UsersResource.Login> {
+        interaction {
+            val (email, password) = receiveCatching<UserWrapper<LoginUser>>().bind().user
+            val (token, info) = userService.login(Login(email, password)).bind()
+            val wrapper = UserWrapper(User(email, token.value, info.username))
+            Success(wrapper)
+        }.respond(HttpStatusCode.OK)
+    }
+
+    get<UserResource> {
+        jwtAuth(jwtService) { (token, userId) ->
+            interaction {
+                val info = userService.getUser(userId).bind()
+                val wrapper = UserWrapper(User(info.email, token.value, info.username))
+                Success(wrapper)
+            }.respond(HttpStatusCode.OK)
+        }
+    }
+
+    put<UserResource> {
+        jwtAuth(jwtService) { (token, userId) ->
+            interaction {
+                val (email, username, password) = receiveCatching<UserWrapper<UpdateUserRequest>>().bind().user
+                val info = userService.update(UpdateUser(userId, username, email, password)).bind()
+                val wrapper = UserWrapper(User(info.email, token.value, info.username))
+                Success(wrapper)
+            }.respond(HttpStatusCode.OK)
+        }
     }
 }
 

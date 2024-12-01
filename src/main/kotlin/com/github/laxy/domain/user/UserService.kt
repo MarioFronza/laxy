@@ -9,7 +9,12 @@ import com.github.laxy.shared.interaction
 
 data class RegisterUser(val username: String, val email: String, val password: String)
 
-data class UpdateUser(val userId: UserId, val username: String?, val email: String?)
+data class UpdateUser(
+    val userId: UserId,
+    val username: String?,
+    val email: String?,
+    val password: String?
+)
 
 data class Login(val email: String, val password: String)
 
@@ -36,7 +41,7 @@ fun userService(persistence: UserPersistence) =
                 return Success(userId)
             }
 
-        override suspend fun login(input: Login): InteractionResult<Pair<JwtToken, UserInfo>>  = interaction {
+        override suspend fun login(input: Login): InteractionResult<Pair<JwtToken, UserInfo>> = interaction {
             TODO("Not yet implemented")
         }
 
