@@ -5,6 +5,7 @@ import com.github.laxy.shared.Failure
 import com.github.laxy.shared.InteractionResult
 import com.github.laxy.shared.IllegalStateError.Companion.illegalState
 import com.github.laxy.shared.Success
+import com.github.laxy.shared.interaction
 import com.github.laxy.sqldelight.UsersQueries
 import java.util.UUID.randomUUID
 import javax.crypto.SecretKeyFactory
@@ -12,7 +13,8 @@ import javax.crypto.spec.PBEKeySpec
 import org.postgresql.util.PSQLException
 import org.postgresql.util.PSQLState
 
-@JvmInline value class UserId(val serial: Long)
+@JvmInline
+value class UserId(val serial: Long)
 
 interface UserPersistence {
     suspend fun insert(
@@ -28,7 +30,7 @@ interface UserPersistence {
 
     suspend fun select(userId: UserId): InteractionResult<UserInfo>
 
-    suspend fun select(username: String): InteractionResult<UserId>
+    suspend fun select(username: String): InteractionResult<UserInfo>
 
     suspend fun update(
         userId: UserId,
@@ -36,7 +38,6 @@ interface UserPersistence {
         username: String?,
         password: String?
     ): InteractionResult<UserInfo>
-
 }
 
 fun userPersistence(
@@ -65,16 +66,31 @@ fun userPersistence(
         override suspend fun verifyPassword(
             email: String,
             password: String
-        ): InteractionResult<Pair<UserId, UserInfo>> {
-            TODO("Not yet implemented")
+        ): InteractionResult<Pair<UserId, UserInfo>> = interaction {
+            val queryResponse = usersQueries.selectSecurityByEmail(email).executeAsOneOrNull()
+                ?: return Failure(illegalState("User not found for"))
+            val (userId, username, salt, key) = queryResponse
+            val hash = generateKey(password, salt)
+            if (!key.contentEquals(hash)) {
+                return Failure(illegalState("Password not matched"))
+            }
+            Success(Pair(userId, UserInfo(username, email)))
         }
 
-        override suspend fun select(userId: UserId): InteractionResult<UserInfo> {
-            TODO("Not yet implemented")
+        override suspend fun select(userId: UserId): InteractionResult<UserInfo> = interaction {
+            val userInfo = usersQueries.selectById(userId) { email, username, _, _ ->
+                UserInfo(username, email)
+            }.executeAsOneOrNull()
+            if (userInfo == null) {
+                return Failure(illegalState("User not found"))
+            }
+            Success(userInfo)
         }
 
-        override suspend fun select(username: String): InteractionResult<UserId> {
-            TODO("Not yet implemented")
+        override suspend fun select(username: String): InteractionResult<UserInfo> = interaction {
+            val userInfo = usersQueries.selectByUsername(username, ::UserInfo).executeAsOneOrNull()
+                ?: return Failure(illegalState("User not found"))
+            Success(userInfo)
         }
 
         override suspend fun update(
