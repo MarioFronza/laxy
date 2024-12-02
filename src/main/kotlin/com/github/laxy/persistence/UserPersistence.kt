@@ -98,8 +98,21 @@ fun userPersistence(
             email: String?,
             username: String?,
             password: String?
-        ): InteractionResult<UserInfo> {
-            TODO("Not yet implemented")
+        ): InteractionResult<UserInfo> = interaction {
+            val info = usersQueries.transactionWithResult {
+                usersQueries.selectById(userId).executeAsOneOrNull()
+                    ?.let { (oldEmail, oldUsername, salt, oldPassword) ->
+                        val newPassword = password?.let { generateKey(it, salt) } ?: oldPassword
+                        val newEmail = email ?: oldEmail
+                        val newUsername = username ?: oldUsername
+                        usersQueries.update(newEmail, newUsername, newPassword, userId)
+                        UserInfo(newUsername, newEmail)
+                    }
+            }
+            if (info == null) {
+                return Failure(illegalState("User not found"))
+            }
+            Success(info)
         }
 
         private fun generateSalt(): ByteArray = randomUUID().toString().toByteArray()
