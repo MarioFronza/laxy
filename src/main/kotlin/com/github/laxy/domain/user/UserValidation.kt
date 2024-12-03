@@ -5,10 +5,9 @@ import com.github.laxy.domain.validation.maxSize
 import com.github.laxy.domain.validation.minSize
 import com.github.laxy.domain.validation.notBlank
 import com.github.laxy.shared.Failure
+import com.github.laxy.shared.IllegalStateError.Companion.illegalState
 import com.github.laxy.shared.InteractionResult
 import com.github.laxy.shared.Success
-import com.github.laxy.shared.IllegalStateError.Companion.illegalState
-
 
 fun RegisterUser.validate(): InteractionResult<RegisterUser> {
     return listOf(username.validUsername(), email.validateEmail()).accumulateErrors(this)
@@ -35,11 +34,8 @@ fun String.validUsername(): InteractionResult<String> {
 }
 
 fun String.validPassword(): InteractionResult<String> =
-    listOf(
-        notBlank(),
-        minSize(MIN_PASSWORD_LENGTH),
-        maxSize(MAX_PASSWORD_LENGTH)
-    ).accumulateErrors(this)
+    listOf(notBlank(), minSize(MIN_PASSWORD_LENGTH), maxSize(MAX_PASSWORD_LENGTH))
+        .accumulateErrors(this)
 
 private fun String.looksLikeEmail(): InteractionResult<String> =
     if (emailPattern.matches(this)) Success("valid")

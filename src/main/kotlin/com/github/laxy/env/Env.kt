@@ -32,9 +32,7 @@ data class Env(
         val driver: String = JDBC_DRIVER
     )
 
-    data class OpenAI(
-        val token: String = getenv("OPENAI_TOKEN") ?: OPENAI_TOKEN
-    )
+    data class OpenAI(val token: String = getenv("OPENAI_TOKEN") ?: OPENAI_TOKEN)
 
     data class Auth(
         val secret: String = getenv("JWT_SECRET") ?: AUTH_SECRET,

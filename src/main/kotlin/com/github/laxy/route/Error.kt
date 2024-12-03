@@ -12,11 +12,9 @@ import io.ktor.server.response.respond
 import io.ktor.util.pipeline.PipelineContext
 import kotlinx.serialization.Serializable
 
-@Serializable
-data class GenericErrorModel(val errors: GenericErrorModelErrors)
+@Serializable data class GenericErrorModel(val errors: GenericErrorModelErrors)
 
-@Serializable
-data class GenericErrorModelErrors(val body: List<String>)
+@Serializable data class GenericErrorModelErrors(val body: List<String>)
 
 context(PipelineContext<Unit, ApplicationCall>)
 suspend inline fun <reified D : Any> InteractionResult<D>.respond(status: HttpStatusCode) {
@@ -32,16 +30,16 @@ suspend fun PipelineContext<Unit, ApplicationCall>.respond(error: ApplicationErr
     }
 }
 
-private suspend inline fun PipelineContext<Unit, ApplicationCall>.unprocessable(
-    error: String
-) = call.respond(
-    HttpStatusCode.UnprocessableEntity,
-    GenericErrorModel(GenericErrorModelErrors(listOf(error)))
-)
+private suspend inline fun PipelineContext<Unit, ApplicationCall>.unprocessable(error: String) =
+    call.respond(
+        HttpStatusCode.UnprocessableEntity,
+        GenericErrorModel(GenericErrorModelErrors(listOf(error)))
+    )
 
 private suspend inline fun PipelineContext<Unit, ApplicationCall>.unprocessable(
     errors: List<String>
-) = call.respond(
-    HttpStatusCode.UnprocessableEntity,
-    GenericErrorModel(GenericErrorModelErrors(errors))
-)
+) =
+    call.respond(
+        HttpStatusCode.UnprocessableEntity,
+        GenericErrorModel(GenericErrorModelErrors(errors))
+    )

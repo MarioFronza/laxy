@@ -1,8 +1,14 @@
 package com.github.laxy.domain.user
 
 import com.github.laxy.auth.JwtToken
+import com.github.laxy.domain.auth.JwtService
+import com.github.laxy.domain.auth.jwtService
+import com.github.laxy.domain.auth.validate
 import com.github.laxy.persistence.UserId
 import com.github.laxy.persistence.UserPersistence
+import com.github.laxy.shared.Failure
+import com.github.laxy.shared.IllegalStateError
+import com.github.laxy.shared.IllegalStateError.Companion.illegalState
 import com.github.laxy.shared.InteractionResult
 import com.github.laxy.shared.Success
 import com.github.laxy.shared.interaction
@@ -32,7 +38,7 @@ interface UserService {
     suspend fun getUser(username: String): InteractionResult<UserInfo>
 }
 
-fun userService(persistence: UserPersistence) =
+fun userService(persistence: UserPersistence, jwtService: JwtService) =
     object : UserService {
         override suspend fun register(input: RegisterUser): InteractionResult<UserId> =
             interaction {
@@ -42,18 +48,25 @@ fun userService(persistence: UserPersistence) =
             }
 
         override suspend fun login(input: Login): InteractionResult<Pair<JwtToken, UserInfo>> = interaction {
-            TODO("Not yet implemented")
+            val (email, password) = input.validate().bind()
+            val (userId, info) = persistence.verifyPassword(email, password).bind()
+            val token = jwtService.generateJwtToken(userId).bind()
+            return Success(Pair(token, info))
         }
 
         override suspend fun update(input: UpdateUser): InteractionResult<UserInfo> {
-            TODO("Not yet implemented")
+            val (userId, username, email, password) = input.validate().bind()
+            if (email != null || username != null) {
+                return Failure(illegalState("Cannot update user with only null values"))
+            }
+            return persistence.update(userId, username, email, password)
         }
 
         override suspend fun getUser(userId: UserId): InteractionResult<UserInfo> {
-            TODO("Not yet implemented")
+            return persistence.select(userId)
         }
 
         override suspend fun getUser(username: String): InteractionResult<UserInfo> {
-            TODO("Not yet implemented")
+            return persistence.select(username)
         }
     }

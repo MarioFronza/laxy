@@ -2,18 +2,21 @@ package com.github.laxy.env
 
 import com.github.laxy.domain.ai.GptAIService
 import com.github.laxy.domain.ai.gptAIService
+import com.github.laxy.domain.auth.JwtService
+import com.github.laxy.domain.auth.jwtService
 import com.github.laxy.domain.user.UserService
 import com.github.laxy.domain.user.userService
 import com.github.laxy.persistence.userPersistence
 import com.sksamuel.cohort.HealthCheckRegistry
 import com.sksamuel.cohort.hikari.HikariConnectionsHealthCheck
-import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.Dispatchers
+import kotlin.time.Duration.Companion.seconds
 
 class DependencyRegistry(
     val healthCheck: HealthCheckRegistry,
     val userService: UserService,
-    val gptAIService: GptAIService
+    val gptAIService: GptAIService,
+    val jwtService: JwtService
 )
 
 fun dependencies(env: Env): DependencyRegistry {
@@ -21,7 +24,8 @@ fun dependencies(env: Env): DependencyRegistry {
     val openAI = env.openAI
     val sqlDelight = sqlDelight(hikari)
     val userPersistence = userPersistence(sqlDelight.usersQueries)
-    val userService = userService(userPersistence)
+    val jwtService = jwtService(env.auth, userPersistence)
+    val userService = userService(userPersistence, jwtService)
     val gptAIService = gptAIService(openAI.token)
     val checks =
         HealthCheckRegistry(Dispatchers.Default) {
@@ -34,6 +38,7 @@ fun dependencies(env: Env): DependencyRegistry {
     return DependencyRegistry(
         healthCheck = checks,
         userService = userService,
-        gptAIService = gptAIService
+        gptAIService = gptAIService,
+        jwtService = jwtService
     )
 }

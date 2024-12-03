@@ -28,22 +28,24 @@ import kotlin.time.toJavaDuration
 
 interface JwtService {
     suspend fun generateJwtToken(userId: UserId): InteractionResult<JwtToken>
+
     suspend fun verifyJwtToken(token: JwtToken): InteractionResult<UserId>
 }
 
 fun jwtService(env: Env.Auth, persistence: UserPersistence) =
     object : JwtService {
         override suspend fun generateJwtToken(userId: UserId): InteractionResult<JwtToken> {
-            val jwt = JWT.hs512 {
-                val now = Instant.now(Clock.systemUTC())
-                issuedAt(now)
-                expiresAt(now + env.duration.toJavaDuration())
-                issuer(env.issuer)
-                claim("id", userId.serial)
-            }
-                .sign(env.secret)
-                .toUserServiceError()
-                .map { JwtToken(it.rendered) }
+            val jwt =
+                JWT.hs512 {
+                        val now = Instant.now(Clock.systemUTC())
+                        issuedAt(now)
+                        expiresAt(now + env.duration.toJavaDuration())
+                        issuer(env.issuer)
+                        claim("id", userId.serial)
+                    }
+                    .sign(env.secret)
+                    .toUserServiceError()
+                    .map { JwtToken(it.rendered) }
 
             return when (jwt) {
                 is Left -> Failure(jwt.value)
@@ -51,28 +53,32 @@ fun jwtService(env: Env.Auth, persistence: UserPersistence) =
             }
         }
 
-        override suspend fun verifyJwtToken(token: JwtToken): InteractionResult<UserId> = interaction {
-            return when (val decodeResponse = JWT.decodeT(token.value, JWSES512Algorithm)) {
-                is Left -> Failure(illegalState("Invalid JWT"))
-                is Right -> {
-                    val userId = decodeResponse.value.claimValueAsLong("id").orNull()
-                        ?: return Failure(illegalState("id missing from JWT Token"))
-                    val expiresAt = decodeResponse.value.expiresAt().orNull()
-                    if(expiresAt == null || expiresAt.isAfter(Instant.now(Clock.systemUTC()))){
-                        return Failure(illegalState("JWT Token expired"))
+        override suspend fun verifyJwtToken(token: JwtToken): InteractionResult<UserId> =
+            interaction {
+                return when (val decodeResponse = JWT.decodeT(token.value, JWSES512Algorithm)) {
+                    is Left -> Failure(illegalState("Invalid JWT"))
+                    is Right -> {
+                        val userId =
+                            decodeResponse.value.claimValueAsLong("id").orNull()
+                                ?: return Failure(illegalState("id missing from JWT Token"))
+                        val expiresAt = decodeResponse.value.expiresAt().orNull()
+                        if (
+                            expiresAt == null || expiresAt.isAfter(Instant.now(Clock.systemUTC()))
+                        ) {
+                            return Failure(illegalState("JWT Token expired"))
+                        }
+                        persistence.select(UserId(userId)).bind()
+                        Success(UserId(userId))
                     }
-                    persistence.select(UserId(userId)).bind()
-                    Success(UserId(userId))
                 }
             }
-        }
     }
 
-private fun <A : JWSAlgorithm> Either<KJWTSignError, SignedJWT<A>>.toUserServiceError(): Either<IllegalStateError, SignedJWT<A>> =
-    mapLeft { jwtError ->
-        when (jwtError) {
-            InvalidKey -> illegalState("JWT singing error: invalid Secret Key.")
-            InvalidJWTData -> illegalState("JWT singing error: Generated with incorrect JWT data")
-            is SigningError -> illegalState("JWT singing error: ${jwtError.cause}")
-        }
+private fun <A : JWSAlgorithm> Either<KJWTSignError, SignedJWT<A>>.toUserServiceError():
+    Either<IllegalStateError, SignedJWT<A>> = mapLeft { jwtError ->
+    when (jwtError) {
+        InvalidKey -> illegalState("JWT singing error: invalid Secret Key.")
+        InvalidJWTData -> illegalState("JWT singing error: Generated with incorrect JWT data")
+        is SigningError -> illegalState("JWT singing error: ${jwtError.cause}")
     }
+}

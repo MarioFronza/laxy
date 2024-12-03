@@ -8,20 +8,18 @@ import com.github.laxy.shared.InteractionResult
 import com.github.laxy.shared.Success
 import com.github.laxy.shared.interaction
 
-data class ChatCompletionContent(
-    val message: String
-)
+data class ChatCompletionContent(val message: String)
 
 interface GptAIService {
     suspend fun chatCompletion(input: ChatCompletionContent): InteractionResult<String>
 }
 
 fun gptAIService(openAIKey: String) =
-    object: GptAIService{
-        override suspend fun chatCompletion(input: ChatCompletionContent): InteractionResult<String> = interaction{
-            val openAI = openAI {
-                apiKey(openAIKey)
-            }
+    object : GptAIService {
+        override suspend fun chatCompletion(
+            input: ChatCompletionContent
+        ): InteractionResult<String> = interaction {
+            val openAI = openAI { apiKey(openAIKey) }
             val request = chatRequest {
                 model("gpt-3.5-turbo")
                 addMessage(input.message.toSystemMessage())
@@ -30,5 +28,4 @@ fun gptAIService(openAIKey: String) =
             val content = completion.message.content.notNull().bind()
             return Success(content)
         }
-
     }
