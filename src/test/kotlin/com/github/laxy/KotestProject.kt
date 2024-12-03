@@ -12,7 +12,7 @@ import io.kotest.extensions.testcontainers.StartablePerProjectListener
 import org.testcontainers.containers.PostgreSQLContainer
 import org.testcontainers.containers.wait.strategy.Wait
 
-private class PostgreSQL : PostgreSQLContainer<PostgreSQL>("postgres:latest"){
+private class PostgreSQL : PostgreSQLContainer<PostgreSQL>("postgres:latest") {
     init {
         waitingFor(Wait.forListeningPorts())
     }
@@ -29,8 +29,8 @@ object KotestProject : AbstractProjectConfig() {
         Env().copy(dataSource = dataSource)
     }
 
-    val dependencies = dependencies(env)
-    val hikari = hikari(env.dataSource)
+    val dependencies by lazy { dependencies(env) }
+    val hikari by lazy { hikari(env.dataSource) }
 
     override val globalAssertSoftly: Boolean = true
 
@@ -41,8 +41,10 @@ object KotestProject : AbstractProjectConfig() {
         object : TestListener {
             override suspend fun afterTest(testCase: TestCase, result: TestResult) {
                 super.afterTest(testCase, result)
-                hikari.connection.use { conn ->
-                    conn.prepareStatement("TRUNCATE users, tags CASCADE").executeLargeUpdate()
+                hikari.use {
+                    it.connection.use { conn ->
+                        conn.prepareStatement("TRUNCATE users CASCADE").executeLargeUpdate()
+                    }
                 }
             }
         }

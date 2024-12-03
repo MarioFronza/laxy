@@ -21,24 +21,26 @@ class DependencyRegistry(
 
 fun dependencies(env: Env): DependencyRegistry {
     val hikari = hikari(env.dataSource)
-    val openAI = env.openAI
-    val sqlDelight = sqlDelight(hikari)
-    val userPersistence = userPersistence(sqlDelight.usersQueries)
-    val jwtService = jwtService(env.auth, userPersistence)
-    val userService = userService(userPersistence, jwtService)
-    val gptAIService = gptAIService(openAI.token)
-    val checks =
-        HealthCheckRegistry(Dispatchers.Default) {
-            register(
-                check = HikariConnectionsHealthCheck(hikari, 1),
-                initialDelay = 1.seconds,
-                checkInterval = 5.seconds
-            )
-        }
-    return DependencyRegistry(
-        healthCheck = checks,
-        userService = userService,
-        gptAIService = gptAIService,
-        jwtService = jwtService
-    )
+    return hikari.use {
+        val openAI = env.openAI
+        val sqlDelight = sqlDelight(hikari)
+        val userPersistence = userPersistence(sqlDelight.usersQueries)
+        val jwtService = jwtService(env.auth, userPersistence)
+        val userService = userService(userPersistence, jwtService)
+        val gptAIService = gptAIService(openAI.token)
+        val checks =
+            HealthCheckRegistry(Dispatchers.Default) {
+                register(
+                    check = HikariConnectionsHealthCheck(hikari, 1),
+                    initialDelay = 1.seconds,
+                    checkInterval = 5.seconds
+                )
+            }
+        DependencyRegistry(
+            healthCheck = checks,
+            userService = userService,
+            gptAIService = gptAIService,
+            jwtService = jwtService
+        )
+    }
 }

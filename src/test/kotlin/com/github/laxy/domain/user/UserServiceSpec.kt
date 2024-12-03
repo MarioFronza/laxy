@@ -23,7 +23,7 @@ class UserServiceSpec : FreeSpec({
                 password = validPassword
             )
         )
-        val errors = listOf("Cannot be blank", "is too short (minimum is 1 characters)")
+        val errors = listOf("cannot be blank", "is too short (minimum is 1 characters)")
         val expected = Failure<UserId>(illegalStates(errors))
         res shouldBe expected
     }
