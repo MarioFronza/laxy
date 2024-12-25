@@ -53,8 +53,8 @@ fun Route.userRoutes(userService: UserService, jwtService: JwtService) {
                 val (username, email, password) =
                     receiveCatching<UserWrapper<NewUser>>().bind().user
                 val token =
-                    userService.register(RegisterUser(username, email, password)).bind().serial
-                val wrapper = UserWrapper(User(email, token.toString(), username))
+                    userService.register(RegisterUser(username, email, password)).bind().value
+                val wrapper = UserWrapper(User(email, token, username))
                 Success(wrapper)
             }
             .respond(HttpStatusCode.OK)

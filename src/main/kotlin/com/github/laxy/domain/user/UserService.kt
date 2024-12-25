@@ -27,7 +27,7 @@ data class Login(val email: String, val password: String)
 data class UserInfo(val username: String, val email: String)
 
 interface UserService {
-    suspend fun register(input: RegisterUser): InteractionResult<UserId>
+    suspend fun register(input: RegisterUser): InteractionResult<JwtToken>
 
     suspend fun login(input: Login): InteractionResult<Pair<JwtToken, UserInfo>>
 
@@ -40,11 +40,11 @@ interface UserService {
 
 fun userService(persistence: UserPersistence, jwtService: JwtService) =
     object : UserService {
-        override suspend fun register(input: RegisterUser): InteractionResult<UserId> =
+        override suspend fun register(input: RegisterUser): InteractionResult<JwtToken> =
             interaction {
                 val (username, email, password) = input.validate().bind()
                 val userId = persistence.insert(username, email, password).bind()
-                return Success(userId)
+                return jwtService.generateJwtToken(userId)
             }
 
         override suspend fun login(input: Login): InteractionResult<Pair<JwtToken, UserInfo>> = interaction {

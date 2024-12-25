@@ -13,9 +13,9 @@ fun main() {
     val env = Env()
     val dependencies = dependencies(env)
     embeddedServer(
-            factory = Netty,
             port = env.http.port,
-            host = env.http.host,
+        factory = Netty,
+        host = env.http.host,
         ) {
             module(dependencies)
         }

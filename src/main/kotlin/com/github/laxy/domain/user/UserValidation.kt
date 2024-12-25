@@ -10,7 +10,7 @@ import com.github.laxy.shared.InteractionResult
 import com.github.laxy.shared.Success
 
 fun RegisterUser.validate(): InteractionResult<RegisterUser> {
-    return listOf(username.validUsername(), email.validateEmail()).accumulateErrors(this)
+    return listOf(username.validUsername(), email.validateEmail(), password.validPassword()).accumulateErrors(this)
 }
 
 fun UpdateUser.validate(): InteractionResult<UpdateUser> {
@@ -26,10 +26,10 @@ fun String.validateEmail(): InteractionResult<String> {
 fun String.validUsername(): InteractionResult<String> {
     val trimmed = trim()
     return listOf(
-            trimmed.notBlank(),
-            trimmed.minSize(MIN_USERNAME_LENGTH),
-            trimmed.maxSize(MAX_USERNAME_LENGTH)
-        )
+        trimmed.notBlank(),
+        trimmed.minSize(MIN_USERNAME_LENGTH),
+        trimmed.maxSize(MAX_USERNAME_LENGTH)
+    )
         .accumulateErrors(trimmed)
 }
 
@@ -39,7 +39,7 @@ fun String.validPassword(): InteractionResult<String> =
 
 private fun String.looksLikeEmail(): InteractionResult<String> =
     if (emailPattern.matches(this)) Success("valid")
-    else Failure(illegalState("'$this' is invalid email "))
+    else Failure(illegalState("'$this' is invalid email"))
 
 private const val MAX_EMAIL_LENGTH = 350
 private const val MIN_USERNAME_LENGTH = 1
