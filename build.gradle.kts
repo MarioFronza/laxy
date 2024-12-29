@@ -12,6 +12,7 @@ plugins {
     alias(libs.plugins.sqldelight)
     alias(libs.plugins.ktor)
     alias(libs.plugins.spotless)
+    alias(libs.plugins.power.assert)
 }
 
 application {
@@ -64,7 +65,9 @@ spotless {
 }
 
 dependencies {
+    implementation(libs.bundles.arrow)
     implementation(libs.bundles.ktor.server)
+    implementation(libs.bundles.suspendapp)
     implementation(libs.kjwt.core)
     implementation(libs.logback.classic)
     implementation(libs.sqldelight.jdbc)

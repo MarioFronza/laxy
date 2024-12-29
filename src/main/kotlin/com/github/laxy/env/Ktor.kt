@@ -1,5 +1,7 @@
 package com.github.laxy.env
 
+import com.github.laxy.route.LoginUser
+import com.github.laxy.route.UserWrapper
 import io.ktor.http.HttpHeaders
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.application.Application
@@ -12,8 +14,14 @@ import io.ktor.server.resources.Resources
 import kotlin.time.Duration.Companion.days
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.modules.SerializersModule
+import kotlinx.serialization.modules.contextual
+import kotlinx.serialization.modules.polymorphic
+import kotlinx.serialization.modules.subclass
 
-val kotlinXSerializerModule = SerializersModule {}
+val kotlinXSerializerModule = SerializersModule {
+    contextual(UserWrapper::class) { UserWrapper.serializer(LoginUser.serializer()) }
+    polymorphic(Any::class) { subclass(LoginUser::class, LoginUser.serializer()) }
+}
 
 fun Application.configure() {
     install(DefaultHeaders)
@@ -24,8 +32,7 @@ fun Application.configure() {
                 serializersModule = kotlinXSerializerModule
                 isLenient = true
                 ignoreUnknownKeys = true
-            }
-        )
+            })
     }
     install(CORS) {
         allowHeader(HttpHeaders.Authorization)

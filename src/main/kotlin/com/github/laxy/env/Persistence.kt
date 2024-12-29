@@ -2,6 +2,9 @@ package com.github.laxy.env
 
 import app.cash.sqldelight.ColumnAdapter
 import app.cash.sqldelight.driver.jdbc.asJdbcDriver
+import arrow.fx.coroutines.autoCloseable
+import arrow.fx.coroutines.closeable
+import arrow.fx.coroutines.continuations.ResourceScope
 import com.github.laxy.persistence.UserId
 import com.github.laxy.sqldelight.SqlDelight
 import com.github.laxy.sqldelight.Users
@@ -9,7 +12,7 @@ import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import javax.sql.DataSource
 
-fun hikari(env: Env.DataSource) =
+suspend fun ResourceScope.hikari(env: Env.DataSource) = autoCloseable {
     HikariDataSource(
         HikariConfig().apply {
             jdbcUrl = env.url
@@ -18,9 +21,10 @@ fun hikari(env: Env.DataSource) =
             driverClassName = env.driver
         }
     )
+}
 
-fun sqlDelight(dataSource: DataSource): SqlDelight {
-    val driver = dataSource.asJdbcDriver()
+suspend fun ResourceScope.sqlDelight(dataSource: DataSource): SqlDelight {
+    val driver = closeable { dataSource.asJdbcDriver() }
     SqlDelight.Schema.create(driver)
     return SqlDelight(driver, Users.Adapter(userIdAdapter))
 }

@@ -52,7 +52,7 @@ fun userPersistence(
             return try {
                 Success(usersQueries.create(username, email, salt, key))
             } catch (e: PSQLException) {
-                if (e.sqlState == PSQLState.UNIQUE_VIOLATION.state) Failure(illegalState(username))
+                if (e.sqlState == PSQLState.UNIQUE_VIOLATION.state) Failure(illegalState("$username already exists"))
                 else throw e
             }
         }

@@ -1,5 +1,6 @@
 package com.github.laxy.env
 
+import arrow.fx.coroutines.continuations.ResourceScope
 import com.github.laxy.domain.ai.GptAIService
 import com.github.laxy.domain.ai.gptAIService
 import com.github.laxy.domain.auth.JwtService
@@ -19,7 +20,7 @@ class DependencyRegistry(
     val jwtService: JwtService
 )
 
-fun dependencies(env: Env): DependencyRegistry {
+suspend fun ResourceScope.dependencies(env: Env): DependencyRegistry {
     val hikari = hikari(env.dataSource)
     val openAI = env.openAI
     val sqlDelight = sqlDelight(hikari)
