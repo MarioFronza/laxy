@@ -1,6 +1,6 @@
 package com.github.laxy.route
 
-import com.github.laxy.auth.jwtAuth
+import com.github.laxy.domain.auth.jwtAuth
 import com.github.laxy.domain.auth.JwtService
 import com.github.laxy.domain.user.Login
 import com.github.laxy.domain.user.RegisterUser

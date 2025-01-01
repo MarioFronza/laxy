@@ -2,7 +2,7 @@ package com.github.laxy.domain.user
 
 import com.github.laxy.KotestProject
 import com.github.laxy.SuspendFun
-import com.github.laxy.auth.JwtToken
+import com.github.laxy.domain.auth.JwtToken
 import com.github.laxy.shared.Failure
 import com.github.laxy.shared.IllegalStateError.Companion.illegalStates
 import io.kotest.matchers.shouldBe

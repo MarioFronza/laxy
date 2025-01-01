@@ -1,13 +1,11 @@
 package com.github.laxy.domain.user
 
-import com.github.laxy.auth.JwtToken
+import com.github.laxy.domain.auth.JwtToken
 import com.github.laxy.domain.auth.JwtService
-import com.github.laxy.domain.auth.jwtService
 import com.github.laxy.domain.auth.validate
 import com.github.laxy.persistence.UserId
 import com.github.laxy.persistence.UserPersistence
 import com.github.laxy.shared.Failure
-import com.github.laxy.shared.IllegalStateError
 import com.github.laxy.shared.IllegalStateError.Companion.illegalState
 import com.github.laxy.shared.InteractionResult
 import com.github.laxy.shared.Success

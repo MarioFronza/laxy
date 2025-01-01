@@ -3,7 +3,6 @@ package com.github.laxy.domain.auth
 import arrow.core.Either
 import arrow.core.Either.Left
 import arrow.core.Either.Right
-import com.github.laxy.auth.JwtToken
 import com.github.laxy.env.Env
 import com.github.laxy.persistence.UserId
 import com.github.laxy.persistence.UserPersistence
