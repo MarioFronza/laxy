@@ -89,10 +89,10 @@ private fun String.notBlank(): EitherNel<String, String> =
     if (isNotBlank()) right() else "Cannot be blank".leftNel()
 
 private fun String.minSize(size: Int): EitherNel<String, String> =
-    if (length >= size) right() else "is to short (minimum is $size characters)".leftNel()
+    if (length >= size) right() else "is too short (minimum is $size characters)".leftNel()
 
 private fun String.maxSize(size: Int): EitherNel<String, String> =
-    if (length <= size) right() else "is to long (maximum is $size characters)".leftNel()
+    if (length <= size) right() else "is too long (maximum is $size characters)".leftNel()
 
 private fun String.looksLikeEmail(): EitherNel<String, String> =
     if (emailPattern.matches(this)) right() else "'$this' is invalid email".leftNel()

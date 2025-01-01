@@ -55,7 +55,7 @@ fun userService(persistence: UserPersistence, jwtService: JwtService) =
         override suspend fun update(input: UpdateUser): Either<DomainError, UserInfo> = either {
             val (userId, username, email, password) = input.validate().bind()
             ensure(email != null || username != null) {
-                EmptyUpdate("Cannot update with $userId with only null values")
+                EmptyUpdate("Cannot update user with $userId with only null values")
             }
             persistence.update(userId, username, email, password).bind()
         }

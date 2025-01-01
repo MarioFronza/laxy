@@ -49,7 +49,7 @@ fun userPersistence(
         return Either.catchOrThrow<PSQLException, UserId> {
             usersQueries.create(username, email, salt, key)
         }.mapLeft { psqlException ->
-            if (psqlException.sqlState == UNIQUE_VIOLATION.state) UsernameAlreadyExists("$username already exists")
+            if (psqlException.sqlState == UNIQUE_VIOLATION.state) UsernameAlreadyExists(username)
             else throw psqlException
         }
     }
