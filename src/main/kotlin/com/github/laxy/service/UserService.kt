@@ -1,15 +1,14 @@
-package com.github.laxy.domain.user
+package com.github.laxy.service
 
 import arrow.core.Either
 import arrow.core.raise.either
 import arrow.core.raise.ensure
-import com.github.laxy.domain.auth.JwtService
-import com.github.laxy.domain.auth.JwtToken
+import com.github.laxy.auth.JwtToken
 import com.github.laxy.persistence.UserId
 import com.github.laxy.persistence.UserPersistence
-import com.github.laxy.shared.DomainError
-import com.github.laxy.shared.EmptyUpdate
-import com.github.laxy.shared.validate
+import com.github.laxy.DomainError
+import com.github.laxy.EmptyUpdate
+import com.github.laxy.validate
 
 data class RegisterUser(val username: String, val email: String, val password: String)
 

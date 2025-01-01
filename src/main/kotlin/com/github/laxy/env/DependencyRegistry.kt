@@ -1,12 +1,12 @@
 package com.github.laxy.env
 
 import arrow.fx.coroutines.continuations.ResourceScope
-import com.github.laxy.domain.ai.GptAIService
-import com.github.laxy.domain.ai.gptAIService
-import com.github.laxy.domain.auth.JwtService
-import com.github.laxy.domain.auth.jwtService
-import com.github.laxy.domain.user.UserService
-import com.github.laxy.domain.user.userService
+import com.github.laxy.service.GptAIService
+import com.github.laxy.service.gptAIService
+import com.github.laxy.service.JwtService
+import com.github.laxy.service.jwtService
+import com.github.laxy.service.UserService
+import com.github.laxy.service.userService
 import com.github.laxy.persistence.userPersistence
 import com.sksamuel.cohort.HealthCheckRegistry
 import com.sksamuel.cohort.hikari.HikariConnectionsHealthCheck

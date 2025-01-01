@@ -2,13 +2,13 @@ package com.github.laxy.route
 
 import arrow.core.Either
 import arrow.core.raise.either
-import com.github.laxy.domain.auth.JwtService
-import com.github.laxy.domain.auth.jwtAuth
-import com.github.laxy.domain.user.Login
-import com.github.laxy.domain.user.RegisterUser
-import com.github.laxy.domain.user.UpdateUser
-import com.github.laxy.domain.user.UserService
-import com.github.laxy.shared.IncorrectJson
+import com.github.laxy.service.JwtService
+import com.github.laxy.auth.jwtAuth
+import com.github.laxy.service.Login
+import com.github.laxy.service.RegisterUser
+import com.github.laxy.service.UpdateUser
+import com.github.laxy.service.UserService
+import com.github.laxy.IncorrectJson
 import io.ktor.http.HttpStatusCode
 import io.ktor.resources.Resource
 import io.ktor.server.application.ApplicationCall

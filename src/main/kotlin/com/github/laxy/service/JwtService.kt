@@ -1,4 +1,4 @@
-package com.github.laxy.domain.auth
+package com.github.laxy.service
 
 import arrow.core.Either
 import arrow.core.raise.either
@@ -7,9 +7,10 @@ import arrow.core.raise.ensureNotNull
 import com.github.laxy.env.Env
 import com.github.laxy.persistence.UserId
 import com.github.laxy.persistence.UserPersistence
-import com.github.laxy.shared.DomainError
-import com.github.laxy.shared.JwtGeneration
-import com.github.laxy.shared.JwtInvalid
+import com.github.laxy.DomainError
+import com.github.laxy.JwtGeneration
+import com.github.laxy.JwtInvalid
+import com.github.laxy.auth.JwtToken
 import io.github.nefilim.kjwt.JWSAlgorithm
 import io.github.nefilim.kjwt.JWSES512Algorithm
 import io.github.nefilim.kjwt.JWT

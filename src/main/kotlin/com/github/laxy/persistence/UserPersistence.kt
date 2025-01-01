@@ -4,11 +4,11 @@ import arrow.core.Either
 import arrow.core.raise.either
 import arrow.core.raise.ensure
 import arrow.core.raise.ensureNotNull
-import com.github.laxy.domain.user.UserInfo
-import com.github.laxy.shared.DomainError
-import com.github.laxy.shared.PasswordNotMatched
-import com.github.laxy.shared.UserNotFound
-import com.github.laxy.shared.UsernameAlreadyExists
+import com.github.laxy.service.UserInfo
+import com.github.laxy.DomainError
+import com.github.laxy.PasswordNotMatched
+import com.github.laxy.UserNotFound
+import com.github.laxy.UsernameAlreadyExists
 import com.github.laxy.sqldelight.UsersQueries
 import org.postgresql.util.PSQLException
 import org.postgresql.util.PSQLState.UNIQUE_VIOLATION

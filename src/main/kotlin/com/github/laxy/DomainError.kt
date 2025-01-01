@@ -1,4 +1,4 @@
-package com.github.laxy.shared
+package com.github.laxy
 
 import arrow.core.NonEmptyList
 import arrow.core.nonEmptyListOf

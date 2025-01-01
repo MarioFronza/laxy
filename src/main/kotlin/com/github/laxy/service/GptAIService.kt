@@ -1,11 +1,11 @@
-package com.github.laxy.domain.ai
+package com.github.laxy.service
 
 import arrow.core.Either
 import arrow.core.raise.either
 import com.cjcrafter.openai.chat.ChatMessage.Companion.toSystemMessage
 import com.cjcrafter.openai.chat.chatRequest
 import com.cjcrafter.openai.openAI
-import com.github.laxy.shared.DomainError
+import com.github.laxy.DomainError
 
 data class ChatCompletionContent(val message: String)
 

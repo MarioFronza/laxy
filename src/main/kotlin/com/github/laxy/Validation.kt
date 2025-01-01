@@ -1,4 +1,4 @@
-package com.github.laxy.shared
+package com.github.laxy
 
 import arrow.core.Either
 import arrow.core.Either.Companion.zipOrAccumulate
@@ -7,9 +7,9 @@ import arrow.core.NonEmptyList
 import arrow.core.leftNel
 import arrow.core.nonEmptyListOf
 import arrow.core.right
-import com.github.laxy.domain.user.Login
-import com.github.laxy.domain.user.RegisterUser
-import com.github.laxy.domain.user.UpdateUser
+import com.github.laxy.service.Login
+import com.github.laxy.service.RegisterUser
+import com.github.laxy.service.UpdateUser
 
 sealed interface InvalidField {
     val errors: NonEmptyList<String>

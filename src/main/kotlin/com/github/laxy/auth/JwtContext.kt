@@ -1,7 +1,8 @@
-package com.github.laxy.domain.auth
+package com.github.laxy.auth
 
 import com.github.laxy.persistence.UserId
 import com.github.laxy.route.respond
+import com.github.laxy.service.JwtService
 import io.ktor.http.HttpStatusCode.Companion.Unauthorized
 import io.ktor.http.auth.HttpAuthHeader
 import io.ktor.server.application.ApplicationCall
