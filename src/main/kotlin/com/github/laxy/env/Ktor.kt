@@ -18,21 +18,22 @@ import kotlinx.serialization.modules.contextual
 import kotlinx.serialization.modules.polymorphic
 import kotlinx.serialization.modules.subclass
 
-val kotlinXSerializerModule = SerializersModule {
+val kotlinXSerializersModule = SerializersModule {
     contextual(UserWrapper::class) { UserWrapper.serializer(LoginUser.serializer()) }
     polymorphic(Any::class) { subclass(LoginUser::class, LoginUser.serializer()) }
 }
 
 fun Application.configure() {
     install(DefaultHeaders)
-    install(Resources) { serializersModule = kotlinXSerializerModule }
+    install(Resources) { serializersModule = kotlinXSerializersModule }
     install(ContentNegotiation) {
         json(
             Json {
-                serializersModule = kotlinXSerializerModule
+                serializersModule = kotlinXSerializersModule
                 isLenient = true
                 ignoreUnknownKeys = true
-            })
+            }
+        )
     }
     install(CORS) {
         allowHeader(HttpHeaders.Authorization)

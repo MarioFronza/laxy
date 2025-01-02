@@ -12,5 +12,4 @@ fun Application.routes(dependencyRegistry: DependencyRegistry) = routing {
     )
 }
 
-@Resource("/api")
-data object RootResource
+@Resource("/api") data object RootResource

@@ -22,11 +22,9 @@ import io.ktor.util.pipeline.PipelineContext
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
 
-@Serializable
-data class GenericErrorModel(val errors: GenericErrorModelErrors)
+@Serializable data class GenericErrorModel(val errors: GenericErrorModelErrors)
 
-@Serializable
-data class GenericErrorModelErrors(val body: List<String>)
+@Serializable data class GenericErrorModelErrors(val body: List<String>)
 
 context(PipelineContext<Unit, ApplicationCall>)
 suspend inline fun <reified A : Any> Either<DomainError, A>.respond(status: HttpStatusCode) {
@@ -45,18 +43,26 @@ suspend fun PipelineContext<Unit, ApplicationCall>.respond(error: DomainError) {
         is UserNotFound -> unprocessable("User with ${error.property} not found")
         is UsernameAlreadyExists -> unprocessable("User with ${error.username} not found")
         is EmptyUpdate -> unprocessable(error.description)
-        is IncorrectInput -> unprocessable(error.errors.map { field -> "${field.field}: ${field.errors.joinToString()}" })
-        is IncorrectJson -> unprocessable("Json is missing fields: ${error.exception.missingFields.joinToString()}")
+        is IncorrectInput ->
+            unprocessable(
+                error.errors.map { field -> "${field.field}: ${field.errors.joinToString()}" }
+            )
+        is IncorrectJson ->
+            unprocessable("Json is missing fields: ${error.exception.missingFields.joinToString()}")
         is MissingParameter -> unprocessable("Missing ${error.name} parameter in request")
     }
 }
 
-private suspend inline fun PipelineContext<Unit, ApplicationCall>.unprocessable(error: String) = call.respond(
-    HttpStatusCode.UnprocessableEntity, GenericErrorModel(GenericErrorModelErrors(listOf(error)))
-)
+private suspend inline fun PipelineContext<Unit, ApplicationCall>.unprocessable(error: String) =
+    call.respond(
+        HttpStatusCode.UnprocessableEntity,
+        GenericErrorModel(GenericErrorModelErrors(listOf(error)))
+    )
 
 private suspend inline fun PipelineContext<Unit, ApplicationCall>.unprocessable(
     errors: List<String>
-) = call.respond(
-    HttpStatusCode.UnprocessableEntity, GenericErrorModel(GenericErrorModelErrors(errors))
-)
+) =
+    call.respond(
+        HttpStatusCode.UnprocessableEntity,
+        GenericErrorModel(GenericErrorModelErrors(errors))
+    )
