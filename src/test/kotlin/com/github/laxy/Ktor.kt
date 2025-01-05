@@ -12,7 +12,7 @@ import io.ktor.server.testing.testApplication
 import kotlinx.serialization.json.Json
 
 
-suspend fun withServer(test: suspend HttpClient.(dep: DependencyRegistry) -> Unit): Unit {
+suspend fun withServer(test: suspend HttpClient.(dep: DependencyRegistry) -> Unit) {
     val dependencies = KotestProject.dependencies.get()
     testApplication {
         application { app(dependencies) }
