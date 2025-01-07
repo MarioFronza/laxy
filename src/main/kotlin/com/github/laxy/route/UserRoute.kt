@@ -34,10 +34,14 @@ data class UpdateUserRequest(
     val password: String? = null
 )
 
-@Serializable data class User(val email: String, val token: String, val username: String)
+@Serializable
+data class User(
+    val username: String,
+    val email: String,
+    val token: String
+)
 
 @Serializable data class LoginUser(val email: String, val password: String)
-
 @Resource("/users")
 data class UsersResource(val parent: RootResource = RootResource) {
     @Resource("/login") data class Login(val parent: UsersResource = UsersResource())
@@ -48,21 +52,18 @@ data class UsersResource(val parent: RootResource = RootResource) {
 fun Route.userRoutes(userService: UserService, jwtService: JwtService) {
     post<UsersResource> {
         either {
-                val (username, email, password) =
-                    receiveCatching<UserWrapper<NewUser>>().bind().user
-                val token =
-                    userService.register(RegisterUser(username, email, password)).bind().value
-                UserWrapper(User(email, token, username))
-            }
-            .respond(HttpStatusCode.OK)
+            val (username, email, password) = receiveCatching<UserWrapper<NewUser>>().bind().user
+            val token = userService.register(RegisterUser(username, email, password)).bind().value
+            UserWrapper(User(email, token, username))
+        }
+            .respond(HttpStatusCode.Created)
     }
-
     post<UsersResource.Login> {
         either {
-                val (email, password) = receiveCatching<UserWrapper<LoginUser>>().bind().user
-                val (token, info) = userService.login(Login(email, password)).bind()
-                UserWrapper(User(email, token.value, info.username))
-            }
+            val (email, password) = receiveCatching<UserWrapper<LoginUser>>().bind().user
+            val (token, info) = userService.login(Login(email, password)).bind()
+            UserWrapper(User(email, token.value, info.username))
+        }
             .respond(HttpStatusCode.OK)
     }
 

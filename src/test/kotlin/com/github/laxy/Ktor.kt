@@ -8,7 +8,8 @@ import io.ktor.client.HttpClient
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.resources.Resources
 import io.ktor.serialization.kotlinx.json.json
-import io.ktor.server.testing.testApplication
+import io.ktor.server.testing.ApplicationTestBuilder
+import io.ktor.server.testing.TestApplication
 import kotlinx.serialization.json.Json
 
 
@@ -25,3 +26,10 @@ suspend fun withServer(test: suspend HttpClient.(dep: DependencyRegistry) -> Uni
     }
 }
 
+@Suppress("INVISIBLE_MEMBER", "INVISIBLE_REFERENCE")
+private suspend fun testApplication(block: suspend ApplicationTestBuilder.() -> Unit) {
+    val builder = ApplicationTestBuilder().apply { block() }
+    val testApplication = TestApplication(builder)
+    testApplication.engine.start()
+    testApplication.stop()
+}

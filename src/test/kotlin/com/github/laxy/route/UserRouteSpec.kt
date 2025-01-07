@@ -16,10 +16,12 @@ class UserRouteSpec : StringSpec({
 
     "given a valid input, when calls [POST] /users, should return Created status code" {
         withServer {
-            val response = post(UserResource()) {
-                contentType(ContentType.Application.Json)
-                setBody(UserWrapper(NewUser(validUsername, validEmail, validPassword)))
-            }
+            val response =
+                post(UsersResource()) {
+                    contentType(ContentType.Application.Json)
+                    setBody(UserWrapper(NewUser(validUsername, validEmail, validPassword)))
+                }
+
             assert(response.status == HttpStatusCode.Created)
             with(response.body<UserWrapper<User>>().user) {
                 assert(username == validUsername)
