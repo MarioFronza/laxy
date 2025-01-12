@@ -9,7 +9,7 @@ import arrow.core.nonEmptyListOf
 import arrow.core.right
 import com.github.laxy.service.Login
 import com.github.laxy.service.RegisterUser
-import com.github.laxy.service.UpdateUser
+import com.github.laxy.service.Update
 
 sealed interface InvalidField {
     val errors: NonEmptyList<String>
@@ -33,53 +33,52 @@ fun Login.validate(): Either<IncorrectInput, Login> =
 
 fun RegisterUser.validate(): Either<IncorrectInput, RegisterUser> =
     zipOrAccumulate(
-            username.validUsername(),
-            email.validEmail(),
-            password.validPassword(),
-            ::RegisterUser
-        )
+        username.validUsername(),
+        email.validEmail(),
+        password.validPassword(),
+        ::RegisterUser
+    )
         .mapLeft(::IncorrectInput)
 
-fun UpdateUser.validate(): Either<IncorrectInput, UpdateUser> =
+fun Update.validate(): Either<IncorrectInput, Update> =
     zipOrAccumulate(
-            username.mapOrAccumulate(String::validUsername),
-            email.mapOrAccumulate(String::validEmail),
-            password.mapOrAccumulate(String::validPassword)
-        ) { username, email, password ->
-            UpdateUser(userId, username, email, password)
-        }
+        username.mapOrAccumulate(String::validUsername),
+        email.mapOrAccumulate(String::validEmail),
+        password.mapOrAccumulate(String::validPassword)
+    ) { username, email, password ->
+        Update(userId, username, email, password)
+    }
         .mapLeft(::IncorrectInput)
 
 private fun String.validPassword(): EitherNel<InvalidPassword, String> =
-    zipOrAccumulate(notBlank(), minSize(MIN_PASSWORD_LENGTH), maxSize(MAX_PASSWORD_LENGTH)) {
-            a,
-            _,
-            _ ->
-            a
-        }
+    zipOrAccumulate(notBlank(), minSize(MIN_PASSWORD_LENGTH), maxSize(MAX_PASSWORD_LENGTH)) { a,
+                                                                                              _,
+                                                                                              _ ->
+        a
+    }
         .mapLeft(toInvalidField(::InvalidPassword))
 
 private fun String.validEmail(): EitherNel<InvalidEmail, String> {
     val trimmed = trim()
     return zipOrAccumulate(
-            trimmed.notBlank(),
-            trimmed.maxSize(MAX_EMAIL_LENGTH),
-            trimmed.looksLikeEmail()
-        ) { a, _, _ ->
-            a
-        }
+        trimmed.notBlank(),
+        trimmed.maxSize(MAX_EMAIL_LENGTH),
+        trimmed.looksLikeEmail()
+    ) { a, _, _ ->
+        a
+    }
         .mapLeft(toInvalidField(::InvalidEmail))
 }
 
 private fun String.validUsername(): EitherNel<InvalidUsername, String> {
     val trimmed = trim()
     return zipOrAccumulate(
-            trimmed.notBlank(),
-            trimmed.minSize(MIN_USERNAME_LENGTH),
-            trimmed.maxSize(MAX_USERNAME_LENGTH)
-        ) { a, _, _ ->
-            a
-        }
+        trimmed.notBlank(),
+        trimmed.minSize(MIN_USERNAME_LENGTH),
+        trimmed.maxSize(MAX_USERNAME_LENGTH)
+    ) { a, _, _ ->
+        a
+    }
         .mapLeft(toInvalidField(::InvalidUsername))
 }
 

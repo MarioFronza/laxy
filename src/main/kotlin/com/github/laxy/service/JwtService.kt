@@ -12,7 +12,7 @@ import com.github.laxy.env.Env
 import com.github.laxy.persistence.UserId
 import com.github.laxy.persistence.UserPersistence
 import io.github.nefilim.kjwt.JWSAlgorithm
-import io.github.nefilim.kjwt.JWSES512Algorithm
+import io.github.nefilim.kjwt.JWSHMAC512Algorithm
 import io.github.nefilim.kjwt.JWT
 import io.github.nefilim.kjwt.KJWTSignError
 import io.github.nefilim.kjwt.KJWTSignError.InvalidJWTData
@@ -34,19 +34,19 @@ fun jwtService(env: Env.Auth, persistence: UserPersistence) =
     object : JwtService {
         override suspend fun generateJwtToken(userId: UserId): Either<JwtGeneration, JwtToken> =
             JWT.hs512 {
-                    val now = Instant.now(Clock.systemUTC())
-                    issuedAt(now)
-                    expiresAt(now + env.duration.toJavaDuration())
-                    issuer(env.issuer)
-                    claim("id", userId.serial)
-                }
+                val now = Instant.now(Clock.systemUTC())
+                issuedAt(now)
+                expiresAt(now + env.duration.toJavaDuration())
+                issuer(env.issuer)
+                claim("id", userId.serial)
+            }
                 .sign(env.secret)
                 .toUserServiceError()
                 .map { JwtToken(it.rendered) }
 
         override suspend fun verifyJwtToken(token: JwtToken): Either<DomainError, UserId> = either {
             val jwt =
-                JWT.decodeT(token.value, JWSES512Algorithm)
+                JWT.decodeT(token.value, JWSHMAC512Algorithm)
                     .mapLeft { JwtInvalid(it.toString()) }
                     .bind()
             val userId =
@@ -66,7 +66,7 @@ fun jwtService(env: Env.Auth, persistence: UserPersistence) =
     }
 
 private fun <A : JWSAlgorithm> Either<KJWTSignError, SignedJWT<A>>.toUserServiceError():
-    Either<JwtGeneration, SignedJWT<A>> = mapLeft { jwtError ->
+        Either<JwtGeneration, SignedJWT<A>> = mapLeft { jwtError ->
     when (jwtError) {
         InvalidKey -> JwtGeneration("JWT singing error: invalid Secret Key.")
         InvalidJWTData -> JwtGeneration("JWT singing error: Generated with incorrect JWT data")

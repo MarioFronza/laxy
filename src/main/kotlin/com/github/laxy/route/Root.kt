@@ -5,11 +5,9 @@ import io.ktor.resources.Resource
 import io.ktor.server.application.Application
 import io.ktor.server.routing.routing
 
-fun Application.routes(dependencyRegistry: DependencyRegistry) = routing {
-    userRoutes(
-        userService = dependencyRegistry.userService,
-        jwtService = dependencyRegistry.jwtService
-    )
+fun Application.routes(deps: DependencyRegistry) = routing {
+    userRoutes(deps.userService, deps.jwtService)
 }
 
-@Resource("/api") data object RootResource
+@Resource("/api")
+data object RootResource

@@ -10,13 +10,14 @@ import com.github.laxy.UserNotFound
 import com.github.laxy.UsernameAlreadyExists
 import com.github.laxy.service.UserInfo
 import com.github.laxy.sqldelight.UsersQueries
+import org.postgresql.util.PSQLException
+import org.postgresql.util.PSQLState.UNIQUE_VIOLATION
 import java.util.UUID.randomUUID
 import javax.crypto.SecretKeyFactory
 import javax.crypto.spec.PBEKeySpec
-import org.postgresql.util.PSQLException
-import org.postgresql.util.PSQLState.UNIQUE_VIOLATION
 
-@JvmInline value class UserId(val serial: Long)
+@JvmInline
+value class UserId(val serial: Long)
 
 interface UserPersistence {
     suspend fun insert(
@@ -36,8 +37,8 @@ interface UserPersistence {
 
     suspend fun update(
         userId: UserId,
-        email: String?,
         username: String?,
+        email: String?,
         password: String?
     ): Either<DomainError, UserInfo>
 }
@@ -57,8 +58,8 @@ fun userPersistence(
             val salt = generateSalt()
             val key = generateKey(password, salt)
             return Either.catchOrThrow<PSQLException, UserId> {
-                    usersQueries.create(username, email, salt, key)
-                }
+                usersQueries.create(username, email, salt, key)
+            }
                 .mapLeft { psqlException ->
                     if (psqlException.sqlState == UNIQUE_VIOLATION.state)
                         UsernameAlreadyExists(username)
@@ -94,20 +95,20 @@ fun userPersistence(
 
         override suspend fun update(
             userId: UserId,
-            email: String?,
             username: String?,
+            email: String?,
             password: String?
         ): Either<DomainError, UserInfo> = either {
             val info =
                 usersQueries.transactionWithResult {
-                    usersQueries.selectById(userId).executeAsOneOrNull()?.let {
-                        (oldEmail, oldUsername, salt, oldPassword) ->
-                        val newPassword = password?.let { generateKey(it, salt) } ?: oldPassword
-                        val newEmail = email ?: oldEmail
-                        val newUsername = username ?: oldUsername
-                        usersQueries.update(newEmail, newUsername, newPassword, userId)
-                        UserInfo(newUsername, newEmail)
-                    }
+                    usersQueries.selectById(userId).executeAsOneOrNull()
+                        ?.let { (oldEmail, oldUsername, salt, oldPassword) ->
+                            val newPassword = password?.let { generateKey(it, salt) } ?: oldPassword
+                            val newEmail = email ?: oldEmail
+                            val newUsername = username ?: oldUsername
+                            usersQueries.update(newEmail, newUsername, newPassword, userId)
+                            UserInfo(newUsername, newEmail)
+                        }
                 }
             ensureNotNull(info) { UserNotFound("userId=$userId") }
         }

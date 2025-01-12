@@ -13,23 +13,17 @@ import io.ktor.server.application.Application
 import io.ktor.server.netty.Netty
 import kotlinx.coroutines.awaitCancellation
 
-fun main() = SuspendApp {
+fun main(): Unit = SuspendApp {
     val env = Env()
     resourceScope {
         val dependencies = dependencies(env)
-        server(
-            port = env.http.port,
-            factory = Netty,
-            host = env.http.host,
-        ) {
-            app(dependencies)
-        }
+        server(Netty, host = env.http.host, port = env.http.port) { app(dependencies) }
         awaitCancellation()
     }
 }
 
-fun Application.app(dependencyRegistry: DependencyRegistry) {
+fun Application.app(module: DependencyRegistry) {
     configure()
-    routes(dependencyRegistry)
-    health(dependencyRegistry.healthCheck)
+    routes(module)
+    health(module.healthCheck)
 }

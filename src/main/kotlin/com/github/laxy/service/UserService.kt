@@ -12,7 +12,7 @@ import com.github.laxy.validate
 
 data class RegisterUser(val username: String, val email: String, val password: String)
 
-data class UpdateUser(
+data class Update(
     val userId: UserId,
     val username: String?,
     val email: String?,
@@ -28,7 +28,7 @@ interface UserService {
 
     suspend fun login(input: Login): Either<DomainError, Pair<JwtToken, UserInfo>>
 
-    suspend fun update(input: UpdateUser): Either<DomainError, UserInfo>
+    suspend fun update(input: Update): Either<DomainError, UserInfo>
 
     suspend fun getUser(userId: UserId): Either<DomainError, UserInfo>
 
@@ -51,7 +51,7 @@ fun userService(persistence: UserPersistence, jwtService: JwtService) =
                 Pair(token, info)
             }
 
-        override suspend fun update(input: UpdateUser): Either<DomainError, UserInfo> = either {
+        override suspend fun update(input: Update): Either<DomainError, UserInfo> = either {
             val (userId, username, email, password) = input.validate().bind()
             ensure(email != null || username != null) {
                 EmptyUpdate("Cannot update user with $userId with only null values")
