@@ -3,7 +3,7 @@ package com.github.laxy
 import arrow.continuations.SuspendApp
 import arrow.continuations.ktor.server
 import arrow.fx.coroutines.resourceScope
-import com.github.laxy.env.DependencyRegistry
+import com.github.laxy.env.Dependencies
 import com.github.laxy.env.Env
 import com.github.laxy.env.configure
 import com.github.laxy.env.dependencies
@@ -22,7 +22,7 @@ fun main(): Unit = SuspendApp {
     }
 }
 
-fun Application.app(module: DependencyRegistry) {
+fun Application.app(module: Dependencies) {
     configure()
     routes(module)
     health(module.healthCheck)

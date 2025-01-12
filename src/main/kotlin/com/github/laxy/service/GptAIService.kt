@@ -2,10 +2,12 @@ package com.github.laxy.service
 
 import arrow.core.Either
 import arrow.core.raise.either
+import arrow.core.raise.ensureNotNull
 import com.cjcrafter.openai.chat.ChatMessage.Companion.toSystemMessage
 import com.cjcrafter.openai.chat.chatRequest
 import com.cjcrafter.openai.openAI
 import com.github.laxy.DomainError
+import com.github.laxy.InvalidIntegrationResponse
 
 data class ChatCompletionContent(val message: String)
 
@@ -24,6 +26,8 @@ fun gptAIService(openAIKey: String) =
                 addMessage(input.message.toSystemMessage())
             }
             val completion = openAI.createChatCompletion(request)[0]
-            completion.message.content ?: throw Exception()
+            val content = completion.message.content
+            ensureNotNull(content) { InvalidIntegrationResponse(content) }
+            content
         }
     }

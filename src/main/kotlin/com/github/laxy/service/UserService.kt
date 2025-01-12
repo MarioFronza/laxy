@@ -8,7 +8,7 @@ import com.github.laxy.EmptyUpdate
 import com.github.laxy.auth.JwtToken
 import com.github.laxy.persistence.UserId
 import com.github.laxy.persistence.UserPersistence
-import com.github.laxy.validate
+import com.github.laxy.validation.validate
 
 data class RegisterUser(val username: String, val email: String, val password: String)
 

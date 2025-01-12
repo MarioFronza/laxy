@@ -1,5 +1,3 @@
-@file:OptIn(ExperimentalSerializationApi::class)
-
 package com.github.laxy.route
 
 import arrow.core.Either
@@ -8,6 +6,7 @@ import com.github.laxy.EmailAlreadyExists
 import com.github.laxy.EmptyUpdate
 import com.github.laxy.IncorrectInput
 import com.github.laxy.IncorrectJson
+import com.github.laxy.InvalidIntegrationResponse
 import com.github.laxy.JwtGeneration
 import com.github.laxy.JwtInvalid
 import com.github.laxy.MissingParameter
@@ -22,11 +21,9 @@ import io.ktor.util.pipeline.PipelineContext
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
 
-@Serializable
-data class GenericErrorModel(val errors: GenericErrorModelErrors)
+@Serializable data class GenericErrorModel(val errors: GenericErrorModelErrors)
 
-@Serializable
-data class GenericErrorModelErrors(val body: List<String>)
+@Serializable data class GenericErrorModelErrors(val body: List<String>)
 
 context(PipelineContext<Unit, ApplicationCall>)
 suspend inline fun <reified A : Any> Either<DomainError, A>.respond(status: HttpStatusCode): Unit =
@@ -36,16 +33,15 @@ suspend inline fun <reified A : Any> Either<DomainError, A>.respond(status: Http
     }
 
 @OptIn(ExperimentalSerializationApi::class)
-@Suppress("ComplexMethod")
 suspend fun PipelineContext<Unit, ApplicationCall>.respond(error: DomainError): Unit =
     when (error) {
         PasswordNotMatched -> call.respond(HttpStatusCode.Unauthorized)
         is IncorrectInput ->
-            unprocessable(error.errors.map { field -> "${field.field}: ${field.errors.joinToString()}" })
-
+            unprocessable(
+                error.errors.map { field -> "${field.field}: ${field.errors.joinToString()}" }
+            )
         is IncorrectJson ->
             unprocessable("Json is missing fields: ${error.exception.missingFields.joinToString()}")
-
         is EmptyUpdate -> unprocessable(error.description)
         is EmailAlreadyExists -> unprocessable("${error.email} is already registered")
         is JwtGeneration -> unprocessable(error.description)
@@ -53,6 +49,8 @@ suspend fun PipelineContext<Unit, ApplicationCall>.respond(error: DomainError): 
         is UsernameAlreadyExists -> unprocessable("Username ${error.username} already exists")
         is JwtInvalid -> unprocessable(error.description)
         is MissingParameter -> unprocessable("Missing ${error.name} parameter in request")
+        is InvalidIntegrationResponse ->
+            unprocessable("Invalid GPT api content response: ${error.content}")
     }
 
 private suspend inline fun PipelineContext<Unit, ApplicationCall>.unprocessable(

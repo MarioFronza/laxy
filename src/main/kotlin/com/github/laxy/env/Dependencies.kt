@@ -13,14 +13,14 @@ import com.sksamuel.cohort.hikari.HikariConnectionsHealthCheck
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.Dispatchers
 
-class DependencyRegistry(
+class Dependencies(
     val healthCheck: HealthCheckRegistry,
     val userService: UserService,
     val gptAIService: GptAIService,
     val jwtService: JwtService
 )
 
-suspend fun ResourceScope.dependencies(env: Env): DependencyRegistry {
+suspend fun ResourceScope.dependencies(env: Env): Dependencies {
     val hikari = hikari(env.dataSource)
     val openAI = env.openAI
     val sqlDelight = sqlDelight(hikari)
@@ -36,7 +36,7 @@ suspend fun ResourceScope.dependencies(env: Env): DependencyRegistry {
                 checkInterval = 5.seconds
             )
         }
-    return DependencyRegistry(
+    return Dependencies(
         healthCheck = checks,
         userService = userService,
         gptAIService = gptAIService,

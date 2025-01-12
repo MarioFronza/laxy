@@ -11,10 +11,10 @@ import io.ktor.server.plugins.cors.maxAgeDuration
 import io.ktor.server.plugins.cors.routing.CORS
 import io.ktor.server.plugins.defaultheaders.DefaultHeaders
 import io.ktor.server.resources.Resources
+import kotlin.time.Duration.Companion.days
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.polymorphic
-import kotlin.time.Duration.Companion.days
 
 val kotlinXSerializersModule = SerializersModule {
     contextual(UserWrapper::class) { UserWrapper.serializer(LoginUser.serializer()) }
