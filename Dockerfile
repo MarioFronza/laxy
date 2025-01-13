@@ -1,23 +1,21 @@
-FROM gradle:7.0.2-jdk17 AS builder
+FROM gradle:latest AS cache
+RUN mkdir -p /home/gradle/cache_home
+ENV GRADLE_USER_HOME=/home/gradle/cache_home
+COPY . /home/gradle/app/
+COPY gradle /home/gradle/app/gradle
+WORKDIR /home/gradle/app
+RUN gradle clean build -i --stacktrace
 
-COPY ./ /home/gradle/project
+FROM gradle:latest AS build
+COPY --from=cache /home/gradle/cache_home /home/gradle/.gradle
+COPY . /usr/src/app/
+WORKDIR /usr/src/app
+COPY --chown=gradle:gradle . /home/gradle/src
+WORKDIR /home/gradle/src
+RUN gradle buildFatJar --no-daemon
 
-WORKDIR /home/gradle/project
-
-RUN gradle -Dorg.gradle.daemon=false clean build --stacktrace --info
-
-RUN mkdir -p /home/gradle/project/build/distributions/app/
-
-RUN unzip /home/gradle/project/build/distributions/*.zip -d /home/gradle/project/build/distributions/app/
-
-FROM openjdk:17-jre
-
-COPY --from=builder /home/gradle/project/build/distributions/app/ /opt/app/
-
-WORKDIR /opt/app
-
-RUN rm -rf /var/cache/*
-
+FROM eclipse-temurin:21 AS runtime
 EXPOSE 8080
-
-CMD ["/opt/app/laxy/bin/laxy"]
+RUN mkdir /app
+COPY --from=build /home/gradle/src/build/libs/*.jar /app/laxy.jar
+ENTRYPOINT ["java","-jar","/app/laxy.jar"]

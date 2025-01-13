@@ -50,7 +50,7 @@ tasks {
 
 ktor {
     docker {
-        jreVersion = JavaVersion.VERSION_17
+        jreVersion = JavaVersion.VERSION_21
         localImageName = "laxy"
         imageTag = "latest"
     }
