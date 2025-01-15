@@ -1,4 +1,5 @@
 import com.github.laxy.setupDetekt
+import io.ktor.plugin.features.DockerImageRegistry
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
@@ -53,6 +54,13 @@ ktor {
         jreVersion = JavaVersion.VERSION_21
         localImageName = "laxy"
         imageTag = "latest"
+        externalRegistry.set(
+            DockerImageRegistry.dockerHub(
+                appName = provider { "laxy-app" },
+                username = providers.environmentVariable("DOCKER_HUB_USERNAME"),
+                password = providers.environmentVariable("DOCKER_HUB_PASSWORD")
+            )
+        )
     }
 }
 
