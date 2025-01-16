@@ -49,21 +49,6 @@ tasks {
     }
 }
 
-ktor {
-    docker {
-        jreVersion = JavaVersion.VERSION_21
-        localImageName = "laxy"
-        imageTag = "latest"
-        externalRegistry.set(
-            DockerImageRegistry.dockerHub(
-                appName = provider { "laxy-app" },
-                username = providers.environmentVariable("DOCKER_HUB_USERNAME"),
-                password = providers.environmentVariable("DOCKER_HUB_PASSWORD")
-            )
-        )
-    }
-}
-
 spotless {
     kotlin {
         targetExclude("**/build/**")

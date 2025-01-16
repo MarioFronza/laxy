@@ -1,7 +1,18 @@
 services:
+  app:
+    build: .
+    hostname: laxy
+    restart: unless-stopped
+    environment:
+      - POSTGRES_URL=jdbc:postgresql://database:5432/laxy-database
+    ports:
+      - "8080:8080"
+    depends_on:
+      - database
+
   database:
     image: postgres:latest
-    restart: always
+    restart: unless-stopped
     ports:
       - "5432:5432"
     container_name: laxy-database
@@ -9,3 +20,8 @@ services:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
       - POSTGRES_DB=laxy-database
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:
