@@ -1,7 +1,8 @@
 services:
   app:
-    build: .
+    image: mariofronza/laxy-app
     hostname: laxy
+    container_name: laxy-app
     restart: unless-stopped
     environment:
       - POSTGRES_URL=jdbc:postgresql://database:5432/laxy-database
