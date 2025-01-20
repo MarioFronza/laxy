@@ -1,9 +1,9 @@
 services:
   app:
     image: mariofronza/laxy-app
-    hostname: laxy
     container_name: laxy-app
     restart: unless-stopped
+    hostname: laxy
     environment:
       - POSTGRES_URL=jdbc:postgresql://database:5432/laxy-database
     ports:
@@ -13,10 +13,10 @@ services:
 
   database:
     image: postgres:latest
+    container_name: laxy-database
     restart: unless-stopped
     ports:
       - "5432:5432"
-    container_name: laxy-database
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
