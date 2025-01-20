@@ -1,5 +1,0 @@
-CREATE TABLE IF NOT EXISTS user_languages (
-    user_id BIGINT REFERENCES users(id) ON DELETE CASCADE NOT NULL,
-    language_id BIGINT REFERENCES languages(id) ON DELETE CASCADE NOT NULL,
-    PRIMARY KEY (user_id, language_id)
-);
