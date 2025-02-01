@@ -1,0 +1,28 @@
+import com.github.laxy.persistence.UserThemeId;
+
+CREATE TABLE IF NOT EXISTS user_themes (
+    id BIGSERIAL AS UserThemeId PRIMARY KEY,
+    user_id BIGSERIAL REFERENCES users(id) ON DELETE CASCADE,
+    description TEXT NOT NULL,
+    current BOOLEAN NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX idx_user_theme_user_id ON user_themes(user_id);
+
+selectByUser:
+SELECT id, description, current, created_at, updated_at
+FROM user_themes
+WHERE user_id = :userId;
+
+insertAndGetId:
+INSERT INTO user_themes(user_id, description, current)
+VALUES (:userId, :description, :current)
+RETURNING id;
+
+setCurrent:
+UPDATE user_themes
+SET current = :current
+WHERE id = :userThemeId;
+

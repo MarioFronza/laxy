@@ -10,6 +10,8 @@ CREATE TABLE IF NOT EXISTS users (
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE INDEX idx_user_email ON users(email);
+
 selectByEmail:
 SELECT email, username
 FROM users
@@ -31,7 +33,7 @@ FROM users
 WHERE email = :email;
 
 insertAndGetId:
-INSERT INTO users(username,email, salt, hashed_password)
+INSERT INTO users(username, email, salt, hashed_password)
 VALUES (:username, :email, :salt, :hashed_password)
 RETURNING id;
 

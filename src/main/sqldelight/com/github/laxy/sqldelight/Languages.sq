@@ -1,0 +1,10 @@
+import com.github.laxy.persistence.LanguageId;
+
+CREATE TABLE IF NOT EXISTS languages (
+    id BIGSERIAL AS LanguageId PRIMARY KEY,
+    name VARCHAR(50) NOT NULL,
+    code VARCHAR(50) NOT NULL UNIQUE,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+

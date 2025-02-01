@@ -1,0 +1,13 @@
+import com.github.laxy.persistence.QuizId;
+
+CREATE TABLE IF NOT EXISTS quizzes (
+    id BIGSERIAL AS QuizId PRIMARY KEY,
+    user_id BIGSERIAL REFERENCES users(id) ON DELETE CASCADE,
+    subject_id BIGSERIAL REFERENCES subjects ON DELETE CASCADE,
+    total_questions INT NOT NULL,
+    status VARCHAR(20) CHECK (status IN ('pending', 'completed')) DEFAULT 'pending',
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX idx_quiz_user_subject_id ON quizzes(user_id, subject_id);

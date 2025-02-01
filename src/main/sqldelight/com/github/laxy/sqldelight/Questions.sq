@@ -1,0 +1,11 @@
+import com.github.laxy.persistence.QuestionId;
+
+CREATE TABLE IF NOT EXISTS questions (
+   id BIGSERIAL AS QuestionId PRIMARY KEY,
+   quiz_id BIGSERIAL REFERENCES quizzes(id) ON DELETE CASCADE,
+   description TEXT NOT NULL,
+   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+   updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX idx_question_quiz_id ON questions(quiz_id);
