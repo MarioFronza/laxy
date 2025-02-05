@@ -9,7 +9,7 @@ CREATE TABLE IF NOT EXISTS user_themes (
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE INDEX idx_user_theme_user_id ON user_themes(user_id);
+CREATE INDEX IF NOT EXISTS idx_user_theme_user_id ON user_themes(user_id);
 
 selectByUser:
 SELECT id, description, current, created_at, updated_at

@@ -4,9 +4,11 @@ import arrow.fx.coroutines.continuations.ResourceScope
 import com.github.laxy.persistence.userPersistence
 import com.github.laxy.service.GptAIService
 import com.github.laxy.service.JwtService
+import com.github.laxy.service.QuizService
 import com.github.laxy.service.UserService
 import com.github.laxy.service.gptAIService
 import com.github.laxy.service.jwtService
+import com.github.laxy.service.quizService
 import com.github.laxy.service.userService
 import com.sksamuel.cohort.HealthCheckRegistry
 import com.sksamuel.cohort.hikari.HikariConnectionsHealthCheck
@@ -17,6 +19,7 @@ class Dependencies(
     val healthCheck: HealthCheckRegistry,
     val userService: UserService,
     val gptAIService: GptAIService,
+    val quizService: QuizService,
     val jwtService: JwtService
 )
 
@@ -28,6 +31,7 @@ suspend fun ResourceScope.dependencies(env: Env): Dependencies {
     val jwtService = jwtService(env.auth, userPersistence)
     val userService = userService(userPersistence, jwtService)
     val gptAIService = gptAIService(openAI.token)
+    val quizService = quizService(gptAIService)
     val checks =
         HealthCheckRegistry(Dispatchers.Default) {
             register(
@@ -40,6 +44,7 @@ suspend fun ResourceScope.dependencies(env: Env): Dependencies {
         healthCheck = checks,
         userService = userService,
         gptAIService = gptAIService,
-        jwtService = jwtService
+        jwtService = jwtService,
+        quizService = quizService
     )
 }

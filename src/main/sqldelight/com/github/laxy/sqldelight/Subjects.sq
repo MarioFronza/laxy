@@ -9,4 +9,4 @@ CREATE TABLE IF NOT EXISTS subjects (
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE INDEX idx_subject_language_id ON subjects(language_id);
+CREATE INDEX IF NOT EXISTS idx_subject_language_id ON subjects(language_id);

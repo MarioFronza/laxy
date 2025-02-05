@@ -8,4 +8,4 @@ CREATE TABLE IF NOT EXISTS questions (
    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE INDEX idx_question_quiz_id ON questions(quiz_id);
+CREATE INDEX IF NOT EXISTS idx_question_quiz_id ON questions(quiz_id);

@@ -10,4 +10,4 @@ CREATE TABLE IF NOT EXISTS user_progress(
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE INDEX idx_user_progress_user_id ON user_progress(user_id);
+CREATE INDEX IF NOT EXISTS idx_user_progress_user_id ON user_progress(user_id);

@@ -2,7 +2,6 @@ package com.github.laxy.route
 
 import arrow.core.Either
 import arrow.core.raise.either
-import com.github.laxy.IncorrectJson
 import com.github.laxy.auth.jwtAuth
 import com.github.laxy.service.JwtService
 import com.github.laxy.service.Login
@@ -11,16 +10,10 @@ import com.github.laxy.service.Update
 import com.github.laxy.service.UserService
 import io.ktor.http.HttpStatusCode
 import io.ktor.resources.Resource
-import io.ktor.server.application.ApplicationCall
-import io.ktor.server.application.call
-import io.ktor.server.request.receive
 import io.ktor.server.resources.get
 import io.ktor.server.resources.post
 import io.ktor.server.resources.put
 import io.ktor.server.routing.Route
-import io.ktor.util.pipeline.PipelineContext
-import kotlinx.serialization.ExperimentalSerializationApi
-import kotlinx.serialization.MissingFieldException
 import kotlinx.serialization.Serializable
 
 @Serializable data class UserWrapper<T : Any>(val user: T)
@@ -89,7 +82,3 @@ fun Route.userRoutes(
     }
 }
 
-@OptIn(ExperimentalSerializationApi::class)
-private suspend inline fun <reified A : Any> PipelineContext<Unit, ApplicationCall>
-    .receiveCatching(): Either<IncorrectJson, A> =
-    Either.catchOrThrow<MissingFieldException, A> { call.receive() }.mapLeft { IncorrectJson(it) }

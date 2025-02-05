@@ -10,4 +10,4 @@ CREATE TABLE IF NOT EXISTS quizzes (
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE INDEX idx_quiz_user_subject_id ON quizzes(user_id, subject_id);
+CREATE INDEX IF NOT EXISTS idx_quiz_user_subject_id ON quizzes(user_id, subject_id);
