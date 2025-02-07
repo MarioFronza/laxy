@@ -73,9 +73,10 @@ fun userService(persistence: UserPersistence, jwtService: JwtService) =
             return persistence.select(username)
         }
 
-        override suspend fun createTheme(input: CreateTheme): Either<DomainError, UserThemeInfo> = either {
-            val (userId, description) = input.validate().bind()
-            val theme = persistence.insertTheme(userId, description)
-            return theme
-        }
+        override suspend fun createTheme(input: CreateTheme): Either<DomainError, UserThemeInfo> =
+            either {
+                val (userId, description) = input.validate().bind()
+                val theme = persistence.insertTheme(userId, description)
+                return theme
+            }
     }

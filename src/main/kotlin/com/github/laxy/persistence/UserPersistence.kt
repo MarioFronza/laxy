@@ -12,14 +12,13 @@ import com.github.laxy.service.UserInfo
 import com.github.laxy.service.UserThemeInfo
 import com.github.laxy.sqldelight.UserThemesQueries
 import com.github.laxy.sqldelight.UsersQueries
-import org.postgresql.util.PSQLException
-import org.postgresql.util.PSQLState.UNIQUE_VIOLATION
 import java.util.UUID.randomUUID
 import javax.crypto.SecretKeyFactory
 import javax.crypto.spec.PBEKeySpec
+import org.postgresql.util.PSQLException
+import org.postgresql.util.PSQLState.UNIQUE_VIOLATION
 
-@JvmInline
-value class UserId(val serial: Long)
+@JvmInline value class UserId(val serial: Long)
 
 interface UserPersistence {
     suspend fun insert(
@@ -28,10 +27,7 @@ interface UserPersistence {
         password: String
     ): Either<DomainError, UserId>
 
-    suspend fun insertTheme(
-        userId: UserId,
-        description: String
-    ): Either<DomainError, UserThemeInfo>
+    suspend fun insertTheme(userId: UserId, description: String): Either<DomainError, UserThemeInfo>
 
     suspend fun verifyPassword(
         email: String,
@@ -66,8 +62,8 @@ fun userPersistence(
             val salt = generateSalt()
             val key = generateKey(password, salt)
             return Either.catchOrThrow<PSQLException, UserId> {
-                usersQueries.create(username, email, salt, key)
-            }
+                    usersQueries.create(username, email, salt, key)
+                }
                 .mapLeft { psqlException ->
                     if (psqlException.sqlState == UNIQUE_VIOLATION.state)
                         UsernameAlreadyExists(username)
@@ -75,15 +71,22 @@ fun userPersistence(
                 }
         }
 
-        override suspend fun insertTheme(userId: UserId, description: String): Either<DomainError, UserThemeInfo> =
-            either {
-                val userInfo = usersQueries.selectById(userId) { email, username, _, _ -> UserInfo(username, email) }
-                ensureNotNull(userInfo) { UserNotFound("userId=$userId") }
-                UserThemeInfo(
-                    description = userThemesQueries.insertAndGetDescription(userId.serial, description, true)
+        override suspend fun insertTheme(
+            userId: UserId,
+            description: String
+        ): Either<DomainError, UserThemeInfo> = either {
+            val userInfo =
+                usersQueries.selectById(userId) { email, username, _, _ ->
+                    UserInfo(username, email)
+                }
+            ensureNotNull(userInfo) { UserNotFound("userId=$userId") }
+            UserThemeInfo(
+                description =
+                    userThemesQueries
+                        .insertAndGetDescription(userId.serial, description, true)
                         .executeAsOne()
-                )
-            }
+            )
+        }
 
         override suspend fun verifyPassword(
             email: String,
@@ -119,14 +122,14 @@ fun userPersistence(
         ): Either<DomainError, UserInfo> = either {
             val info =
                 usersQueries.transactionWithResult {
-                    usersQueries.selectById(userId).executeAsOneOrNull()
-                        ?.let { (oldEmail, oldUsername, salt, oldPassword) ->
-                            val newPassword = password?.let { generateKey(it, salt) } ?: oldPassword
-                            val newEmail = email ?: oldEmail
-                            val newUsername = username ?: oldUsername
-                            usersQueries.update(newEmail, newUsername, newPassword, userId)
-                            UserInfo(newUsername, newEmail)
-                        }
+                    usersQueries.selectById(userId).executeAsOneOrNull()?.let {
+                        (oldEmail, oldUsername, salt, oldPassword) ->
+                        val newPassword = password?.let { generateKey(it, salt) } ?: oldPassword
+                        val newEmail = email ?: oldEmail
+                        val newUsername = username ?: oldUsername
+                        usersQueries.update(newEmail, newUsername, newPassword, userId)
+                        UserInfo(newUsername, newEmail)
+                    }
                 }
             ensureNotNull(info) { UserNotFound("userId=$userId") }
         }

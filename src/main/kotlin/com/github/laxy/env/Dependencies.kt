@@ -12,8 +12,8 @@ import com.github.laxy.service.quizService
 import com.github.laxy.service.userService
 import com.sksamuel.cohort.HealthCheckRegistry
 import com.sksamuel.cohort.hikari.HikariConnectionsHealthCheck
-import kotlinx.coroutines.Dispatchers
 import kotlin.time.Duration.Companion.seconds
+import kotlinx.coroutines.Dispatchers
 
 class Dependencies(
     val healthCheck: HealthCheckRegistry,

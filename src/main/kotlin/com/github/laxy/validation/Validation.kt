@@ -39,76 +39,72 @@ fun Login.validate(): Either<IncorrectInput, Login> =
 
 fun RegisterUser.validate(): Either<IncorrectInput, RegisterUser> =
     zipOrAccumulate(
-        username.validUsername(),
-        email.validEmail(),
-        password.validPassword(),
-    ) { username, email, password ->
-        RegisterUser(username, email, password)
-    }
+            username.validUsername(),
+            email.validEmail(),
+            password.validPassword(),
+        ) { username, email, password ->
+            RegisterUser(username, email, password)
+        }
         .mapLeft(::IncorrectInput)
 
 fun Update.validate(): Either<IncorrectInput, Update> =
     zipOrAccumulate(
-        username.mapOrAccumulate(String::validUsername),
-        email.mapOrAccumulate(String::validEmail),
-        password.mapOrAccumulate(String::validPassword)
-    ) { username, email, password ->
-        Update(userId, username, email, password)
-    }
+            username.mapOrAccumulate(String::validUsername),
+            email.mapOrAccumulate(String::validEmail),
+            password.mapOrAccumulate(String::validPassword)
+        ) { username, email, password ->
+            Update(userId, username, email, password)
+        }
         .mapLeft(::IncorrectInput)
 
-fun CreateTheme.validate(): Either<IncorrectInput, CreateTheme> = description.validThemeDescription()
-    .mapLeft(::IncorrectInput)
-    .map { description ->
+fun CreateTheme.validate(): Either<IncorrectInput, CreateTheme> =
+    description.validThemeDescription().mapLeft(::IncorrectInput).map { description ->
         CreateTheme(userId, description)
     }
 
-
 private fun String.validPassword(): EitherNel<InvalidPassword, String> =
-    zipOrAccumulate(
-        notBlank(),
-        minSize(MIN_PASSWORD_LENGTH),
-        maxSize(MAX_PASSWORD_LENGTH)
-    ) { a,
-        _,
-        _ ->
-        a
-    }
+    zipOrAccumulate(notBlank(), minSize(MIN_PASSWORD_LENGTH), maxSize(MAX_PASSWORD_LENGTH)) {
+            a,
+            _,
+            _ ->
+            a
+        }
         .mapLeft(toInvalidField(::InvalidPassword))
 
 private fun String.validEmail(): EitherNel<InvalidEmail, String> {
     val trimmed = trim()
     return zipOrAccumulate(
-        trimmed.notBlank(),
-        trimmed.maxSize(MAX_EMAIL_LENGTH),
-        trimmed.looksLikeEmail()
-    ) { a, _, _ ->
-        a
-    }
+            trimmed.notBlank(),
+            trimmed.maxSize(MAX_EMAIL_LENGTH),
+            trimmed.looksLikeEmail()
+        ) { a, _, _ ->
+            a
+        }
         .mapLeft(toInvalidField(::InvalidEmail))
 }
 
 private fun String.validUsername(): EitherNel<InvalidUsername, String> {
     val trimmed = trim()
     return zipOrAccumulate(
-        trimmed.notBlank(),
-        trimmed.minSize(MIN_USERNAME_LENGTH),
-        trimmed.maxSize(MAX_USERNAME_LENGTH)
-    ) { a, _, _ ->
-        a
-    }
+            trimmed.notBlank(),
+            trimmed.minSize(MIN_USERNAME_LENGTH),
+            trimmed.maxSize(MAX_USERNAME_LENGTH)
+        ) { a, _, _ ->
+            a
+        }
         .mapLeft(toInvalidField(::InvalidUsername))
 }
 
 private fun String.validThemeDescription(): EitherNel<InvalidThemeDescription, String> {
     val trimmed = trim()
     return zipOrAccumulate(
-        trimmed.notBlank(),
-        trimmed.minSize(MIN_THEME_LENGTH),
-        trimmed.maxSize(MAX_THEME_LENGTH)
-    ) { a, _, _ ->
-        a
-    }.mapLeft(toInvalidField(::InvalidThemeDescription))
+            trimmed.notBlank(),
+            trimmed.minSize(MIN_THEME_LENGTH),
+            trimmed.maxSize(MAX_THEME_LENGTH)
+        ) { a, _, _ ->
+            a
+        }
+        .mapLeft(toInvalidField(::InvalidThemeDescription))
 }
 
 private fun <A, E, B> A?.mapOrAccumulate(f: (A) -> EitherNel<E, B>): EitherNel<E, B?> =
