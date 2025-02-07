@@ -12,8 +12,8 @@ import com.github.laxy.service.quizService
 import com.github.laxy.service.userService
 import com.sksamuel.cohort.HealthCheckRegistry
 import com.sksamuel.cohort.hikari.HikariConnectionsHealthCheck
-import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.Dispatchers
+import kotlin.time.Duration.Companion.seconds
 
 class Dependencies(
     val healthCheck: HealthCheckRegistry,
@@ -27,7 +27,7 @@ suspend fun ResourceScope.dependencies(env: Env): Dependencies {
     val hikari = hikari(env.dataSource)
     val openAI = env.openAI
     val sqlDelight = sqlDelight(hikari)
-    val userPersistence = userPersistence(sqlDelight.usersQueries)
+    val userPersistence = userPersistence(sqlDelight.usersQueries, sqlDelight.userThemesQueries)
     val jwtService = jwtService(env.auth, userPersistence)
     val userService = userService(userPersistence, jwtService)
     val gptAIService = gptAIService(openAI.token)
