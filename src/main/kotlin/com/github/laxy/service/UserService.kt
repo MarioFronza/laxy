@@ -8,7 +8,6 @@ import com.github.laxy.EmptyUpdate
 import com.github.laxy.auth.JwtToken
 import com.github.laxy.persistence.UserId
 import com.github.laxy.persistence.UserPersistence
-import com.github.laxy.persistence.UserThemeId
 import com.github.laxy.validation.validate
 
 data class RegisterUser(val username: String, val email: String, val password: String)
@@ -26,6 +25,8 @@ data class UserInfo(val username: String, val email: String)
 
 data class CreateTheme(val userId: UserId, val description: String)
 
+data class UserThemeInfo(val description: String)
+
 interface UserService {
     suspend fun register(input: RegisterUser): Either<DomainError, JwtToken>
 
@@ -37,7 +38,7 @@ interface UserService {
 
     suspend fun getUser(username: String): Either<DomainError, UserInfo>
 
-    suspend fun createTheme(input: CreateTheme): Either<DomainError, UserThemeId>
+    suspend fun createTheme(input: CreateTheme): Either<DomainError, UserThemeInfo>
 }
 
 fun userService(persistence: UserPersistence, jwtService: JwtService) =
@@ -72,7 +73,9 @@ fun userService(persistence: UserPersistence, jwtService: JwtService) =
             return persistence.select(username)
         }
 
-        override suspend fun createTheme(input: CreateTheme): Either<DomainError, UserThemeId> {
-           val (userId, description) = input
+        override suspend fun createTheme(input: CreateTheme): Either<DomainError, UserThemeInfo> = either {
+            val (userId, description) = input.validate().bind()
+            val theme = persistence.insertTheme(userId, description)
+            return theme
         }
     }

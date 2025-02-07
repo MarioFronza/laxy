@@ -9,6 +9,7 @@ import com.github.laxy.PasswordNotMatched
 import com.github.laxy.UserNotFound
 import com.github.laxy.UsernameAlreadyExists
 import com.github.laxy.service.UserInfo
+import com.github.laxy.service.UserThemeInfo
 import com.github.laxy.sqldelight.UserThemesQueries
 import com.github.laxy.sqldelight.UsersQueries
 import org.postgresql.util.PSQLException
@@ -30,7 +31,7 @@ interface UserPersistence {
     suspend fun insertTheme(
         userId: UserId,
         description: String
-    ): Either<DomainError, UserThemeId>
+    ): Either<DomainError, UserThemeInfo>
 
     suspend fun verifyPassword(
         email: String,
@@ -74,11 +75,14 @@ fun userPersistence(
                 }
         }
 
-        override suspend fun insertTheme(userId: UserId, description: String): Either<DomainError, UserThemeId> =
+        override suspend fun insertTheme(userId: UserId, description: String): Either<DomainError, UserThemeInfo> =
             either {
                 val userInfo = usersQueries.selectById(userId) { email, username, _, _ -> UserInfo(username, email) }
                 ensureNotNull(userInfo) { UserNotFound("userId=$userId") }
-                userThemesQueries.insertAndGetId(userId.serial, description, true).executeAsOne()
+                UserThemeInfo(
+                    description = userThemesQueries.insertAndGetDescription(userId.serial, description, true)
+                        .executeAsOne()
+                )
             }
 
         override suspend fun verifyPassword(

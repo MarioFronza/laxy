@@ -16,10 +16,10 @@ SELECT id, description, current, created_at, updated_at
 FROM user_themes
 WHERE user_id = :userId;
 
-insertAndGetId:
+insertAndGetDescription:
 INSERT INTO user_themes(user_id, description, current)
 VALUES (:userId, :description, :current)
-RETURNING id;
+RETURNING description;
 
 setCurrent:
 UPDATE user_themes
