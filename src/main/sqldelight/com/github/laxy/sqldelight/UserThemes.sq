@@ -11,10 +11,10 @@ CREATE TABLE IF NOT EXISTS user_themes (
 
 CREATE INDEX IF NOT EXISTS idx_user_theme_user_id ON user_themes(user_id);
 
-selectByUser:
-SELECT id, description, current, created_at, updated_at
+selectCurrentByUser:
+SELECT description
 FROM user_themes
-WHERE user_id = :userId;
+WHERE user_id = :userId AND current IS TRUE;
 
 insertAndGetDescription:
 INSERT INTO user_themes(user_id, description, current)
@@ -25,4 +25,3 @@ setCurrent:
 UPDATE user_themes
 SET current = :current
 WHERE id = :userThemeId;
-

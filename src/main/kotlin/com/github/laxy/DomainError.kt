@@ -23,13 +23,19 @@ data class MissingParameter(val name: String) : ValidationError
 
 sealed interface UserError : DomainError
 
+sealed interface SubjectError : DomainError
+
 data class UserNotFound(val property: String) : UserError
 
 data class EmailAlreadyExists(val email: String) : UserError
 
 data class UsernameAlreadyExists(val username: String) : UserError
 
+data class UserThemeNotFound(val property: String) : UserError
+
 data object PasswordNotMatched : UserError
+
+data class SubjectNotFound(val property: String) : SubjectError
 
 sealed interface JwtError : DomainError
 

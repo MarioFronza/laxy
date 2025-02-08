@@ -4,9 +4,15 @@ CREATE TABLE IF NOT EXISTS subjects (
     id BIGSERIAL AS SubjectId PRIMARY KEY,
     language_id BIGSERIAL REFERENCES languages(id) ON DELETE CASCADE,
     name VARCHAR(100) NOT NULL,
-    description TEXT,
+    description TEXT NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE INDEX IF NOT EXISTS idx_subject_language_id ON subjects(language_id);
+
+selectById:
+SELECT s.name, description, l.name AS language
+FROM subjects AS s INNER JOIN languages AS l
+ON s.language_id = l.id
+AND s.id = :id;

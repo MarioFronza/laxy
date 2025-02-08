@@ -7,18 +7,23 @@ import arrow.core.raise.ensureNotNull
 import com.github.laxy.DomainError
 import com.github.laxy.PasswordNotMatched
 import com.github.laxy.UserNotFound
+import com.github.laxy.UserThemeNotFound
 import com.github.laxy.UsernameAlreadyExists
 import com.github.laxy.service.UserInfo
 import com.github.laxy.service.UserThemeInfo
 import com.github.laxy.sqldelight.UserThemesQueries
 import com.github.laxy.sqldelight.UsersQueries
+import org.postgresql.util.PSQLException
+import org.postgresql.util.PSQLState.UNIQUE_VIOLATION
 import java.util.UUID.randomUUID
 import javax.crypto.SecretKeyFactory
 import javax.crypto.spec.PBEKeySpec
-import org.postgresql.util.PSQLException
-import org.postgresql.util.PSQLState.UNIQUE_VIOLATION
 
-@JvmInline value class UserId(val serial: Long)
+@JvmInline
+value class UserId(val serial: Long)
+
+@JvmInline
+value class UserThemeId(val serial: Long)
 
 interface UserPersistence {
     suspend fun insert(
@@ -37,6 +42,8 @@ interface UserPersistence {
     suspend fun select(userId: UserId): Either<DomainError, UserInfo>
 
     suspend fun select(username: String): Either<DomainError, UserInfo>
+
+    suspend fun selectCurrentTheme(userId: UserId): Either<DomainError, UserThemeInfo>
 
     suspend fun update(
         userId: UserId,
@@ -62,8 +69,8 @@ fun userPersistence(
             val salt = generateSalt()
             val key = generateKey(password, salt)
             return Either.catchOrThrow<PSQLException, UserId> {
-                    usersQueries.create(username, email, salt, key)
-                }
+                usersQueries.create(username, email, salt, key)
+            }
                 .mapLeft { psqlException ->
                     if (psqlException.sqlState == UNIQUE_VIOLATION.state)
                         UsernameAlreadyExists(username)
@@ -114,6 +121,14 @@ fun userPersistence(
             ensureNotNull(userInfo) { UserNotFound("username=$username") }
         }
 
+        override suspend fun selectCurrentTheme(userId: UserId): Either<DomainError, UserThemeInfo> = either {
+            val description =
+                userThemesQueries.selectCurrentByUser(userId.serial)
+                    .executeAsOneOrNull()
+            ensureNotNull(description) { UserThemeNotFound("userId=$userId") }
+            UserThemeInfo(description)
+        }
+
         override suspend fun update(
             userId: UserId,
             username: String?,
@@ -122,14 +137,14 @@ fun userPersistence(
         ): Either<DomainError, UserInfo> = either {
             val info =
                 usersQueries.transactionWithResult {
-                    usersQueries.selectById(userId).executeAsOneOrNull()?.let {
-                        (oldEmail, oldUsername, salt, oldPassword) ->
-                        val newPassword = password?.let { generateKey(it, salt) } ?: oldPassword
-                        val newEmail = email ?: oldEmail
-                        val newUsername = username ?: oldUsername
-                        usersQueries.update(newEmail, newUsername, newPassword, userId)
-                        UserInfo(newUsername, newEmail)
-                    }
+                    usersQueries.selectById(userId).executeAsOneOrNull()
+                        ?.let { (oldEmail, oldUsername, salt, oldPassword) ->
+                            val newPassword = password?.let { generateKey(it, salt) } ?: oldPassword
+                            val newEmail = email ?: oldEmail
+                            val newUsername = username ?: oldUsername
+                            usersQueries.update(newEmail, newUsername, newPassword, userId)
+                            UserInfo(newUsername, newEmail)
+                        }
                 }
             ensureNotNull(info) { UserNotFound("userId=$userId") }
         }

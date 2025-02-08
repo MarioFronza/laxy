@@ -15,7 +15,7 @@ import kotlinx.serialization.MissingFieldException
 
 fun Application.routes(deps: Dependencies) = routing {
     userRoutes(deps.userService, deps.jwtService)
-    quizRoutes(deps.quizService)
+    quizRoutes(deps.quizService, deps.jwtService)
 }
 
 @Resource("/api") data object RootResource
