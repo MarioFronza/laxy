@@ -27,13 +27,15 @@ fun Route.quizRoutes(quizService: QuizService, jwtService: JwtService) {
                     val (subjectId, totalQuestions) =
                         receiveCatching<QuizWrapper<NewQuiz>>().bind().quiz
                     val quiz =
-                        quizService.createQuiz(
-                            CreateQuiz(
-                                userId = userId,
-                                subjectId = SubjectId(subjectId),
-                                totalQuestions
+                        quizService
+                            .createQuiz(
+                                CreateQuiz(
+                                    userId = userId,
+                                    subjectId = SubjectId(subjectId),
+                                    totalQuestions
+                                )
                             )
-                        ).bind()
+                            .bind()
                     QuizWrapper(quiz)
                 }
                 .respond(HttpStatusCode.Created)

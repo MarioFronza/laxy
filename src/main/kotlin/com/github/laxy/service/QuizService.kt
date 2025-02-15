@@ -13,6 +13,15 @@ import com.github.laxy.route.Quiz
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.Json
+
+@Serializable
+data class ResponseQuestion(
+    val description: String,
+    val options: List<String>,
+    val correctIndex: Int
+)
 
 data class CreateQuiz(val userId: UserId, val subjectId: SubjectId, val totalQuestions: Int)
 
@@ -51,7 +60,11 @@ fun quizService(
                     .trimIndent()
             CoroutineScope(Dispatchers.IO).launch {
                 val response = gptAIService.chatCompletion(ChatCompletionContent(message)).bind()
-                QuizEvent.eventChannel.emit(quizId to response)
+                val formattedResponse = response
+                    .removePrefix("```json")
+                    .removeSuffix("```")
+                    .trim()
+                QuizEvent.eventChannel.emit(quizId to formattedResponse)
             }
             Quiz(id = quizId.serial, totalQuestions = input.totalQuestions)
         }
@@ -60,7 +73,8 @@ fun quizService(
             CoroutineScope(Dispatchers.IO).launch {
                 QuizEvent.eventChannel.collect { (quizId, response) ->
                     println(quizId)
-                    println(response)
+                    val questions: List<ResponseQuestion> = Json.decodeFromString(response)
+                    println(questions)
                 }
             }
         }
