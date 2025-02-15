@@ -25,7 +25,11 @@ interface QuizService {
     suspend fun createQuiz(input: CreateQuiz): Either<DomainError, Quiz>
 }
 
-fun quizService(userPersistence: UserPersistence, subjectPersistence: SubjectPersistence, gptAIService: GptAIService) =
+fun quizService(
+    userPersistence: UserPersistence,
+    subjectPersistence: SubjectPersistence,
+    gptAIService: GptAIService
+) =
     object : QuizService {
         override suspend fun createQuiz(input: CreateQuiz): Either<DomainError, Quiz> = either {
             val currentTheme = userPersistence.selectCurrentTheme(input.userId).bind()

@@ -25,6 +25,8 @@ sealed interface UserError : DomainError
 
 sealed interface SubjectError : DomainError
 
+sealed interface QuizError: DomainError
+
 data class UserNotFound(val property: String) : UserError
 
 data class EmailAlreadyExists(val email: String) : UserError
@@ -36,6 +38,8 @@ data class UserThemeNotFound(val property: String) : UserError
 data object PasswordNotMatched : UserError
 
 data class SubjectNotFound(val property: String) : SubjectError
+
+data class QuizCreationError(val description: String): QuizError
 
 sealed interface JwtError : DomainError
 
