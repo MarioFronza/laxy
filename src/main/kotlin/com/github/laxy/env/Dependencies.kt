@@ -1,6 +1,7 @@
 package com.github.laxy.env
 
 import arrow.fx.coroutines.continuations.ResourceScope
+import com.github.laxy.persistence.quizPersistence
 import com.github.laxy.persistence.subjectPersistence
 import com.github.laxy.persistence.userPersistence
 import com.github.laxy.service.GptAIService
@@ -13,8 +14,8 @@ import com.github.laxy.service.quizService
 import com.github.laxy.service.userService
 import com.sksamuel.cohort.HealthCheckRegistry
 import com.sksamuel.cohort.hikari.HikariConnectionsHealthCheck
-import kotlinx.coroutines.Dispatchers
 import kotlin.time.Duration.Companion.seconds
+import kotlinx.coroutines.Dispatchers
 
 class Dependencies(
     val healthCheck: HealthCheckRegistry,
@@ -30,10 +31,13 @@ suspend fun ResourceScope.dependencies(env: Env): Dependencies {
     val sqlDelight = sqlDelight(hikari)
     val userPersistence = userPersistence(sqlDelight.usersQueries, sqlDelight.userThemesQueries)
     val subjectPersistence = subjectPersistence(sqlDelight.subjectsQueries)
+    val quizPersistence = quizPersistence(sqlDelight.quizzesQueries)
     val jwtService = jwtService(env.auth, userPersistence)
     val userService = userService(userPersistence, jwtService)
     val gptAIService = gptAIService(openAI.token)
-    val quizService = quizService(userPersistence, subjectPersistence, gptAIService)
+    val quizService =
+        quizService(userPersistence, subjectPersistence, quizPersistence, gptAIService)
+    quizService.listenEvent()
     val checks =
         HealthCheckRegistry(Dispatchers.Default) {
             register(

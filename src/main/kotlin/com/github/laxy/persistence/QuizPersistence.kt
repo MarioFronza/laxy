@@ -23,20 +23,17 @@ interface QuizPersistence {
     ): Either<DomainError, QuizId>
 }
 
-fun quizPersistence(
-    quizzesQueries: QuizzesQueries
-) = object : QuizPersistence {
-    override suspend fun insert(
-        userId: UserId,
-        subjectId: SubjectId,
-        totalQuestions: Int
-    ): Either<DomainError, QuizId> = either {
-        val quizId = quizzesQueries
-            .insertAndGetId(userId.serial, subjectId.serial, totalQuestions)
-            .executeAsOneOrNull()
-        ensureNotNull(quizId) {
-           QuizCreationError("quizId=$quizId")
+fun quizPersistence(quizzesQueries: QuizzesQueries) =
+    object : QuizPersistence {
+        override suspend fun insert(
+            userId: UserId,
+            subjectId: SubjectId,
+            totalQuestions: Int
+        ): Either<DomainError, QuizId> = either {
+            val quizId =
+                quizzesQueries
+                    .insertAndGetId(userId.serial, subjectId.serial, totalQuestions)
+                    .executeAsOneOrNull()
+            ensureNotNull(quizId) { QuizCreationError("quizId=$quizId") }
         }
     }
-
-}

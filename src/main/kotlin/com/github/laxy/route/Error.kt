@@ -11,6 +11,7 @@ import com.github.laxy.JwtGeneration
 import com.github.laxy.JwtInvalid
 import com.github.laxy.MissingParameter
 import com.github.laxy.PasswordNotMatched
+import com.github.laxy.QuizCreationError
 import com.github.laxy.SubjectNotFound
 import com.github.laxy.UserNotFound
 import com.github.laxy.UserThemeNotFound
@@ -23,11 +24,9 @@ import io.ktor.util.pipeline.PipelineContext
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
 
-@Serializable
-data class GenericErrorModel(val errors: GenericErrorModelErrors)
+@Serializable data class GenericErrorModel(val errors: GenericErrorModelErrors)
 
-@Serializable
-data class GenericErrorModelErrors(val body: List<String>)
+@Serializable data class GenericErrorModelErrors(val body: List<String>)
 
 context(PipelineContext<Unit, ApplicationCall>)
 suspend inline fun <reified A : Any> Either<DomainError, A>.respond(status: HttpStatusCode): Unit =
@@ -44,10 +43,8 @@ suspend fun PipelineContext<Unit, ApplicationCall>.respond(error: DomainError): 
             unprocessable(
                 error.errors.map { field -> "${field.field}: ${field.errors.joinToString()}" }
             )
-
         is IncorrectJson ->
             unprocessable("Json is missing fields: ${error.exception.missingFields.joinToString()}")
-
         is EmptyUpdate -> unprocessable(error.description)
         is EmailAlreadyExists -> unprocessable("${error.email} is already registered")
         is JwtGeneration -> unprocessable(error.description)
@@ -57,9 +54,9 @@ suspend fun PipelineContext<Unit, ApplicationCall>.respond(error: DomainError): 
         is MissingParameter -> unprocessable("Missing ${error.name} parameter in request")
         is InvalidIntegrationResponse ->
             unprocessable("Invalid GPT api content response: ${error.content}")
-
         is SubjectNotFound -> unprocessable("Subject with ${error.property} not found")
         is UserThemeNotFound -> unprocessable("Theme with ${error.property} not found")
+        is QuizCreationError -> unprocessable("Creation quiz unexpected error")
     }
 
 private suspend inline fun PipelineContext<Unit, ApplicationCall>.unprocessable(

@@ -3,37 +3,39 @@ package com.github.laxy.service
 import arrow.core.Either
 import arrow.core.raise.either
 import com.github.laxy.DomainError
+import com.github.laxy.event.QuizEvent
+import com.github.laxy.persistence.QuizPersistence
 import com.github.laxy.persistence.SubjectId
 import com.github.laxy.persistence.SubjectPersistence
 import com.github.laxy.persistence.UserId
 import com.github.laxy.persistence.UserPersistence
 import com.github.laxy.route.Quiz
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
-data class CreateQuiz(
-    val userId: UserId,
-    val subjectId: SubjectId,
-    val totalQuestions: Int
-)
+data class CreateQuiz(val userId: UserId, val subjectId: SubjectId, val totalQuestions: Int)
 
-data class SubjectInfo(
-    val name: String,
-    val description: String,
-    val language: String
-)
+data class SubjectInfo(val name: String, val description: String, val language: String)
 
 interface QuizService {
     suspend fun createQuiz(input: CreateQuiz): Either<DomainError, Quiz>
+
+    suspend fun listenEvent()
 }
 
 fun quizService(
     userPersistence: UserPersistence,
     subjectPersistence: SubjectPersistence,
+    quizPersistence: QuizPersistence,
     gptAIService: GptAIService
 ) =
     object : QuizService {
         override suspend fun createQuiz(input: CreateQuiz): Either<DomainError, Quiz> = either {
-            val currentTheme = userPersistence.selectCurrentTheme(input.userId).bind()
             val subject = subjectPersistence.select(input.subjectId).bind()
+            val currentTheme = userPersistence.selectCurrentTheme(input.userId).bind()
+            val quizId =
+                quizPersistence.insert(input.userId, input.subjectId, input.totalQuestions).bind()
             val message =
                 """
         Generate a multiple-choice quiz with ${input.totalQuestions} questions about ${subject.name} - ${subject.language}. 
@@ -47,8 +49,19 @@ fun quizService(
         Ensure that the quiz is engaging, informative, and suitable for learners of ${subject.language} at a advanced proficiency level.
         """
                     .trimIndent()
-            val response = gptAIService.chatCompletion(ChatCompletionContent(message)).bind()
-            println(response)
-            Quiz(id = 1L, totalQuestions = input.totalQuestions)
+            CoroutineScope(Dispatchers.IO).launch {
+                val response = gptAIService.chatCompletion(ChatCompletionContent(message)).bind()
+                QuizEvent.eventChannel.emit(quizId to response)
+            }
+            Quiz(id = quizId.serial, totalQuestions = input.totalQuestions)
+        }
+
+        override suspend fun listenEvent() {
+            CoroutineScope(Dispatchers.IO).launch {
+                QuizEvent.eventChannel.collect { (quizId, response) ->
+                    println(quizId)
+                    println(response)
+                }
+            }
         }
     }
