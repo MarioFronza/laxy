@@ -38,7 +38,7 @@ fun Route.quizRoutes(quizService: QuizService, jwtService: JwtService) {
                             .bind()
                     QuizWrapper(quiz)
                 }
-                .respond(HttpStatusCode.Created)
+                .respond(this, HttpStatusCode.Created)
         }
     }
 }

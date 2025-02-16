@@ -30,14 +30,18 @@ import kotlinx.serialization.Serializable
 
 @Serializable data class GenericErrorModelErrors(val body: List<String>)
 
-context(PipelineContext<Unit, ApplicationCall>)
-suspend inline fun <reified A : Any> Either<DomainError, A>.respond(status: HttpStatusCode): Unit =
+suspend inline fun <reified A : Any> Either<DomainError, A>.respond(
+    context: PipelineContext<Unit, ApplicationCall>,
+    status: HttpStatusCode
+) {
     when (this) {
-        is Either.Left -> respond(value)
-        is Either.Right -> call.respond(status, value)
+        is Either.Left -> context.respond(value)
+        is Either.Right -> context.call.respond(status, value)
     }
+}
 
 @OptIn(ExperimentalSerializationApi::class)
+@Suppress("CyclomaticComplexMethod")
 suspend fun PipelineContext<Unit, ApplicationCall>.respond(error: DomainError): Unit =
     when (error) {
         PasswordNotMatched -> call.respond(HttpStatusCode.Unauthorized)
@@ -59,8 +63,9 @@ suspend fun PipelineContext<Unit, ApplicationCall>.respond(error: DomainError): 
         is SubjectNotFound -> unprocessable("Subject with ${error.property} not found")
         is UserThemeNotFound -> unprocessable("Theme with ${error.property} not found")
         is QuizCreationError -> unprocessable("Creation quiz unexpected error")
-        is QuestionCreationError ->  unprocessable("Creation quiz question unexpected error")
-        is QuestionOptionCreationError ->  unprocessable("Creation quiz question option unexpected error")
+        is QuestionCreationError -> unprocessable("Creation quiz question unexpected error")
+        is QuestionOptionCreationError ->
+            unprocessable("Creation quiz question option unexpected error")
     }
 
 private suspend inline fun PipelineContext<Unit, ApplicationCall>.unprocessable(

@@ -58,7 +58,7 @@ fun Route.userRoutes(
                     userService.register(RegisterUser(username, email, password)).bind().value
                 UserWrapper(User(email, token, username))
             }
-            .respond(HttpStatusCode.Created)
+            .respond(this, HttpStatusCode.Created)
     }
     post<UsersResource.Login> {
         either {
@@ -66,7 +66,7 @@ fun Route.userRoutes(
                 val (token, info) = userService.login(Login(email, password)).bind()
                 UserWrapper(User(email, token.value, info.username))
             }
-            .respond(HttpStatusCode.OK)
+            .respond(this, HttpStatusCode.OK)
     }
     post<UsersResource.Theme> {
         jwtAuth(jwtService) { (_, userId) ->
@@ -75,7 +75,7 @@ fun Route.userRoutes(
                     val theme = userService.createTheme(CreateTheme(userId, description)).bind()
                     UserWrapper(UserTheme(theme.description))
                 }
-                .respond(HttpStatusCode.Created)
+                .respond(this, HttpStatusCode.Created)
         }
     }
     get<UserResource> {
@@ -84,7 +84,7 @@ fun Route.userRoutes(
                     val info = userService.getUser(userId).bind()
                     UserWrapper(User(info.email, token.value, info.username))
                 }
-                .respond(HttpStatusCode.OK)
+                .respond(this, HttpStatusCode.OK)
         }
     }
     put<UserResource> {
@@ -95,7 +95,7 @@ fun Route.userRoutes(
                     val info = userService.update(Update(userId, username, email, password)).bind()
                     UserWrapper(User(info.email, token.value, info.username))
                 }
-                .respond(HttpStatusCode.OK)
+                .respond(this, HttpStatusCode.OK)
         }
     }
 }

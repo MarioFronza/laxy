@@ -4,7 +4,6 @@ import arrow.fx.coroutines.continuations.ResourceScope
 import com.github.laxy.persistence.quizPersistence
 import com.github.laxy.persistence.subjectPersistence
 import com.github.laxy.persistence.userPersistence
-import com.github.laxy.service.GptAIService
 import com.github.laxy.service.JwtService
 import com.github.laxy.service.QuizService
 import com.github.laxy.service.UserService
@@ -30,11 +29,12 @@ suspend fun ResourceScope.dependencies(env: Env): Dependencies {
     val sqlDelight = sqlDelight(hikari)
     val userPersistence = userPersistence(sqlDelight.usersQueries, sqlDelight.userThemesQueries)
     val subjectPersistence = subjectPersistence(sqlDelight.subjectsQueries)
-    val quizPersistence = quizPersistence(
-        sqlDelight.quizzesQueries,
-        sqlDelight.questionsQueries,
-        sqlDelight.questionOptionsQueries
-    )
+    val quizPersistence =
+        quizPersistence(
+            sqlDelight.quizzesQueries,
+            sqlDelight.questionsQueries,
+            sqlDelight.questionOptionsQueries
+        )
     val jwtService = jwtService(env.auth, userPersistence)
     val userService = userService(userPersistence, jwtService)
     val gptAIService = gptAIService(openAI.token)

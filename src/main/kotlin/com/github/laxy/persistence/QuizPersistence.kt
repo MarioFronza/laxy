@@ -11,17 +11,13 @@ import com.github.laxy.sqldelight.QuestionOptionsQueries
 import com.github.laxy.sqldelight.QuestionsQueries
 import com.github.laxy.sqldelight.QuizzesQueries
 
-@JvmInline
-value class QuizId(val serial: Long)
+@JvmInline value class QuizId(val serial: Long)
 
-@JvmInline
-value class QuestionId(val serial: Long)
+@JvmInline value class QuestionId(val serial: Long)
 
-@JvmInline
-value class QuestionOptionId(val serial: Long)
+@JvmInline value class QuestionOptionId(val serial: Long)
 
-@JvmInline
-value class QuestionAttemptId(val serial: Long)
+@JvmInline value class QuestionAttemptId(val serial: Long)
 
 interface QuizPersistence {
     suspend fun insertQuiz(
@@ -30,10 +26,7 @@ interface QuizPersistence {
         totalQuestions: Int
     ): Either<DomainError, QuizId>
 
-    suspend fun insertQuestion(
-        quizId: QuizId,
-        description: String
-    ): Either<DomainError, QuestionId>
+    suspend fun insertQuestion(quizId: QuizId, description: String): Either<DomainError, QuestionId>
 
     suspend fun insertQuestionOption(
         questionId: QuestionId,
@@ -61,13 +54,14 @@ fun quizPersistence(
             ensureNotNull(quizId) { QuizCreationError("quizId=$quizId") }
         }
 
-        override suspend fun insertQuestion(quizId: QuizId, description: String): Either<DomainError, QuestionId> =
-            either {
-                val questionId =
-                    questionsQueries.insertAndGetId(quizId.serial, description)
-                        .executeAsOneOrNull()
-                ensureNotNull(questionId) { QuestionCreationError("questionId´=$quizId") }
-            }
+        override suspend fun insertQuestion(
+            quizId: QuizId,
+            description: String
+        ): Either<DomainError, QuestionId> = either {
+            val questionId =
+                questionsQueries.insertAndGetId(quizId.serial, description).executeAsOneOrNull()
+            ensureNotNull(questionId) { QuestionCreationError("questionId´=$quizId") }
+        }
 
         override suspend fun insertQuestionOption(
             questionId: QuestionId,
@@ -75,16 +69,12 @@ fun quizPersistence(
             referenceNumber: Int,
             isCorrect: Boolean
         ): Either<DomainError, QuestionOptionId> = either {
-            val questionOptionId = questionOptionsQueries.insertAndGetId(
-                questionId.serial,
-                description,
-                referenceNumber,
-                isCorrect
-            ).executeAsOneOrNull()
+            val questionOptionId =
+                questionOptionsQueries
+                    .insertAndGetId(questionId.serial, description, referenceNumber, isCorrect)
+                    .executeAsOneOrNull()
             ensureNotNull(questionOptionId) {
                 QuestionOptionCreationError("questionOptionId=$questionOptionId")
             }
         }
-
-
     }

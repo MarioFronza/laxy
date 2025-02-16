@@ -1,3 +1,5 @@
+@file:Suppress("TooManyFunctions")
+
 package com.github.laxy.validation
 
 import arrow.core.Either
@@ -12,6 +14,9 @@ import com.github.laxy.service.CreateTheme
 import com.github.laxy.service.Login
 import com.github.laxy.service.RegisterUser
 import com.github.laxy.service.Update
+
+fun Login.validate(): Either<IncorrectInput, Login> =
+    zipOrAccumulate(email.validEmail(), password.validPassword(), ::Login).mapLeft(::IncorrectInput)
 
 sealed interface InvalidField {
     val errors: NonEmptyList<String>
@@ -33,9 +38,6 @@ data class InvalidUsername(override val errors: NonEmptyList<String>) : InvalidF
 data class InvalidThemeDescription(override val errors: NonEmptyList<String>) : InvalidField {
     override val field: String = "description"
 }
-
-fun Login.validate(): Either<IncorrectInput, Login> =
-    zipOrAccumulate(email.validEmail(), password.validPassword(), ::Login).mapLeft(::IncorrectInput)
 
 fun RegisterUser.validate(): Either<IncorrectInput, RegisterUser> =
     zipOrAccumulate(

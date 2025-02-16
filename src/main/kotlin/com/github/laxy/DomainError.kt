@@ -2,7 +2,6 @@ package com.github.laxy
 
 import arrow.core.NonEmptyList
 import arrow.core.nonEmptyListOf
-import com.github.laxy.route.Quiz
 import com.github.laxy.validation.InvalidField
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.MissingFieldException
@@ -42,9 +41,9 @@ data class SubjectNotFound(val property: String) : SubjectError
 
 data class QuizCreationError(val description: String) : QuizError
 
-data class QuestionCreationError(val description: String): QuizError
+data class QuestionCreationError(val description: String) : QuizError
 
-data class QuestionOptionCreationError(val description: String): QuizError
+data class QuestionOptionCreationError(val description: String) : QuizError
 
 sealed interface JwtError : DomainError
 
