@@ -9,3 +9,8 @@ CREATE TABLE IF NOT EXISTS questions (
 );
 
 CREATE INDEX IF NOT EXISTS idx_question_quiz_id ON questions(quiz_id);
+
+insertAndGetId:
+INSERT INTO questions(quiz_id, description)
+VALUES (:quizId, :description)
+RETURNING id;

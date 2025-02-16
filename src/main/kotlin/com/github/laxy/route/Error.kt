@@ -11,6 +11,8 @@ import com.github.laxy.JwtGeneration
 import com.github.laxy.JwtInvalid
 import com.github.laxy.MissingParameter
 import com.github.laxy.PasswordNotMatched
+import com.github.laxy.QuestionCreationError
+import com.github.laxy.QuestionOptionCreationError
 import com.github.laxy.QuizCreationError
 import com.github.laxy.SubjectNotFound
 import com.github.laxy.UserNotFound
@@ -57,6 +59,8 @@ suspend fun PipelineContext<Unit, ApplicationCall>.respond(error: DomainError): 
         is SubjectNotFound -> unprocessable("Subject with ${error.property} not found")
         is UserThemeNotFound -> unprocessable("Theme with ${error.property} not found")
         is QuizCreationError -> unprocessable("Creation quiz unexpected error")
+        is QuestionCreationError ->  unprocessable("Creation quiz question unexpected error")
+        is QuestionOptionCreationError ->  unprocessable("Creation quiz question option unexpected error")
     }
 
 private suspend inline fun PipelineContext<Unit, ApplicationCall>.unprocessable(

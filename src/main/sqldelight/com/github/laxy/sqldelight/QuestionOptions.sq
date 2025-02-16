@@ -11,3 +11,8 @@ CREATE TABLE IF NOT EXISTS question_options (
 );
 
 CREATE INDEX IF NOT EXISTS idx_question_option_question_id ON question_options(question_id);
+
+insertAndGetId:
+INSERT INTO question_options(question_id, description, reference_number, is_correct)
+VALUES(:questionId, :description, :referenceNumber, :isCorrect)
+RETURNING id;

@@ -20,7 +20,6 @@ import kotlinx.coroutines.Dispatchers
 class Dependencies(
     val healthCheck: HealthCheckRegistry,
     val userService: UserService,
-    val gptAIService: GptAIService,
     val quizService: QuizService,
     val jwtService: JwtService
 )
@@ -31,7 +30,11 @@ suspend fun ResourceScope.dependencies(env: Env): Dependencies {
     val sqlDelight = sqlDelight(hikari)
     val userPersistence = userPersistence(sqlDelight.usersQueries, sqlDelight.userThemesQueries)
     val subjectPersistence = subjectPersistence(sqlDelight.subjectsQueries)
-    val quizPersistence = quizPersistence(sqlDelight.quizzesQueries)
+    val quizPersistence = quizPersistence(
+        sqlDelight.quizzesQueries,
+        sqlDelight.questionsQueries,
+        sqlDelight.questionOptionsQueries
+    )
     val jwtService = jwtService(env.auth, userPersistence)
     val userService = userService(userPersistence, jwtService)
     val gptAIService = gptAIService(openAI.token)
@@ -49,7 +52,6 @@ suspend fun ResourceScope.dependencies(env: Env): Dependencies {
     return Dependencies(
         healthCheck = checks,
         userService = userService,
-        gptAIService = gptAIService,
         jwtService = jwtService,
         quizService = quizService
     )
