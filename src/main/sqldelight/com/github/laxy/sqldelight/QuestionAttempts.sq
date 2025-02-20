@@ -1,8 +1,9 @@
 import com.github.laxy.persistence.QuestionAttemptId;
+import com.github.laxy.persistence.QuestionId;
 
 CREATE TABLE IF NOT EXISTS question_attempts (
     id BIGSERIAL AS QuestionAttemptId PRIMARY KEY,
-    question_id BIGSERIAL REFERENCES questions(id) ON DELETE CASCADE,
+    question_id BIGSERIAL AS QuestionId REFERENCES questions(id) ON DELETE CASCADE,
     user_answer INT NOT NULL,
     is_correct INT NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,

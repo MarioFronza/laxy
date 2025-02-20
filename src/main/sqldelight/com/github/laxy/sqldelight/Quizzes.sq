@@ -1,9 +1,11 @@
 import com.github.laxy.persistence.QuizId;
+import com.github.laxy.persistence.SubjectId;
+import com.github.laxy.persistence.UserId;
 
 CREATE TABLE IF NOT EXISTS quizzes (
     id BIGSERIAL AS QuizId PRIMARY KEY,
-    user_id BIGSERIAL REFERENCES users(id) ON DELETE CASCADE,
-    subject_id BIGSERIAL REFERENCES subjects ON DELETE CASCADE,
+    user_id BIGSERIAL AS UserId REFERENCES users(id) ON DELETE CASCADE,
+    subject_id BIGSERIAL AS SubjectId REFERENCES subjects ON DELETE CASCADE,
     total_questions INT NOT NULL,
     status VARCHAR(20) CHECK (status IN ('creating', 'pending', 'completed')) DEFAULT 'creating',
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,

@@ -5,6 +5,7 @@ import app.cash.sqldelight.driver.jdbc.asJdbcDriver
 import arrow.fx.coroutines.autoCloseable
 import arrow.fx.coroutines.closeable
 import arrow.fx.coroutines.continuations.ResourceScope
+import com.github.laxy.persistence.LanguageId
 import com.github.laxy.persistence.QuestionId
 import com.github.laxy.persistence.QuestionOptionId
 import com.github.laxy.persistence.QuizId
@@ -38,11 +39,11 @@ suspend fun ResourceScope.sqlDelight(dataSource: DataSource): SqlDelight {
     SqlDelight.Schema.create(driver)
     return SqlDelight(
         driver,
-        Question_options.Adapter(questionOptionIdAdapter),
-        Questions.Adapter(questionIdAdapter),
-        Quizzes.Adapter(quizIdAdapter),
-        Subjects.Adapter(subjectIdAdapter),
-        User_themes.Adapter(userThemeIdAdapter),
+        Question_options.Adapter(questionOptionIdAdapter, questionIdAdapter),
+        Questions.Adapter(questionIdAdapter, quizIdAdapter),
+        Quizzes.Adapter(quizIdAdapter, userIdAdapter, subjectIdAdapter),
+        Subjects.Adapter(subjectIdAdapter, languageIdAdapter),
+        User_themes.Adapter(userThemeIdAdapter, userIdAdapter),
         Users.Adapter(userIdAdapter),
     )
 }
@@ -53,6 +54,7 @@ private val subjectIdAdapter = columnAdapter(::SubjectId, SubjectId::serial)
 private val quizIdAdapter = columnAdapter(::QuizId, QuizId::serial)
 private val questionIdAdapter = columnAdapter(::QuestionId, QuestionId::serial)
 private val questionOptionIdAdapter = columnAdapter(::QuestionOptionId, QuestionOptionId::serial)
+private val languageIdAdapter = columnAdapter(::LanguageId, LanguageId::serial)
 
 private inline fun <A : Any, B> columnAdapter(
     crossinline decode: (databaseValue: B) -> A,

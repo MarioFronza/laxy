@@ -30,6 +30,8 @@ interface UserPersistence {
         password: String
     ): Either<DomainError, UserId>
 
+    suspend fun setCurrent(userId: UserId, isCurrent: Boolean)
+
     suspend fun insertTheme(userId: UserId, description: String): Either<DomainError, UserThemeInfo>
 
     suspend fun verifyPassword(
@@ -88,7 +90,7 @@ fun userPersistence(
             UserThemeInfo(
                 description =
                     userThemesQueries
-                        .insertAndGetDescription(userId.serial, description, true)
+                        .insertAndGetDescription(userId, description, true)
                         .executeAsOne()
             )
         }
@@ -122,10 +124,13 @@ fun userPersistence(
         override suspend fun selectCurrentTheme(
             userId: UserId
         ): Either<DomainError, UserThemeInfo> = either {
-            val description =
-                userThemesQueries.selectCurrentByUser(userId.serial).executeAsOneOrNull()
+            val description = userThemesQueries.selectCurrentByUser(userId).executeAsOneOrNull()
             ensureNotNull(description) { UserThemeNotFound("userId=$userId") }
             UserThemeInfo(description)
+        }
+
+        override suspend fun setCurrent(userId: UserId, isCurrent: Boolean) {
+            userThemesQueries.setCurrent(isCurrent, userId)
         }
 
         override suspend fun update(

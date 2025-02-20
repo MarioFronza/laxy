@@ -1,8 +1,9 @@
+import com.github.laxy.persistence.QuestionId;
 import com.github.laxy.persistence.QuestionOptionId;
 
 CREATE TABLE IF NOT EXISTS question_options (
     id BIGSERIAL AS QuestionOptionId PRIMARY KEY,
-    question_id BIGSERIAL REFERENCES questions(id) ON DELETE CASCADE,
+    question_id BIGSERIAL AS QuestionId REFERENCES questions(id) ON DELETE CASCADE,
     description TEXT NOT NULL,
     reference_number INT NOT NULL,
     is_correct BOOLEAN NOT NULL,

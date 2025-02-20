@@ -1,8 +1,9 @@
+import com.github.laxy.persistence.UserId;
 import com.github.laxy.persistence.UserProgressId;
 
 CREATE TABLE IF NOT EXISTS user_progress(
     id BIGSERIAL AS UserProgressId PRIMARY KEY,
-    user_id BIGSERIAL REFERENCES users(id) ON DELETE CASCADE,
+    user_id BIGSERIAL AS UserId REFERENCES users(id) ON DELETE CASCADE,
     subject_id BIGSERIAL REFERENCES subjects(id) ON DELETE CASCADE,
     quizzes_completed INT DEFAULT 0,
     correct_answers INT DEFAULT 0,

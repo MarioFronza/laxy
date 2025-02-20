@@ -49,7 +49,7 @@ fun quizPersistence(
         ): Either<DomainError, QuizId> = either {
             val quizId =
                 quizzesQueries
-                    .insertAndGetId(userId.serial, subjectId.serial, totalQuestions)
+                    .insertAndGetId(userId, subjectId, totalQuestions)
                     .executeAsOneOrNull()
             ensureNotNull(quizId) { QuizCreationError("quizId=$quizId") }
         }
@@ -59,7 +59,7 @@ fun quizPersistence(
             description: String
         ): Either<DomainError, QuestionId> = either {
             val questionId =
-                questionsQueries.insertAndGetId(quizId.serial, description).executeAsOneOrNull()
+                questionsQueries.insertAndGetId(quizId, description).executeAsOneOrNull()
             ensureNotNull(questionId) { QuestionCreationError("questionId´=$quizId") }
         }
 
@@ -71,7 +71,7 @@ fun quizPersistence(
         ): Either<DomainError, QuestionOptionId> = either {
             val questionOptionId =
                 questionOptionsQueries
-                    .insertAndGetId(questionId.serial, description, referenceNumber, isCorrect)
+                    .insertAndGetId(questionId, description, referenceNumber, isCorrect)
                     .executeAsOneOrNull()
             ensureNotNull(questionOptionId) {
                 QuestionOptionCreationError("questionOptionId=$questionOptionId")
