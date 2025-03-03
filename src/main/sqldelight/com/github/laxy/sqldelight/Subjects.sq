@@ -13,7 +13,13 @@ CREATE TABLE IF NOT EXISTS subjects (
 CREATE INDEX IF NOT EXISTS idx_subject_language_id ON subjects(language_id);
 
 selectById:
-SELECT s.name, description, l.name AS language
+SELECT s.id, s.name, description, l.name AS language
 FROM subjects AS s INNER JOIN languages AS l
 ON s.language_id = l.id
 AND s.id = :id;
+
+selectAll:
+SELECT s.id, s.name, s.description, l.name AS language
+FROM subjects AS s
+INNER JOIN languages AS l ON s.language_id = l.id
+ORDER BY s.name;

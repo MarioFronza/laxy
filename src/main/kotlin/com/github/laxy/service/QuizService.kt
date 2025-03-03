@@ -27,8 +27,6 @@ data class ResponseQuestion(
 
 data class CreateQuiz(val userId: UserId, val subjectId: SubjectId, val totalQuestions: Int)
 
-data class SubjectInfo(val name: String, val description: String, val language: String)
-
 object QuizEvent {
     val eventChannel = MutableSharedFlow<Pair<QuizId, String>>(extraBufferCapacity = 100)
 }

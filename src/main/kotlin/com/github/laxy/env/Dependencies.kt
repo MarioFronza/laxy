@@ -6,10 +6,12 @@ import com.github.laxy.persistence.subjectPersistence
 import com.github.laxy.persistence.userPersistence
 import com.github.laxy.service.JwtService
 import com.github.laxy.service.QuizService
+import com.github.laxy.service.SubjectService
 import com.github.laxy.service.UserService
 import com.github.laxy.service.gptAIService
 import com.github.laxy.service.jwtService
 import com.github.laxy.service.quizService
+import com.github.laxy.service.subjectService
 import com.github.laxy.service.userService
 import com.sksamuel.cohort.HealthCheckRegistry
 import com.sksamuel.cohort.hikari.HikariConnectionsHealthCheck
@@ -22,7 +24,8 @@ class Dependencies(
     val healthCheck: HealthCheckRegistry,
     val userService: UserService,
     val quizService: QuizService,
-    val jwtService: JwtService
+    val jwtService: JwtService,
+    val subjectService: SubjectService
 )
 
 suspend fun ResourceScope.dependencies(env: Env): Dependencies {
@@ -40,6 +43,7 @@ suspend fun ResourceScope.dependencies(env: Env): Dependencies {
         sqlDelight.questionOptionsQueries
     )
 
+    val subjectService = subjectService(subjectPersistence)
     val jwtService = jwtService(env.auth, userPersistence)
     val userService = userService(userPersistence, jwtService)
     val gptAIService = gptAIService(openAI.token)
@@ -59,6 +63,7 @@ suspend fun ResourceScope.dependencies(env: Env): Dependencies {
         healthCheck = checks,
         userService = userService,
         jwtService = jwtService,
-        quizService = quizService
+        quizService = quizService,
+        subjectService = subjectService
     )
 }
