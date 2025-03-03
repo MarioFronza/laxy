@@ -1,15 +1,18 @@
 package com.github.laxy.env
 
 import arrow.fx.coroutines.continuations.ResourceScope
+import com.github.laxy.persistence.languagePersistence
 import com.github.laxy.persistence.quizPersistence
 import com.github.laxy.persistence.subjectPersistence
 import com.github.laxy.persistence.userPersistence
 import com.github.laxy.service.JwtService
+import com.github.laxy.service.LanguageService
 import com.github.laxy.service.QuizService
 import com.github.laxy.service.SubjectService
 import com.github.laxy.service.UserService
 import com.github.laxy.service.gptAIService
 import com.github.laxy.service.jwtService
+import com.github.laxy.service.languageService
 import com.github.laxy.service.quizService
 import com.github.laxy.service.subjectService
 import com.github.laxy.service.userService
@@ -25,7 +28,8 @@ class Dependencies(
     val userService: UserService,
     val quizService: QuizService,
     val jwtService: JwtService,
-    val subjectService: SubjectService
+    val subjectService: SubjectService,
+    val languageService: LanguageService
 )
 
 suspend fun ResourceScope.dependencies(env: Env): Dependencies {
@@ -42,11 +46,13 @@ suspend fun ResourceScope.dependencies(env: Env): Dependencies {
         sqlDelight.questionsQueries,
         sqlDelight.questionOptionsQueries
     )
+    val languagePersistence = languagePersistence(sqlDelight.languagesQueries)
 
     val subjectService = subjectService(subjectPersistence)
     val jwtService = jwtService(env.auth, userPersistence)
     val userService = userService(userPersistence, jwtService)
     val gptAIService = gptAIService(openAI.token)
+    val languageService = languageService(languagePersistence)
 
     val quizService = quizService(userPersistence, subjectPersistence, quizPersistence, gptAIService, coroutineScope)
     quizService.listenEvent()
@@ -64,6 +70,7 @@ suspend fun ResourceScope.dependencies(env: Env): Dependencies {
         userService = userService,
         jwtService = jwtService,
         quizService = quizService,
-        subjectService = subjectService
+        subjectService = subjectService,
+        languageService = languageService
     )
 }

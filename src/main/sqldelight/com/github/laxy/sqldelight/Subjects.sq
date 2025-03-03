@@ -23,3 +23,10 @@ SELECT s.id, s.name, s.description, l.name AS language
 FROM subjects AS s
 INNER JOIN languages AS l ON s.language_id = l.id
 ORDER BY s.name;
+
+selectSubjectsByLanguage:
+SELECT s.id, s.name, s.description, l.name AS language
+FROM subjects AS s
+INNER JOIN languages AS l ON s.language_id = l.id
+WHERE s.language_id = :languageId
+ORDER BY s.name;

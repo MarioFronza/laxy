@@ -11,7 +11,6 @@ import io.ktor.server.resources.get
 import io.ktor.server.routing.Route
 import kotlinx.serialization.Serializable
 
-
 @Serializable
 data class SubjectWrapper<T : Any>(val subject: T)
 

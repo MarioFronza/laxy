@@ -8,3 +8,5 @@ CREATE TABLE IF NOT EXISTS languages (
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
+selectAll:
+SELECT id, name, code FROM languages ORDER BY name;

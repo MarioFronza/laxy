@@ -17,6 +17,7 @@ fun Application.routes(deps: Dependencies) = routing {
     userRoutes(deps.userService, deps.jwtService)
     quizRoutes(deps.quizService, deps.jwtService)
     subjectRoutes(deps.subjectService, deps.jwtService)
+    languageRoutes(deps.languageService, deps.subjectService, deps.jwtService)
 }
 
 @Resource("/api")

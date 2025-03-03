@@ -12,6 +12,7 @@ import com.github.laxy.persistence.QuizId
 import com.github.laxy.persistence.SubjectId
 import com.github.laxy.persistence.UserId
 import com.github.laxy.persistence.UserThemeId
+import com.github.laxy.sqldelight.Languages
 import com.github.laxy.sqldelight.Question_options
 import com.github.laxy.sqldelight.Questions
 import com.github.laxy.sqldelight.Quizzes
@@ -39,6 +40,7 @@ suspend fun ResourceScope.sqlDelight(dataSource: DataSource): SqlDelight {
     SqlDelight.Schema.create(driver)
     return SqlDelight(
         driver,
+        Languages.Adapter(languageIdAdapter),
         Question_options.Adapter(questionOptionIdAdapter, questionIdAdapter),
         Questions.Adapter(questionIdAdapter, quizIdAdapter),
         Quizzes.Adapter(quizIdAdapter, userIdAdapter, subjectIdAdapter),
