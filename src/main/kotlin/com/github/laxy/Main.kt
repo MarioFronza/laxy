@@ -9,6 +9,7 @@ import com.github.laxy.env.configure
 import com.github.laxy.env.dependencies
 import com.github.laxy.route.health
 import com.github.laxy.route.routes
+import com.github.laxy.web.configureTemplating
 import io.ktor.server.application.Application
 import io.ktor.server.netty.Netty
 import kotlinx.coroutines.awaitCancellation
@@ -26,4 +27,5 @@ fun Application.app(module: Dependencies) {
     configure()
     routes(module)
     health(module.healthCheck)
+    configureTemplating()
 }
