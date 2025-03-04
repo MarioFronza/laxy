@@ -29,6 +29,7 @@ value class QuestionAttemptId(val serial: Long)
 interface QuizPersistence {
     suspend fun selectByUser(userId: UserId): Either<DomainError, List<QuizInfo>>
     suspend fun selectQuestionsByQuiz(quizId: QuizId): Either<DomainError, List<QuestionInfo>>
+    suspend fun selectOptionsByQuestion(questionId: QuestionId): Either<DomainError, List<OptionInfo>>
     suspend fun insertQuiz(
         userId: UserId,
         subjectId: SubjectId,
@@ -67,6 +68,13 @@ fun quizPersistence(
                 QuestionInfo(id, description, options)
             }.executeAsList()
         }
+
+        override suspend fun selectOptionsByQuestion(questionId: QuestionId): Either<DomainError, List<OptionInfo>> =
+            either {
+                questionOptionsQueries.selectByQuestion(questionId) { id, description, referenceNumber, isCorrect ->
+                    OptionInfo(id, description, referenceNumber, isCorrect)
+                }.executeAsList()
+            }
 
         override suspend fun insertQuiz(
             userId: UserId,

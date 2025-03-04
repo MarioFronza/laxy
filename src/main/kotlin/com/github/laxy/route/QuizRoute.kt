@@ -2,6 +2,7 @@ package com.github.laxy.route
 
 import arrow.core.raise.either
 import com.github.laxy.auth.jwtAuth
+import com.github.laxy.persistence.QuestionId
 import com.github.laxy.persistence.QuizId
 import com.github.laxy.persistence.SubjectId
 import com.github.laxy.service.CreateQuiz
@@ -52,8 +53,15 @@ data class NewQuiz(val subjectId: Long, val totalQuestions: Int)
 
 @Resource("/quizzes")
 data class QuizzesResource(val parent: RootResource = RootResource) {
-    @Resource("/{id}/questions")
-    data class QuizQuestionsResource(val id: Long, val parent: QuizzesResource = QuizzesResource())
+    @Resource("/{quizId}/questions")
+    data class QuizQuestionsResource(val quizId: Long, val parent: QuizzesResource = QuizzesResource()) {
+        @Resource("/{questionId}/options")
+        data class QuestionOptionsResource(
+            val quizId: Long,
+            val questionId: Long,
+            val parent: QuizQuestionsResource = QuizQuestionsResource(quizId)
+        )
+    }
 }
 
 fun Route.quizRoutes(quizService: QuizService, jwtService: JwtService) {
@@ -77,7 +85,7 @@ fun Route.quizRoutes(quizService: QuizService, jwtService: JwtService) {
     get<QuizzesResource.QuizQuestionsResource> { resource ->
         jwtAuth(jwtService) {
             either {
-                val questions = quizService.getQuestionsByQuiz(QuizId(resource.id)).bind()
+                val questions = quizService.getQuestionsByQuiz(QuizId(resource.quizId)).bind()
                 questions.map {
                     QuestionsResponse(
                         id = it.id.serial,
@@ -89,6 +97,21 @@ fun Route.quizRoutes(quizService: QuizService, jwtService: JwtService) {
                                 referenceNumber = option.referenceNumber
                             )
                         }
+                    )
+                }
+            }.respond(this, OK)
+        }
+    }
+
+    get<QuizzesResource.QuizQuestionsResource.QuestionOptionsResource> { resource ->
+        jwtAuth(jwtService) {
+            either {
+                val options = quizService.getOptionsByQuestion(QuestionId(resource.questionId)).bind()
+                options.map {
+                    OptionResponse(
+                        id = it.id.serial,
+                        description = it.description,
+                        referenceNumber = it.referenceNumber
                     )
                 }
             }.respond(this, OK)

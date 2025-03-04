@@ -58,6 +58,7 @@ object QuizEvent {
 interface QuizService {
     suspend fun getByUser(userId: UserId): Either<DomainError, List<QuizInfo>>
     suspend fun getQuestionsByQuiz(quizId: QuizId): Either<DomainError, List<QuestionInfo>>
+    suspend fun getOptionsByQuestion(questionId: QuestionId): Either<DomainError, List<OptionInfo>>
     suspend fun createQuiz(input: CreateQuiz): Either<DomainError, Quiz>
     suspend fun listenEvent(): Either<DomainError, Job>
 }
@@ -77,6 +78,9 @@ fun quizService(
 
         override suspend fun getQuestionsByQuiz(quizId: QuizId): Either<DomainError, List<QuestionInfo>> =
             quizPersistence.selectQuestionsByQuiz(quizId)
+
+        override suspend fun getOptionsByQuestion(questionId: QuestionId): Either<DomainError, List<OptionInfo>> =
+            quizPersistence.selectOptionsByQuestion(questionId)
 
         override suspend fun createQuiz(input: CreateQuiz): Either<DomainError, Quiz> = either {
             val subject = subjectPersistence.select(input.subjectId).bind()
