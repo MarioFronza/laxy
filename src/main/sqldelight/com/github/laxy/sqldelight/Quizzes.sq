@@ -7,14 +7,26 @@ CREATE TABLE IF NOT EXISTS quizzes (
     user_id BIGSERIAL AS UserId REFERENCES users(id) ON DELETE CASCADE,
     subject_id BIGSERIAL AS SubjectId REFERENCES subjects ON DELETE CASCADE,
     total_questions INT NOT NULL,
-    status VARCHAR(20) CHECK (status IN ('creating', 'pending', 'completed')) DEFAULT 'creating',
+    status VARCHAR(20) NOT NULL CHECK (status IN ('creating', 'pending', 'completed')) DEFAULT 'creating',
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE INDEX IF NOT EXISTS idx_quiz_user_subject_id ON quizzes(user_id, subject_id);
 
+selectAll:
+SELECT q.id, s.name, q.total_questions, q.status, q.created_at
+FROM quizzes AS q
+INNER JOIN subjects AS s ON q.subject_id = s.id
+AND q.user_id = :userId
+ORDER BY q.id;
+
 insertAndGetId:
 INSERT INTO quizzes(user_id, subject_id, total_questions)
 VALUES (:userId, :subjectId, :totalQuestions)
 RETURNING id;
+
+updateStatus:
+UPDATE quizzes
+SET status = :status
+WHERE id = :quizId;

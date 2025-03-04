@@ -26,7 +26,6 @@ data class SubjectsResource(val parent: RootResource = RootResource) {
     data class SubjectResource(val id: Long, val parent: SubjectsResource = SubjectsResource())
 }
 
-
 fun Route.subjectRoutes(subjectService: SubjectService, jwtService: JwtService) {
     get<SubjectsResource> {
         jwtAuth(jwtService) {

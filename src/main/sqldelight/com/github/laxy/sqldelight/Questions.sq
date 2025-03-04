@@ -11,6 +11,12 @@ CREATE TABLE IF NOT EXISTS questions (
 
 CREATE INDEX IF NOT EXISTS idx_question_quiz_id ON questions(quiz_id);
 
+selectByQuiz:
+SELECT qu.id, qu.description
+FROM questions AS qu
+INNER JOIN quizzes AS q ON qu.quiz_id = q.id
+AND quiz_id = :quizId;
+
 insertAndGetId:
 INSERT INTO questions(quiz_id, description)
 VALUES (:quizId, :description)

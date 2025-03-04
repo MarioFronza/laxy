@@ -13,6 +13,12 @@ CREATE TABLE IF NOT EXISTS question_options (
 
 CREATE INDEX IF NOT EXISTS idx_question_option_question_id ON question_options(question_id);
 
+selectByQuestion:
+SELECT qo.id, qo.description, qo.reference_number, qo.is_correct
+FROM question_options AS qo
+INNER JOIN questions AS q ON qo.question_id = q.id
+AND question_id = :questionId;
+
 insertAndGetId:
 INSERT INTO question_options(question_id, description, reference_number, is_correct)
 VALUES(:questionId, :description, :referenceNumber, :isCorrect)
