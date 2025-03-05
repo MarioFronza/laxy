@@ -1,0 +1,13 @@
+/* =========[ Home Page Styles ]========= */
+.home-container {
+    text-align: center;
+    max-width: 600px;
+    padding: 40px;
+    background: #1e1e1e;
+    border-radius: 12px;
+}
+
+/* Highlighted "Laxy" */
+.highlight {
+    color: #bb86fc;
+}

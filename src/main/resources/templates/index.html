@@ -1,11 +1,17 @@
-<!DOCTYPE html >
-<html lang="pt">
+<!DOCTYPE html>
+<html lang="en"
+      layout:decorate="~{layout}"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
 <head>
-    <meta charset="UTF-8">
-    <title>Laxy</title>
+    <title>Welcome to Laxy</title>
 </head>
 <body>
-<h1>Welcome to Laxy</h1>
-<p>This is a Ktor + Thymeleaf page!</p>
+<div layout:fragment="content">
+    <div class="home-container">
+        <h1>Welcome to <span class="highlight">Laxy</span></h1>
+        <p>Your minimalist AI-powered language quiz generator.</p>
+        <a href="/signin" class="button">Get Started</a>
+    </div>
+</div>
 </body>
 </html>

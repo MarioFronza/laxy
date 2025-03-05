@@ -67,6 +67,7 @@ dependencies {
     implementation(libs.postgresql)
     implementation(libs.bundles.cohort)
     implementation(libs.openai)
+    implementation(libs.thymeleaf.layout.dialect)
 
     testImplementation(libs.bundles.ktor.client)
     testImplementation(libs.testcontainers.postgresql)
