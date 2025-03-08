@@ -5,11 +5,7 @@ import com.github.laxy.DomainError
 import com.github.laxy.persistence.LanguageId
 import com.github.laxy.persistence.LanguagePersistence
 
-data class LanguageInfo(
-    val id: LanguageId,
-    val name: String,
-    val code: String
-)
+data class LanguageInfo(val id: LanguageId, val name: String, val code: String)
 
 interface LanguageService {
     suspend fun getAllLanguages(): Either<DomainError, List<LanguageInfo>>

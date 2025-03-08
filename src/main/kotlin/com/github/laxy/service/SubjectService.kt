@@ -15,7 +15,11 @@ data class SubjectInfo(
 
 interface SubjectService {
     suspend fun getAllSubjects(): Either<DomainError, List<SubjectInfo>>
-    suspend fun getAllSubjectsByLanguage(languageId: LanguageId): Either<DomainError, List<SubjectInfo>>
+
+    suspend fun getAllSubjectsByLanguage(
+        languageId: LanguageId
+    ): Either<DomainError, List<SubjectInfo>>
+
     suspend fun getSubjectById(id: SubjectId): Either<DomainError, SubjectInfo>
 }
 
@@ -24,8 +28,9 @@ fun subjectService(persistence: SubjectPersistence) =
         override suspend fun getAllSubjects(): Either<DomainError, List<SubjectInfo>> =
             persistence.selectAll()
 
-        override suspend fun getAllSubjectsByLanguage(languageId: LanguageId): Either<DomainError, List<SubjectInfo>> =
-            persistence.selectByLanguage(languageId)
+        override suspend fun getAllSubjectsByLanguage(
+            languageId: LanguageId
+        ): Either<DomainError, List<SubjectInfo>> = persistence.selectByLanguage(languageId)
 
         override suspend fun getSubjectById(id: SubjectId): Either<DomainError, SubjectInfo> =
             persistence.select(id)
