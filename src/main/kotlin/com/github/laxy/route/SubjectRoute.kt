@@ -11,11 +11,9 @@ import io.ktor.server.resources.get
 import io.ktor.server.routing.Route
 import kotlinx.serialization.Serializable
 
-@Serializable
-data class SubjectWrapper<T : Any>(val subject: T)
+@Serializable data class SubjectWrapper<T : Any>(val subject: T)
 
-@Serializable
-data class SubjectsWrapper<T : Any>(val subjects: T)
+@Serializable data class SubjectsWrapper<T : Any>(val subjects: T)
 
 @Serializable
 data class Subject(val id: Long, val name: String, val description: String, val language: String)
@@ -30,32 +28,36 @@ fun Route.subjectRoutes(subjectService: SubjectService, jwtService: JwtService) 
     get<SubjectsResource> {
         jwtAuth(jwtService) {
             either {
-                val subjects = subjectService.getAllSubjects().bind()
-                SubjectsWrapper(subjects.map {
-                    Subject(
-                        id = it.id.serial,
-                        name = it.name,
-                        description = it.description,
-                        language = it.language,
+                    val subjects = subjectService.getAllSubjects().bind()
+                    SubjectsWrapper(
+                        subjects.map {
+                            Subject(
+                                id = it.id.serial,
+                                name = it.name,
+                                description = it.description,
+                                language = it.language,
+                            )
+                        }
                     )
-                })
-            }.respond(this, OK)
+                }
+                .respond(this, OK)
         }
     }
 
     get<SubjectsResource.SubjectResource> { resource ->
         jwtAuth(jwtService) {
             either {
-                val subject = subjectService.getSubjectById(SubjectId(resource.id)).bind()
-                SubjectWrapper(
-                    Subject(
-                        id = subject.id.serial,
-                        name = subject.name,
-                        description = subject.description,
-                        language = subject.language
+                    val subject = subjectService.getSubjectById(SubjectId(resource.id)).bind()
+                    SubjectWrapper(
+                        Subject(
+                            id = subject.id.serial,
+                            name = subject.name,
+                            description = subject.description,
+                            language = subject.language
+                        )
                     )
-                )
-            }.respond(this, OK)
+                }
+                .respond(this, OK)
         }
     }
 }

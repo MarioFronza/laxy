@@ -24,8 +24,8 @@ fun main(): Unit = SuspendApp {
 }
 
 fun Application.app(module: Dependencies) {
-    configure()
+    configure(module.jwtService)
     routes(module)
     health(module.healthCheck)
-    configureTemplating()
+    configureTemplating(module.userService)
 }

@@ -20,9 +20,9 @@ fun Application.routes(deps: Dependencies) = routing {
     languageRoutes(deps.languageService, deps.subjectService, deps.jwtService)
 }
 
-@Resource("/api")
-data object RootResource
+@Resource("/api") data object RootResource
 
 @OptIn(ExperimentalSerializationApi::class)
-suspend inline fun <reified A : Any> PipelineContext<Unit, ApplicationCall>.receiveCatching(): Either<IncorrectJson, A> =
+suspend inline fun <reified A : Any> PipelineContext<Unit, ApplicationCall>.receiveCatching():
+    Either<IncorrectJson, A> =
     Either.catchOrThrow<MissingFieldException, A> { call.receive() }.mapLeft { IncorrectJson(it) }
