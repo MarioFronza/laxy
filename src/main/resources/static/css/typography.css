@@ -1,0 +1,25 @@
+/* =========[ Text & Typography ]========= */
+h1 {
+    font-size: 36px;
+    font-weight: bold;
+    margin-bottom: 16px;
+}
+
+p {
+    font-size: 18px;
+    color: #b0b0b0;
+    margin-bottom: 24px;
+}
+
+/* Links */
+a {
+    color: #bb86fc;
+    text-decoration: none;
+    font-size: 16px;
+    margin-top: 10px;
+    display: inline-block;
+}
+
+a:hover {
+    text-decoration: underline;
+}

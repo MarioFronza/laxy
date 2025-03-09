@@ -21,6 +21,7 @@ suspendapp="0.4.0"
 cohort="2.3.0"
 spotless="6.22.0"
 openai="2.1.0"
+thymeleaf-layout-dialect = "3.2.0"
 
 [libraries]
 arrow-core = { module = "io.arrow-kt:arrow-core", version.ref = "arrow" }
@@ -45,8 +46,10 @@ ktor-server-defaultheaders = { module = "io.ktor:ktor-server-default-headers", v
 ktor-server-netty = { module = "io.ktor:ktor-server-netty", version.ref = "ktor" }
 ktor-server-tests = { module = "io.ktor:ktor-server-tests", version.ref = "ktor" }
 ktor-server-auth = { module = "io.ktor:ktor-server-auth", version.ref = "ktor" }
+ktor-server-sessions = { module = "io.ktor:ktor-server-sessions", version.ref = "ktor" }
 ktor-server-auth-jwt = { module = "io.ktor:ktor-server-auth-jwt", version.ref = "ktor" }
 ktor-server-resources = { module = "io.ktor:ktor-server-resources", version.ref = "ktor" }
+ktor-server-thymeleaf = { module = "io.ktor:ktor-server-thymeleaf", version.ref = "ktor" }
 ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktor" }
 ktor-client-cio = { module = "io.ktor:ktor-client-cio", version.ref = "ktor" }
 ktor-client-serialization = { module = "io.ktor:ktor-client-serialization", version.ref = "ktor" }
@@ -66,6 +69,7 @@ kjwt-core = { module="io.github.nefilim.kjwt:kjwt-core", version.ref="kjwt" }
 cohort-core = { module="com.sksamuel.cohort:cohort-core", version.ref="cohort" }
 cohort-hikari = { module="com.sksamuel.cohort:cohort-hikari", version.ref="cohort" }
 openai = { module = "com.cjcrafter:openai", version.ref = "openai" }
+thymeleaf-layout-dialect = { module = "nz.net.ultraq.thymeleaf:thymeleaf-layout-dialect", version.ref = "thymeleaf-layout-dialect" }
 
 [bundles]
 arrow = ["arrow-core", "arrow-fx"]
@@ -78,7 +82,9 @@ ktor-server = [
     "ktor-server-netty",
     "ktor-server-auth",
     "ktor-serialization",
-    "ktor-server-resources"
+    "ktor-server-resources",
+    "ktor-server-thymeleaf",
+    "ktor-server-sessions"
 ]
 ktor-client = [
     "ktor-client-content-negotiation",
