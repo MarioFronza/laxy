@@ -34,6 +34,7 @@ fun Application.configure() {
         )
     }
     install(CORS) {
+        anyHost()
         allowHeader(HttpHeaders.Authorization)
         allowHeader(HttpHeaders.ContentType)
         allowNonSimpleContentTypes = true
