@@ -1,10 +1,17 @@
-/* =========[ Text & Typography ]========= */
+/* Headings */
 h1 {
     font-size: 36px;
     font-weight: bold;
     margin-bottom: 16px;
 }
 
+h2 {
+    font-size: 26px;
+    font-weight: bold;
+    margin-bottom: 12px;
+}
+
+/* Paragraph */
 p {
     font-size: 18px;
     color: #b0b0b0;

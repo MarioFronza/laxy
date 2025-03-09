@@ -8,14 +8,16 @@
 <body>
 
 <div layout:fragment="content">
-    <div class="form-container">
-        <h2>Sign In</h2>
-        <form action="/signin" method="post">
-            <input name="email" type="email" placeholder="Email" required>
-            <input name="password" type="password" placeholder="Password" required>
-            <button type="submit">Sign In</button>
-        </form>
-        <p><a href="/signup">Don't have an account? Sign Up</a></p>
+    <div class="home-wrapper">
+        <div class="form-container">
+            <h2>Sign In</h2>
+            <form action="/signin" method="post">
+                <input name="email" placeholder="Email" required type="email">
+                <input name="password" placeholder="Password" required type="password">
+                <button type="submit">Sign In</button>
+            </form>
+            <p><a href="/signup">Don't have an account? Sign Up</a></p>
+        </div>
     </div>
 </div>
 

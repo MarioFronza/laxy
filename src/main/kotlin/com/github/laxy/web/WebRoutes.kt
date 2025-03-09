@@ -1,7 +1,10 @@
 package com.github.laxy.web
 
 import arrow.core.raise.either
+import com.github.laxy.persistence.UserId
+import com.github.laxy.route.QuizResponse
 import com.github.laxy.service.Login
+import com.github.laxy.service.QuizService
 import com.github.laxy.service.RegisterUser
 import com.github.laxy.service.UserService
 import io.ktor.server.application.Application
@@ -29,10 +32,13 @@ import org.thymeleaf.templateresolver.ClassLoaderTemplateResolver
 import org.thymeleaf.templateresolver.FileTemplateResolver
 
 @Serializable
-data class UserSession(val token: String) : Principal
+data class UserSession(val token: String)
+
+data class CurrentUserId(val userId: UserId) : Principal
 
 fun Application.configureTemplating(
-    userService: UserService
+    userService: UserService,
+    quizService: QuizService
 ) {
     install(Thymeleaf) {
         setTemplateResolver(
@@ -101,19 +107,32 @@ fun Application.configureTemplating(
             }
         }
 
+        get("/signout") {
+            call.sessions.clear<UserSession>()
+            call.respondRedirect("/signin")
+        }
+
         authenticate("auth-session") {
             get("/dashboard") {
-                val userSession = call.principal<UserSession>()
-                if (userSession != null) {
-                    call.respond(ThymeleafContent("dashboard", emptyMap()))
+                val current = call.principal<CurrentUserId>()
+                if (current != null) {
+                    either {
+                        val quizzes = quizService.getByUser(current.userId).bind().map {
+                            QuizResponse(
+                                id = it.id.serial,
+                                subject = it.subject,
+                                totalQuestions = it.totalQuestions,
+                                status = it.status,
+                                createdAt = it.createdAt.toString()
+                            )
+                        }
+                        call.respond(ThymeleafContent("dashboard", mapOf("quizzes" to quizzes)))
+                    }.mapLeft {
+                        call.respond(ThymeleafContent("dashboard", emptyMap()))
+                    }
                 } else {
                     call.respondRedirect("/signin")
                 }
-            }
-
-            get("/signout") {
-                call.sessions.clear<UserSession>()
-                call.respondRedirect("/signin")
             }
         }
     }

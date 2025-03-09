@@ -4,6 +4,7 @@ import com.github.laxy.auth.optionalJwtAuth
 import com.github.laxy.route.LoginUser
 import com.github.laxy.route.UserWrapper
 import com.github.laxy.service.JwtService
+import com.github.laxy.web.CurrentUserId
 import com.github.laxy.web.UserSession
 import io.ktor.http.HttpHeaders
 import io.ktor.serialization.kotlinx.json.json
@@ -60,7 +61,7 @@ fun Application.configure(jwtService: JwtService) {
             validate { session ->
                 val jwtContext = optionalJwtAuth(jwtService, session.token)
                 if (jwtContext != null) {
-                    session
+                   CurrentUserId(jwtContext.userId)
                 } else {
                     null
                 }

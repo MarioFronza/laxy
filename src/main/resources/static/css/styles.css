@@ -1,0 +1,24 @@
+@import url("layout.css");
+@import url("home.css");
+@import url("form.css");
+@import url("buttons.css");
+@import url("typography.css");
+@import url("home.css");
+@import url("cards.css");
+
+/* General Styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Arial', sans-serif;
+}
+
+body {
+    background: #121212;
+    color: #e0e0e0;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    width: 100vw;
+}

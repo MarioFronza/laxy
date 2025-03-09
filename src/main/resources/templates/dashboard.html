@@ -1,14 +1,46 @@
 <!DOCTYPE html>
 <html lang="en"
       layout:decorate="~{layout}"
-      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" xmlns:th="http://www.w3.org/1999/xhtml">
 <head>
-    <title>Laxy</title>
+    <title>Laxy - Dashboard</title>
 </head>
 <body>
 <div layout:fragment="content">
-    <div class="home-container">
-        <h1>Dashboard</h1>
+    <div class="dashboard-container">
+        <aside class="sidebar">
+            <h2>Laxy</h2>
+            <nav>
+                <ul>
+                    <li><a href="/profile">Profile</a></li>
+                    <li><a class="create-btn" href="/create-quiz">Create Quiz</a></li>
+                    <li><a class="signout-btn" href="/signout">Sign Out</a></li>
+                </ul>
+            </nav>
+        </aside>
+
+        <main class="main-content">
+            <header>
+                <h1>Your Quizzes</h1>
+            </header>
+
+            <div class="quiz-list">
+                <div class="quiz-card" th:each="quiz : ${quizzes}">
+                    <h2 class="quiz-title" th:text="${quiz.subject}"></h2>
+                    <p class="quiz-info">Total Questions: <span th:text="${quiz.totalQuestions}"></span></p>
+                    <div class="quiz-card-info">
+                        <a class="button" href="#">View Quiz</a>
+                        <span class="quiz-status"
+                              th:classappend="${quiz.status == 'creating'} ? 'status-creating' :
+                                (${quiz.status == 'pending'} ? 'status-pending' :
+                                'status-completed')"
+                              th:text="${quiz.status}">
+                        </span>
+                    </div>
+
+                </div>
+            </div>
+        </main>
     </div>
 </div>
 </body>
