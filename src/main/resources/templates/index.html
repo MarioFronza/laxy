@@ -1,17 +1,18 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en"
       layout:decorate="~{layout}"
-      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title>Welcome to Laxy</title>
+    <title>welcome to laxy</title>
 </head>
 <body>
 <div layout:fragment="content">
     <div class="home-wrapper">
         <div class="home-container">
             <h1>Welcome to <span class="highlight">Laxy</span></h1>
-            <p>Your minimalist AI-powered language quiz generator.</p>
-            <a href="/signin" class="button">Get Started</a>
+            <p>Your AI-powered language quiz generator.</p>
+            <a class="button" th:href="signin">Get Started</a>
         </div>
     </div>
 </div>
