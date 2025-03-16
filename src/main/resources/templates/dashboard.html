@@ -1,22 +1,13 @@
 <!doctype html>
 <html lang="en"
-      layout:decorate="~{layout}"
+      layout:decorate="~{navigation}"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       xmlns:th="http://www.thymeleaf.org">
 <head>
     <title>Dashboard - Laxy</title>
 </head>
 <body>
-<div layout:fragment="content">
-    <nav class="navbar">
-        <a class="logo" th:href="dashboard">Laxy</a>
-        <button class="menu-toggle" id="menuToggle">&#9776;</button>
-        <ul class="nav-links" id="navLinks">
-            <li><a th:href="create-quiz">Create Quiz</a></li>
-            <li><a class="signout" th:href="signout">Sign Out</a></li>
-        </ul>
-    </nav>
-
+<div layout:fragment="nav-content">
     <div class="dashboard-container">
         <h1>Your Quizzes</h1>
         <div class="quiz-list">

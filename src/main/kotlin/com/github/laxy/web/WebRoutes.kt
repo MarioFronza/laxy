@@ -135,6 +135,10 @@ fun Application.configureTemplating(
                     call.respondRedirect("/signin")
                 }
             }
+
+            get("/create-quiz") {
+                call.respond(ThymeleafContent("create-quiz", emptyMap()))
+            }
         }
     }
 }
