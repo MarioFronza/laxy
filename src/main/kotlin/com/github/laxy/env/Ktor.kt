@@ -20,10 +20,10 @@ import io.ktor.server.resources.Resources
 import io.ktor.server.response.respondRedirect
 import io.ktor.server.sessions.Sessions
 import io.ktor.server.sessions.cookie
+import kotlin.time.Duration.Companion.days
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.polymorphic
-import kotlin.time.Duration.Companion.days
 
 val kotlinXSerializersModule = SerializersModule {
     contextual(UserWrapper::class) { UserWrapper.serializer(LoginUser.serializer()) }
@@ -61,14 +61,12 @@ fun Application.configure(jwtService: JwtService) {
             validate { session ->
                 val jwtContext = optionalJwtAuth(jwtService, session.token)
                 if (jwtContext != null) {
-                   CurrentUserId(jwtContext.userId)
+                    CurrentUserId(jwtContext.userId)
                 } else {
                     null
                 }
             }
-            challenge {
-                call.respondRedirect("/signin")
-            }
+            challenge { call.respondRedirect("/signin") }
         }
     }
 }
