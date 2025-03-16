@@ -7,6 +7,7 @@ import com.github.laxy.service.Login
 import com.github.laxy.service.QuizService
 import com.github.laxy.service.RegisterUser
 import com.github.laxy.service.UserService
+import com.github.laxy.util.toBrazilianFormat
 import io.ktor.server.application.Application
 import io.ktor.server.application.call
 import io.ktor.server.application.install
@@ -123,7 +124,7 @@ fun Application.configureTemplating(
                                 subject = it.subject,
                                 totalQuestions = it.totalQuestions,
                                 status = it.status,
-                                createdAt = it.createdAt.toString()
+                                createdAt = it.createdAt.toBrazilianFormat()
                             )
                         }
                         call.respond(ThymeleafContent("dashboard", mapOf("quizzes" to quizzes)))

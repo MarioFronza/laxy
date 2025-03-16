@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en"
+      layout:decorate="~{layout}"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Dashboard - Laxy</title>
+</head>
+<body>
+<div layout:fragment="content">
+    <nav class="navbar">
+        <a class="logo" th:href="dashboard">Laxy</a>
+        <button class="menu-toggle" id="menuToggle">&#9776;</button>
+        <ul class="nav-links" id="navLinks">
+            <li><a th:href="create-quiz">Create Quiz</a></li>
+            <li><a class="signout" th:href="signout">Sign Out</a></li>
+        </ul>
+    </nav>
+
+    <div class="dashboard-container">
+        <h1>Your Quizzes</h1>
+        <div class="quiz-list">
+            <div class="quiz-item" th:each="quiz: ${quizzes}">
+                <div class="quiz-details">
+                    <h3 th:text="${quiz.subject}"></h3>
+                    <p th:text="${quiz.totalQuestions} + ' ' + questions"></p>
+                    <p th:text="Created + ' ' + ${quiz.createdAt}"></p>
+                </div>
+                <span class="quiz-status" th:text="${quiz.status}"></span>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>
