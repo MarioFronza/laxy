@@ -16,10 +16,9 @@
                 <div class="input-group">
                     <label for="subject">Select Subject</label>
                     <select id="subject" name="subject">
-                        <option value="vocabulary">Vocabulary</option>
-                        <option value="grammar">Grammar</option>
-                        <option value="listening">Listening</option>
-                        <option value="speaking">Speaking</option>
+                        <div th:each="subject: ${subjects}">
+                            <option th:text="${subject.name}" th:value="${subject.id}"></option>
+                        </div>
                     </select>
                 </div>
 

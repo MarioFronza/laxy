@@ -3,9 +3,11 @@ package com.github.laxy.web
 import arrow.core.raise.either
 import com.github.laxy.persistence.UserId
 import com.github.laxy.route.QuizResponse
+import com.github.laxy.route.Subject
 import com.github.laxy.service.Login
 import com.github.laxy.service.QuizService
 import com.github.laxy.service.RegisterUser
+import com.github.laxy.service.SubjectService
 import com.github.laxy.service.UserService
 import com.github.laxy.util.toBrazilianFormat
 import io.ktor.server.application.Application
@@ -39,7 +41,8 @@ data class CurrentUserId(val userId: UserId) : Principal
 
 fun Application.configureTemplating(
     userService: UserService,
-    quizService: QuizService
+    quizService: QuizService,
+    subjectService: SubjectService
 ) {
     install(Thymeleaf) {
         setTemplateResolver(
@@ -137,7 +140,24 @@ fun Application.configureTemplating(
             }
 
             get("/create-quiz") {
-                call.respond(ThymeleafContent("create-quiz", emptyMap()))
+                val current = call.principal<CurrentUserId>()
+                if (current != null) {
+                    either {
+                        val subjects = subjectService.getAllSubjects().bind().map {
+                            Subject(
+                                id = it.id.serial,
+                                name = it.name,
+                                description = it.description,
+                                language = it.language,
+                            )
+                        }
+                        call.respond(ThymeleafContent("create-quiz", mapOf("subjects" to subjects)))
+                    }.mapLeft {
+                        call.respondRedirect("/dashboard")
+                    }
+                } else {
+                    call.respondRedirect("/signin")
+                }
             }
         }
     }

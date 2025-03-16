@@ -27,5 +27,5 @@ fun Application.app(module: Dependencies) {
     configure(module.jwtService)
     routes(module)
     health(module.healthCheck)
-    configureTemplating(module.userService, module.quizService)
+    configureTemplating(module.userService, module.quizService, module.subjectService)
 }
