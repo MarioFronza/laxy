@@ -15,9 +15,9 @@
             <form method="post" th:action="create-quiz">
                 <div class="input-group">
                     <label for="subject">Select Subject</label>
-                    <select id="subject" name="subject">
+                    <select id="subject" name="subjectId">
                         <div th:each="subject: ${subjects}">
-                            <option th:text="${subject.name}" th:value="${subject.id}"></option>
+                            <option th:name="subjectId" th:text="${subject.name}" th:value="${subject.id}"></option>
                         </div>
                     </select>
                 </div>

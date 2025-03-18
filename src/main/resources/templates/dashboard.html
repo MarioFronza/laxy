@@ -11,7 +11,8 @@
     <div class="dashboard-container">
         <h1>Your Quizzes</h1>
         <div class="quiz-list">
-            <div class="quiz-item" th:each="quiz: ${quizzes}">
+            <div class="quiz-item" th:classappend="${quiz.status}"
+                 th:each="quiz: ${quizzes}">
                 <div class="quiz-details">
                     <h3 th:text="${quiz.subject}"></h3>
                     <p th:text="${quiz.totalQuestions} + ' ' + questions"></p>
