@@ -31,6 +31,12 @@
     color: #b0b0b0;
 }
 
+.quiz-link {
+    display: block;
+    text-decoration: none;
+    color: inherit;
+}
+
 @media (min-width: 600px) {
     .quiz-item {
         flex-direction: row;

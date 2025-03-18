@@ -155,7 +155,7 @@ fun Application.configureTemplating(
                 }
             }
 
-            get("/create-quiz") {
+            get("/quizzes") {
                 val current = call.principal<CurrentUserId>()
                 if (current != null) {
                     either {
@@ -178,7 +178,7 @@ fun Application.configureTemplating(
                 }
             }
 
-            post("/create-quiz") {
+            post("/quizzes") {
                 val current = call.principal<CurrentUserId>()
                 if (current != null) {
                     val params = call.receiveParameters()
@@ -205,6 +205,12 @@ fun Application.configureTemplating(
                     call.respondRedirect("/signin")
                 }
             }
+
+            get("/quizzes/{id}/questions") {
+                println("chegou aqui")
+                call.respond(ThymeleafContent("questions", emptyMap()))
+            }
+
         }
     }
 }
