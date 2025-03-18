@@ -1,8 +1,11 @@
 package com.github.laxy.web
 
 import arrow.core.raise.either
+import com.github.laxy.persistence.QuizId
 import com.github.laxy.persistence.SubjectId
 import com.github.laxy.persistence.UserId
+import com.github.laxy.route.OptionResponse
+import com.github.laxy.route.QuestionsResponse
 import com.github.laxy.route.QuizResponse
 import com.github.laxy.route.Subject
 import com.github.laxy.service.CreateQuiz
@@ -200,17 +203,42 @@ fun Application.configureTemplating(
                             )
                         )
                         call.respondRedirect("/dashboard")
-                    }
+                    }.mapLeft { call.respondRedirect("/quizzes") }
                 } else {
                     call.respondRedirect("/signin")
                 }
             }
 
             get("/quizzes/{id}/questions") {
-                println("chegou aqui")
-                call.respond(ThymeleafContent("questions", emptyMap()))
+                val quizId = call.parameters["id"] ?: ""
+                val current = call.principal<CurrentUserId>()
+                if (current != null) {
+                    either {
+                        val questions =
+                            quizService.getQuestionsByQuiz(QuizId(quizId.toLong())).bind()
+                        questions.map {
+                            QuestionsResponse(
+                                id = it.id.serial,
+                                description = it.description,
+                                options =
+                                    it.options.map { option ->
+                                        OptionResponse(
+                                            id = option.id.serial,
+                                            description = option.description,
+                                            referenceNumber = option.referenceNumber
+                                        )
+                                    }
+                            )
+                        }
+                        call.respond(
+                            ThymeleafContent("questions", mapOf("questions" to questions))
+                        )
+                    }
+                        .mapLeft { call.respondRedirect("/dashboard") }
+                } else {
+                    call.respondRedirect("/signin")
+                }
             }
-
         }
     }
 }

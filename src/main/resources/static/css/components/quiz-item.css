@@ -1,6 +1,5 @@
 .quiz-item {
     background: #1e1e1e;
-    padding: 15px;
     border-radius: 8px;
     display: flex;
     flex-direction: column;
@@ -32,7 +31,9 @@
 }
 
 .quiz-link {
-    display: block;
+    height: 100%;
+    width: 100%;
+    padding: 15px;
     text-decoration: none;
     color: inherit;
 }
