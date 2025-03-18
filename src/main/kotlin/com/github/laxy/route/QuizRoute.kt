@@ -59,6 +59,7 @@ data class QuizzesResource(val parent: RootResource = RootResource) {
     }
 }
 
+@Suppress("LongMethod")
 fun Route.quizRoutes(quizService: QuizService, jwtService: JwtService) {
     get<QuizzesResource> {
         jwtAuth(jwtService) { (_, userId) ->

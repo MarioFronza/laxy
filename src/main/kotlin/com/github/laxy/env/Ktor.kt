@@ -52,6 +52,7 @@ fun Application.configure(jwtService: JwtService) {
     install(Sessions) {
         cookie<UserSession>("user_session") {
             cookie.path = "/"
+            @Suppress("MagicNumber")
             cookie.maxAgeInSeconds = 7 * 24 * 60 * 60 // 1 week
             cookie.httpOnly = true // Prevent JavaScript access
         }
