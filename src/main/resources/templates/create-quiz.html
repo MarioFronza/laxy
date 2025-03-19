@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en"
+      layout:decorate="~{navigation}"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:th="http://www.thymeleaf.org"
+>
+<head>
+    <title>Create Quiz - Laxy</title>
+</head>
+<body>
+<div layout:fragment="nav-content">
+    <div class="form-wrapper">
+        <div class="form-container">
+            <h1>Create Quiz</h1>
+            <form method="post" th:action="quizzes">
+                <div class="input-group">
+                    <label for="subject">Select Subject</label>
+                    <select id="subject" name="subjectId">
+                        <div th:each="subject: ${subjects}">
+                            <option th:name="subjectId" th:text="${subject.name}" th:value="${subject.id}"></option>
+                        </div>
+                    </select>
+                </div>
+
+                <div class="input-group">
+                    <label>
+                        <textarea
+                                name="theme"
+                                placeholder="Something you like, work with, or are interested in. Example: 'Space Exploration', 'Artificial Intelligence', 'Medieval History'."
+                                required></textarea>
+                    </label>
+                </div>
+
+                <div class="input-group">
+                    <label>Total Questions</label>
+                    <div class="radio-group">
+                        <label>
+                            <input name="totalQuestions" required type="radio" value="5"> 5
+                        </label>
+                        <label>
+                            <input name="totalQuestions" type="radio" value="10"> 10
+                        </label>
+                        <label>
+                            <input name="totalQuestions" type="radio" value="15"> 15
+                        </label>
+                    </div>
+                </div>
+
+                <button class="button" type="submit">Create Quiz</button>
+            </form>
+        </div>
+    </div>
+</div>
+</body>
+</html>

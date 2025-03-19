@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:th="http://www.thymeleaf.org"
+>
+<head>
+    <meta charset="UTF-8">
+    <meta content="width=device-width, initial-scale=1" name="viewport">
+    <title th:text="${title}">Laxy App</title>
+    <link href="/static/css/styles.css" rel="stylesheet">
+</head>
+<body>
+<main>
+    <div class="alert-box hidden" id="alertBox"></div>
+    <div layout:fragment="content"></div>
+</main>
+<script src="/static/js/script.js"></script>
+</body>
+</html>

@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en"
+      layout:decorate="~{navigation}"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Questions - Laxy</title>
+</head>
+<body>
+<div layout:fragment="nav-content">
+    <div class="quiz-container">
+        <h1>Questions</h1>
+        <form id="quizForm">
+            <div class="question" th:each="question: ${questions}">
+                <p th:text="${question.description}"></p>
+                <div class="options">
+                    <div class="option" th:each="option: ${question.options}">
+                        <label>
+                            <input id="${option.id}" name="option" required th:text="${option.description}"
+                                   type="radio"/>
+                        </label>
+                    </div>
+                </div>
+            </div>
+            <div class="quiz-actions">
+                <button class="button" type="submit">Submit Quiz</button>
+                <button class="delete-quiz" type="button">🗑 Delete Quiz</button>
+            </div>
+        </form>
+    </div>
+</div>
+</body>
+</html>

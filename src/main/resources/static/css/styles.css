@@ -1,0 +1,58 @@
+@import url("components/button.css");
+@import url("components/quiz-item.css");
+@import url("components/navigation.css");
+@import url("pages/dashboard.css");
+@import url("pages/home.css");
+@import url("pages/auth.css");
+@import url("pages/create-quiz.css");
+@import url("pages/questions.css");
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    height: 100vh;
+    width: 100vw;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    line-height: 1.6;
+    background: #121212;
+    color: #e0e0e0;
+    opacity: 0;
+    animation: fadeIn 0.8s ease-in-out forwards;
+    overflow-x: hidden;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px)
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #222;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #bb86fc;
+    border-radius: 4px;
+}

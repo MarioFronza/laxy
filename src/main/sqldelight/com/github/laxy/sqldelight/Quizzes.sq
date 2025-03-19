@@ -19,7 +19,7 @@ SELECT q.id, s.name, q.total_questions, q.status, q.created_at
 FROM quizzes AS q
 INNER JOIN subjects AS s ON q.subject_id = s.id
 AND q.user_id = :userId
-ORDER BY q.id;
+ORDER BY q.created_at DESC;
 
 insertAndGetId:
 INSERT INTO quizzes(user_id, subject_id, total_questions)

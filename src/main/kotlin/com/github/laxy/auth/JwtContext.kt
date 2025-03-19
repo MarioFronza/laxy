@@ -38,6 +38,17 @@ suspend inline fun PipelineContext<Unit, ApplicationCall>.optionalJwtAuth(
     } ?: body(this, null)
 }
 
+suspend fun ApplicationCall.optionalJwtAuth(
+    jwtService: JwtService,
+    token: String?,
+): JwtContext? {
+    return token?.let { validToken ->
+        jwtService
+            .verifyJwtToken(JwtToken(validToken))
+            .fold({ error -> null }, { userId -> JwtContext(JwtToken(validToken), userId) })
+    }
+}
+
 fun PipelineContext<Unit, ApplicationCall>.jwtToken(): String? {
     val header = call.request.parseAuthorizationHeader() as? HttpAuthHeader.Single
     return header?.blob
