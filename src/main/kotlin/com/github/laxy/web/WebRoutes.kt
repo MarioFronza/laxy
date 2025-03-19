@@ -211,7 +211,7 @@ fun Application.configureTemplating(
             }
 
             get("/quizzes/{id}/questions") {
-                val quizId = call.parameters["id"] ?: ""
+                val quizId = call.parameters["id"].orEmpty()
                 val current = call.principal<CurrentUserId>()
                 if (current != null) {
                     either {
