@@ -22,6 +22,9 @@ cohort="2.3.0"
 spotless="6.22.0"
 openai="2.1.0"
 thymeleaf-layout-dialect = "3.2.0"
+micrometer = "1.12.3"
+opentelemetry = "1.34.0"
+logstash-logback = "7.4"
 
 [libraries]
 arrow-core = { module = "io.arrow-kt:arrow-core", version.ref = "arrow" }
@@ -70,6 +73,12 @@ cohort-core = { module="com.sksamuel.cohort:cohort-core", version.ref="cohort" }
 cohort-hikari = { module="com.sksamuel.cohort:cohort-hikari", version.ref="cohort" }
 openai = { module = "com.cjcrafter:openai", version.ref = "openai" }
 thymeleaf-layout-dialect = { module = "nz.net.ultraq.thymeleaf:thymeleaf-layout-dialect", version.ref = "thymeleaf-layout-dialect" }
+micrometer-core = { module = "io.micrometer:micrometer-core", version.ref = "micrometer" }
+micrometer-registry-prometheus = { module = "io.micrometer:micrometer-registry-prometheus", version.ref = "micrometer" }
+otel-api = { module = "io.opentelemetry:opentelemetry-api", version.ref = "opentelemetry" }
+otel-sdk = { module = "io.opentelemetry:opentelemetry-sdk", version.ref = "opentelemetry" }
+otel-exporter-otlp = { module = "io.opentelemetry:opentelemetry-exporter-otlp", version.ref = "opentelemetry" }
+logstash-encoder = { module = "net.logstash.logback:logstash-logback-encoder", version.ref = "logstash-logback" }
 
 [bundles]
 arrow = ["arrow-core", "arrow-fx"]

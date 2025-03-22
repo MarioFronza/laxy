@@ -13,11 +13,11 @@ services:
       - observability_net
 
   loki:
-    image: grafana/loki:latest
+    image: grafana/loki:3.4.1
     container_name: loki
     command: -config.file=/etc/loki/loki-config.yml
     volumes:
-      - ./loki-config.yml:/etc/loki/loki-config.yml
+      - ./loki-config.yaml:/etc/loki/loki-config.yml
     ports:
       - "3100:3100"
     networks:
@@ -39,12 +39,27 @@ services:
   grafana-agent:
     image: grafana/agent:latest
     container_name: grafana-agent
-    command: -config.file=/etc/agent-config.yaml
+    entrypoint:
+      - /bin/grafana-agent
+      - -server.http.address=0.0.0.0:12345
+      - -config.file=/etc/agent-config.yaml
+      - -metrics.wal-directory=/tmp/agent/wal
+      - -enable-features=integrations-next
+      - -config.expand-env
+      - -config.enable-read-api
     volumes:
       - ./agent-config.yaml:/etc/agent-config.yaml
       - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      LOKI_HOST: loki:3100
+      TEMPO_HOST: tempo:4317
+    ports:
+      - "12345:12345"
     networks:
       - observability_net
+    depends_on:
+      - loki
+      - tempo
 
 volumes:
   grafana_data:

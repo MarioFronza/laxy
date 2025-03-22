@@ -68,6 +68,12 @@ dependencies {
     implementation(libs.bundles.cohort)
     implementation(libs.openai)
     implementation(libs.thymeleaf.layout.dialect)
+    implementation(libs.micrometer.core)
+    implementation(libs.micrometer.registry.prometheus)
+    implementation(libs.otel.api)
+    implementation(libs.otel.sdk)
+    implementation(libs.otel.exporter.otlp)
+    implementation(libs.logstash.encoder)
 
     testImplementation(libs.bundles.ktor.client)
     testImplementation(libs.testcontainers.postgresql)
