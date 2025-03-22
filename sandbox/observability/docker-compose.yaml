@@ -1,0 +1,53 @@
+services:
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    volumes:
+      - grafana_data:/var/lib/grafana
+    networks:
+      - observability_net
+
+  loki:
+    image: grafana/loki:latest
+    container_name: loki
+    command: -config.file=/etc/loki/loki-config.yml
+    volumes:
+      - ./loki-config.yml:/etc/loki/loki-config.yml
+    ports:
+      - "3100:3100"
+    networks:
+      - observability_net
+
+  tempo:
+    image: grafana/tempo:latest
+    container_name: tempo
+    command: ["-config.file=/etc/tempo.yaml"]
+    volumes:
+      - ./tempo.yaml:/etc/tempo.yaml
+    ports:
+      - "3200:3200"
+      - "4317:4317"
+      - "4318:4318"
+    networks:
+      - observability_net
+
+  grafana-agent:
+    image: grafana/agent:latest
+    container_name: grafana-agent
+    command: -config.file=/etc/agent-config.yaml
+    volumes:
+      - ./agent-config.yaml:/etc/agent-config.yaml
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - observability_net
+
+volumes:
+  grafana_data:
+
+networks:
+  observability_net:

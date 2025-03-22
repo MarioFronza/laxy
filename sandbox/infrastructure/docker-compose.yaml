@@ -1,40 +1,33 @@
 services:
-  #  app:
-  #    image: mariofronza/laxy-app
-  #    container_name: laxy-app
-  #    restart: unless-stopped
-  #    hostname: laxy
-  #    environment:
-  #      - POSTGRES_URL=jdbc:postgresql://database:5432/laxy-database
-  #    ports:
-  #      - "8080:8080"
-  #    depends_on:
-  #      - database
-
-  database:
+  postgres:
     image: postgres:latest
     container_name: laxy-database
-    restart: unless-stopped
-    ports:
-      - "5432:5432"
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
       - POSTGRES_DB=laxy-database
+    ports:
+      - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    networks:
+      - infra_net
 
-  pgadmin4:
+  pgadmin:
     image: dpage/pgadmin4:latest
     container_name: pgadmin
-    restart: unless-stopped
     environment:
       - PGADMIN_DEFAULT_EMAIL=admin@admin.com
       - PGADMIN_DEFAULT_PASSWORD=docker
     ports:
       - "5555:80"
     depends_on:
-      - database
+      - postgres
+    networks:
+      - infra_net
 
 volumes:
   postgres_data:
+
+networks:
+  infra_net:
