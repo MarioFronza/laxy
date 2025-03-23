@@ -1,5 +1,5 @@
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 import com.github.laxy.setupDetekt
-import io.ktor.plugin.features.DockerImageRegistry
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
@@ -54,6 +54,22 @@ spotless {
         targetExclude("**/build/**")
         ktfmt("0.46").kotlinlangStyle()
     }
+}
+
+tasks.register<ShadowJar>("fatShadowJar") {
+    archiveClassifier.set("fat")
+    archiveBaseName.set("laxy-app")
+    archiveVersion.set("")
+
+    manifest {
+        attributes["Main-Class"] = "com.github.laxy.MainKt"
+    }
+
+    mergeGroovyExtensionModules() // 👈 Mescla arquivos Groovy corretamente
+    mergeServiceFiles()
+
+    from(sourceSets.main.get().output)
+    configurations = listOf(project.configurations.runtimeClasspath.get())
 }
 
 dependencies {
