@@ -1,15 +1,16 @@
 services:
-  #  app:
-  #    image: mariofronza/laxy-app
-  #    container_name: laxy-app
-  #    restart: unless-stopped
-  #    hostname: laxy
-  #    environment:
-  #      - POSTGRES_URL=jdbc:postgresql://database:5432/laxy-database
-  #    ports:
-  #      - "8080:8080"
-  #    depends_on:
-  #      - database
+#  laxy-app:
+#    build:
+#      context: .
+#    container_name: laxy-app
+#    restart: unless-stopped
+#    hostname: laxy
+#    environment:
+#      - POSTGRES_URL=jdbc:postgresql://database:5432/laxy-database
+#    ports:
+#      - "8080:8080"
+#    depends_on:
+#      - database
 
   database:
     image: postgres:latest
