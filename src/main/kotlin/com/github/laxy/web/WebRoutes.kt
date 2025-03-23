@@ -39,8 +39,7 @@ import kotlinx.serialization.Serializable
 import nz.net.ultraq.thymeleaf.layoutdialect.LayoutDialect
 import org.thymeleaf.templateresolver.ClassLoaderTemplateResolver
 
-@Serializable
-data class UserSession(val token: String)
+@Serializable data class UserSession(val token: String)
 
 data class CurrentUserId(val userId: UserId) : Principal
 
@@ -52,13 +51,12 @@ fun Application.configureTemplating(
 ) {
     install(Thymeleaf) {
         setTemplateResolver(
-            ClassLoaderTemplateResolver()
-                .apply {
-                    prefix = "templates/"
-                    suffix = ".html"
-                    characterEncoding = "utf-8"
-                    addDialect(LayoutDialect())
-                }
+            ClassLoaderTemplateResolver().apply {
+                prefix = "templates/"
+                suffix = ".html"
+                characterEncoding = "utf-8"
+                addDialect(LayoutDialect())
+            }
         )
     }
     routing {
@@ -86,10 +84,10 @@ fun Application.configureTemplating(
             val password = params["password"].orEmpty()
 
             either {
-                val (token, _) = userService.login(Login(email, password)).bind()
-                call.sessions.set(UserSession(token.value))
-                call.respondRedirect("/dashboard")
-            }
+                    val (token, _) = userService.login(Login(email, password)).bind()
+                    call.sessions.set(UserSession(token.value))
+                    call.respondRedirect("/dashboard")
+                }
                 .mapLeft {
                     call.respond(
                         ThymeleafContent("signin", mapOf("error" to "Invalid credentials"))
@@ -112,11 +110,11 @@ fun Application.configureTemplating(
             val password = params["password"].orEmpty()
 
             either {
-                val token =
-                    userService.register(RegisterUser(username, email, password)).bind().value
-                call.sessions.set(UserSession(token))
-                call.respondRedirect("/dashboard")
-            }
+                    val token =
+                        userService.register(RegisterUser(username, email, password)).bind().value
+                    call.sessions.set(UserSession(token))
+                    call.respondRedirect("/dashboard")
+                }
                 .mapLeft {
                     call.respond(
                         ThymeleafContent("signup", mapOf("error" to "Registration failed"))
@@ -134,18 +132,18 @@ fun Application.configureTemplating(
                 val current = call.principal<CurrentUserId>()
                 if (current != null) {
                     either {
-                        val quizzes =
-                            quizService.getByUser(current.userId).bind().map {
-                                QuizResponse(
-                                    id = it.id.serial,
-                                    subject = it.subject,
-                                    totalQuestions = it.totalQuestions,
-                                    status = it.status,
-                                    createdAt = it.createdAt.toBrazilianFormat()
-                                )
-                            }
-                        call.respond(ThymeleafContent("dashboard", mapOf("quizzes" to quizzes)))
-                    }
+                            val quizzes =
+                                quizService.getByUser(current.userId).bind().map {
+                                    QuizResponse(
+                                        id = it.id.serial,
+                                        subject = it.subject,
+                                        totalQuestions = it.totalQuestions,
+                                        status = it.status,
+                                        createdAt = it.createdAt.toBrazilianFormat()
+                                    )
+                                }
+                            call.respond(ThymeleafContent("dashboard", mapOf("quizzes" to quizzes)))
+                        }
                         .mapLeft { call.respond(ThymeleafContent("dashboard", emptyMap())) }
                 } else {
                     call.respondRedirect("/signin")
@@ -156,19 +154,19 @@ fun Application.configureTemplating(
                 val current = call.principal<CurrentUserId>()
                 if (current != null) {
                     either {
-                        val subjects =
-                            subjectService.getAllSubjects().bind().map {
-                                Subject(
-                                    id = it.id.serial,
-                                    name = it.name,
-                                    description = it.description,
-                                    language = it.language,
-                                )
-                            }
-                        call.respond(
-                            ThymeleafContent("create-quiz", mapOf("subjects" to subjects))
-                        )
-                    }
+                            val subjects =
+                                subjectService.getAllSubjects().bind().map {
+                                    Subject(
+                                        id = it.id.serial,
+                                        name = it.name,
+                                        description = it.description,
+                                        language = it.language,
+                                    )
+                                }
+                            call.respond(
+                                ThymeleafContent("create-quiz", mapOf("subjects" to subjects))
+                            )
+                        }
                         .mapLeft { call.respondRedirect("/dashboard") }
                 } else {
                     call.respondRedirect("/signin")
@@ -183,20 +181,20 @@ fun Application.configureTemplating(
                     val theme = params["theme"].orEmpty()
                     val totalQuestions = params["totalQuestions"].orEmpty()
                     either {
-                        userService
-                            .createTheme(
-                                CreateTheme(userId = current.userId, description = theme)
+                            userService
+                                .createTheme(
+                                    CreateTheme(userId = current.userId, description = theme)
+                                )
+                                .bind()
+                            quizService.createQuiz(
+                                CreateQuiz(
+                                    userId = current.userId,
+                                    subjectId = SubjectId(subjectId.toLong()),
+                                    totalQuestions = totalQuestions.toInt()
+                                )
                             )
-                            .bind()
-                        quizService.createQuiz(
-                            CreateQuiz(
-                                userId = current.userId,
-                                subjectId = SubjectId(subjectId.toLong()),
-                                totalQuestions = totalQuestions.toInt()
-                            )
-                        )
-                        call.respondRedirect("/dashboard")
-                    }
+                            call.respondRedirect("/dashboard")
+                        }
                         .mapLeft { call.respondRedirect("/quizzes") }
                 } else {
                     call.respondRedirect("/signin")
@@ -208,26 +206,26 @@ fun Application.configureTemplating(
                 val current = call.principal<CurrentUserId>()
                 if (current != null) {
                     either {
-                        val questions =
-                            quizService.getQuestionsByQuiz(QuizId(quizId.toLong())).bind()
-                        questions.map {
-                            QuestionsResponse(
-                                id = it.id.serial,
-                                description = it.description,
-                                options =
-                                    it.options.map { option ->
-                                        OptionResponse(
-                                            id = option.id.serial,
-                                            description = option.description,
-                                            referenceNumber = option.referenceNumber
-                                        )
-                                    }
+                            val questions =
+                                quizService.getQuestionsByQuiz(QuizId(quizId.toLong())).bind()
+                            questions.map {
+                                QuestionsResponse(
+                                    id = it.id.serial,
+                                    description = it.description,
+                                    options =
+                                        it.options.map { option ->
+                                            OptionResponse(
+                                                id = option.id.serial,
+                                                description = option.description,
+                                                referenceNumber = option.referenceNumber
+                                            )
+                                        }
+                                )
+                            }
+                            call.respond(
+                                ThymeleafContent("questions", mapOf("questions" to questions))
                             )
                         }
-                        call.respond(
-                            ThymeleafContent("questions", mapOf("questions" to questions))
-                        )
-                    }
                         .mapLeft { call.respondRedirect("/dashboard") }
                 } else {
                     call.respondRedirect("/signin")
