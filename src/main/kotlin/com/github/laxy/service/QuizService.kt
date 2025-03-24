@@ -12,14 +12,15 @@ import com.github.laxy.persistence.SubjectPersistence
 import com.github.laxy.persistence.UserId
 import com.github.laxy.persistence.UserPersistence
 import com.github.laxy.route.Quiz
+import com.github.laxy.util.loadTemplate
 import com.github.laxy.util.logger
-import java.time.LocalDateTime
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+import java.time.LocalDateTime
 
 @Serializable
 data class ResponseQuestion(
@@ -88,44 +89,24 @@ fun quizService(
         override suspend fun createQuiz(input: CreateQuiz): Either<DomainError, Quiz> = either {
             val subject = subjectPersistence.select(input.subjectId).bind()
             val currentTheme = userPersistence.selectCurrentTheme(input.userId).bind()
-            val quizId =
-                quizPersistence
-                    .insertQuiz(input.userId, input.subjectId, input.totalQuestions)
-                    .bind()
-            val message =
-                """
-                generate a multiple-choice quiz with exactly ${input.totalQuestions} questions about "${subject.name}" in "${subject.language}".
-                each question must include:
-                - `description` (String): The question text.
-                - `options` (Array of 4 Strings): Four possible answers.
-                - `correctIndex` (Integer, 0-3): The index of the correct answer.
-                
-                the quiz should focus on the theme: "${currentTheme.description}". Use relevant vocabulary and ensure engaging, informative content suitable for advanced learners.
-                
-                ### Output format:
-                ONLY return a valid JSON array. Do NOT include extra text, explanations, or formatting.
-                
-                example:
-                ```json
-                [
-                  {
-                    "description": "What is 2 + 2?",
-                    "options": ["3", "4", "5", "6"],
-                    "correctIndex": 1
-                  },
-                  {
-                    "description": "What is the capital of France?",
-                    "options": ["Berlin", "Madrid", "Paris", "Lisbon"],
-                    "correctIndex": 2
-                  }
-                ]
-            """
-                    .trimIndent()
+
+            val quizId = quizPersistence
+                .insertQuiz(input.userId, input.subjectId, input.totalQuestions)
+                .bind()
+
+            val rawTemplate = loadTemplate("prompts/quiz_template.txt")
+            val message = rawTemplate
+                .replace("{totalQuestions}", input.totalQuestions.toString())
+                .replace("{subject}", subject.name)
+                .replace("{language}", subject.language)
+                .replace("{theme}", currentTheme.description)
+
             coroutineScope.launch {
                 val response = gptAIService.chatCompletion(ChatCompletionContent(message)).bind()
                 val formattedResponse = response.replace(Regex("^```json|```$"), "").trim()
                 QuizEvent.eventChannel.emit(quizId to formattedResponse)
             }
+
             Quiz(id = quizId.serial, totalQuestions = input.totalQuestions)
         }
 
