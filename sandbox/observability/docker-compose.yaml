@@ -1,68 +1,11 @@
 services:
-  grafana:
-    image: grafana/grafana:latest
-    container_name: grafana
+  otel-lgtm:
+    image: grafana/otel-lgtm
     ports:
-      - "3000:3000"
-    environment:
-      - GF_SECURITY_ADMIN_USER=admin
-      - GF_SECURITY_ADMIN_PASSWORD=admin
-    volumes:
-      - grafana_data:/var/lib/grafana
-    networks:
-      - observability_net
-
-  loki:
-    image: grafana/loki:3.4.1
-    container_name: loki
-    command: -config.file=/etc/loki/loki-config.yml
-    volumes:
-      - ./loki-config.yaml:/etc/loki/loki-config.yml
-    ports:
+      - "3000:3000"   # Grafana UI
+      - "4317:4317"   # OTLP/gRPC
+      - "4318:4318"   # OTLP/HTTP
       - "3100:3100"
-    networks:
-      - observability_net
-
-  tempo:
-    image: grafana/tempo:latest
-    container_name: tempo
-    command: ["-config.file=/etc/tempo.yaml"]
-    volumes:
-      - ./tempo.yaml:/etc/tempo.yaml
-    ports:
-      - "3200:3200"
-      - "4317:4317"
-      - "4318:4318"
-    networks:
-      - observability_net
-
-  grafana-agent:
-    image: grafana/agent:latest
-    container_name: grafana-agent
-    entrypoint:
-      - /bin/grafana-agent
-      - -server.http.address=0.0.0.0:12345
-      - -config.file=/etc/agent-config.yaml
-      - -metrics.wal-directory=/tmp/agent/wal
-      - -enable-features=integrations-next
-      - -config.expand-env
-      - -config.enable-read-api
-    volumes:
-      - ./agent-config.yaml:/etc/agent-config.yaml
-      - /var/run/docker.sock:/var/run/docker.sock
-    environment:
-      LOKI_HOST: loki:3100
-      TEMPO_HOST: tempo:4317
-    ports:
-      - "12345:12345"
-    networks:
-      - observability_net
-    depends_on:
-      - loki
-      - tempo
-
-volumes:
-  grafana_data:
-
-networks:
-  observability_net:
+    stdin_open: true
+    tty: true
+    restart: unless-stopped

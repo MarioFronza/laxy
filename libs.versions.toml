@@ -24,7 +24,8 @@ openai="2.1.0"
 thymeleaf-layout-dialect = "3.2.0"
 micrometer = "1.12.3"
 opentelemetry = "1.34.0"
-logstash-logback = "7.4"
+loki-logback-appender = "1.6.0"
+
 
 [libraries]
 arrow-core = { module = "io.arrow-kt:arrow-core", version.ref = "arrow" }
@@ -78,7 +79,7 @@ micrometer-registry-prometheus = { module = "io.micrometer:micrometer-registry-p
 otel-api = { module = "io.opentelemetry:opentelemetry-api", version.ref = "opentelemetry" }
 otel-sdk = { module = "io.opentelemetry:opentelemetry-sdk", version.ref = "opentelemetry" }
 otel-exporter-otlp = { module = "io.opentelemetry:opentelemetry-exporter-otlp", version.ref = "opentelemetry" }
-logstash-encoder = { module = "net.logstash.logback:logstash-logback-encoder", version.ref = "logstash-logback" }
+loki-logback-appender = { module = "com.github.loki4j:loki-logback-appender", version.ref = "loki-logback-appender" }
 
 [bundles]
 arrow = ["arrow-core", "arrow-fx"]

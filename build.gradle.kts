@@ -61,7 +61,6 @@ dependencies {
     implementation(libs.bundles.ktor.server)
     implementation(libs.bundles.suspendapp)
     implementation(libs.kjwt.core)
-    implementation(libs.logback.classic)
     implementation(libs.sqldelight.jdbc)
     implementation(libs.hikari)
     implementation(libs.postgresql)
@@ -73,7 +72,7 @@ dependencies {
     implementation(libs.otel.api)
     implementation(libs.otel.sdk)
     implementation(libs.otel.exporter.otlp)
-    implementation(libs.logstash.encoder)
+    implementation(libs.loki.logback.appender)
 
     testImplementation(libs.bundles.ktor.client)
     testImplementation(libs.testcontainers.postgresql)
