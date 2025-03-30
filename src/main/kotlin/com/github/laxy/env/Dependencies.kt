@@ -18,10 +18,10 @@ import com.github.laxy.service.subjectService
 import com.github.laxy.service.userService
 import com.sksamuel.cohort.HealthCheckRegistry
 import com.sksamuel.cohort.hikari.HikariConnectionsHealthCheck
-import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlin.time.Duration.Companion.seconds
 
 class Dependencies(
     val healthCheck: HealthCheckRegistry,
@@ -63,7 +63,6 @@ suspend fun ResourceScope.dependencies(env: Env): Dependencies {
             gptAIService,
             coroutineScope
         )
-    quizService.listenEvent()
 
     val checks =
         HealthCheckRegistry(Dispatchers.Default) {
@@ -83,3 +82,5 @@ suspend fun ResourceScope.dependencies(env: Env): Dependencies {
         languageService = languageService
     )
 }
+
+suspend fun Dependencies.startEventListeners() = quizService.listenEvent()

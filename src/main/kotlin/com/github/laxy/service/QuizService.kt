@@ -14,14 +14,13 @@ import com.github.laxy.persistence.UserPersistence
 import com.github.laxy.route.Quiz
 import com.github.laxy.util.logger
 import com.github.laxy.util.withSpan
-import io.opentelemetry.instrumentation.annotations.WithSpan
-import java.time.LocalDateTime
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+import java.time.LocalDateTime
 
 @Serializable
 data class ResponseQuestion(
@@ -74,31 +73,36 @@ fun quizService(
 ) =
     object : QuizService {
         val log = logger()
+        val spanPrefix = "QuizService"
 
         override suspend fun getByUser(userId: UserId): Either<DomainError, List<QuizInfo>> =
-            withSpan(spanName = "QuizService.getByUser") { quizPersistence.selectByUser(userId) }
+            withSpan(spanName = "$spanPrefix.getByUser") { quizPersistence.selectByUser(userId) }
 
-        @WithSpan
         override suspend fun getQuestionsByQuiz(
             quizId: QuizId
-        ): Either<DomainError, List<QuestionInfo>> = quizPersistence.selectQuestionsByQuiz(quizId)
+        ): Either<DomainError, List<QuestionInfo>> =
+            withSpan(spanName = "$spanPrefix.getQuestionsByQuiz") {
+                quizPersistence.selectQuestionsByQuiz(quizId)
+            }
 
-        @WithSpan
         override suspend fun getOptionsByQuestion(
             questionId: QuestionId
         ): Either<DomainError, List<OptionInfo>> =
-            quizPersistence.selectOptionsByQuestion(questionId)
+            withSpan(spanName = "$spanPrefix.getOptionsByQuestion") {
+                quizPersistence.selectOptionsByQuestion(questionId)
+            }
 
-        @WithSpan
-        override suspend fun createQuiz(input: CreateQuiz): Either<DomainError, Quiz> = either {
-            val subject = subjectPersistence.select(input.subjectId).bind()
-            val currentTheme = userPersistence.selectCurrentTheme(input.userId).bind()
-            val quizId =
-                quizPersistence
-                    .insertQuiz(input.userId, input.subjectId, input.totalQuestions)
-                    .bind()
-            val message =
-                """
+        override suspend fun createQuiz(input: CreateQuiz): Either<DomainError, Quiz> =
+            withSpan(spanName = "$spanPrefix.createQuiz") {
+                either {
+                    val subject = subjectPersistence.select(input.subjectId).bind()
+                    val currentTheme = userPersistence.selectCurrentTheme(input.userId).bind()
+                    val quizId =
+                        quizPersistence
+                            .insertQuiz(input.userId, input.subjectId, input.totalQuestions)
+                            .bind()
+                    val message =
+                        """
                 generate a multiple-choice quiz with exactly ${input.totalQuestions} questions about "${subject.name}" in "${subject.language}".
                 each question must include:
                 - `description` (String): The question text.
@@ -124,46 +128,50 @@ fun quizService(
                     "correctIndex": 2
                   }
                 ]
-            """
-                    .trimIndent()
-            coroutineScope.launch {
-                val response = gptAIService.chatCompletion(ChatCompletionContent(message)).bind()
-                val formattedResponse = response.replace(Regex("^```json|```$"), "").trim()
-                QuizEvent.eventChannel.emit(quizId to formattedResponse)
-            }
-            Quiz(id = quizId.serial, totalQuestions = input.totalQuestions)
-        }
-
-        @WithSpan
-        override suspend fun listenEvent() = either {
-            coroutineScope.launch {
-                QuizEvent.eventChannel.collect { (quizId, response) ->
-                    Either.catch { Json.decodeFromString<List<ResponseQuestion>>(response) }
-                        .mapLeft { throwable ->
-                            log.error(
-                                "Error parsing GPT response for quiz ID: $quizId: ${throwable.message}"
-                            )
-                        }
-                        .map { questions ->
-                            log.info("Processing GPT response for quiz ID: $quizId")
-                            questions.forEach { question ->
-                                val questionId =
-                                    quizPersistence
-                                        .insertQuestion(quizId, question.description)
-                                        .bind()
-                                question.options.forEachIndexed { index, option ->
-                                    quizPersistence.insertQuestionOption(
-                                        questionId,
-                                        option,
-                                        index,
-                                        isCorrect = index == question.correctIndex
-                                    )
-                                }
-                            }
-                            quizPersistence.updateStatus(quizId, "pending")
-                            log.info("Successfully processed questions for quiz ID: $quizId")
-                        }
+                """
+                            .trimIndent()
+                    coroutineScope.launch {
+                        val response =
+                            gptAIService.chatCompletion(ChatCompletionContent(message)).bind()
+                        val formattedResponse = response.replace(Regex("^```json|```$"), "").trim()
+                        QuizEvent.eventChannel.emit(quizId to formattedResponse)
+                    }
+                    Quiz(id = quizId.serial, totalQuestions = input.totalQuestions)
                 }
             }
-        }
+
+        override suspend fun listenEvent() =
+            withSpan(spanName = "EVENT - $spanPrefix.listenEvent") {
+                either {
+                    coroutineScope.launch {
+                        QuizEvent.eventChannel.collect { (quizId, response) ->
+                            Either.catch { Json.decodeFromString<List<ResponseQuestion>>(response) }
+                                .mapLeft { throwable ->
+                                    log.error(
+                                        "Error parsing GPT response for quiz ID: $quizId: ${throwable.message}"
+                                    )
+                                }
+                                .map { questions ->
+                                    log.info("Processing GPT response for quiz ID: $quizId")
+                                    questions.forEach { question ->
+                                        val questionId =
+                                            quizPersistence
+                                                .insertQuestion(quizId, question.description)
+                                                .bind()
+                                        question.options.forEachIndexed { index, option ->
+                                            quizPersistence.insertQuestionOption(
+                                                questionId,
+                                                option,
+                                                index,
+                                                isCorrect = index == question.correctIndex
+                                            )
+                                        }
+                                    }
+                                    quizPersistence.updateStatus(quizId, "pending")
+                                    log.info("Successfully processed questions for quiz ID: $quizId")
+                                }
+                        }
+                    }
+                }
+            }
     }
