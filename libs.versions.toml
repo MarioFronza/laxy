@@ -10,18 +10,21 @@ kover = "0.7.4"
 detekt = "1.23.7"
 ktor = "2.3.12"
 logback = "1.5.8"
-sqldelight="2.0.0"
-testcontainers="1.20.4"
-hikari="5.1.0"
-postgresql="42.7.2"
-kjwt="0.9.0"
-kotest-arrow="1.4.0"
-kotest-testcontainers="2.0.2"
-suspendapp="0.4.0"
-cohort="2.3.0"
-spotless="6.22.0"
-openai="2.1.0"
+sqldelight = "2.0.0"
+testcontainers = "1.20.4"
+hikari = "5.1.0"
+postgresql = "42.7.2"
+kjwt = "0.9.0"
+kotest-arrow = "1.4.0"
+kotest-testcontainers = "2.0.2"
+suspendapp = "0.4.0"
+cohort = "2.3.0"
+spotless = "6.22.0"
+openai = "2.1.0"
 thymeleaf-layout-dialect = "3.4.0"
+otel-version = "1.48.0"
+otel-instrumentation-version-alpha = "2.14.0-alpha"
+otel-instrumentation-version = "2.14.0"
 
 [libraries]
 arrow-core = { module = "io.arrow-kt:arrow-core", version.ref = "arrow" }
@@ -61,15 +64,23 @@ logback-classic = { module = "ch.qos.logback:logback-classic", version.ref = "lo
 kotlin-gradle = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
 detekt-gradle = { module = "io.gitlab.arturbosch.detekt:detekt-gradle-plugin", version.ref = "detekt" }
 testcontainers-postgresql = { module = "org.testcontainers:postgresql", version.ref = "testcontainers" }
-hikari = { module = "com.zaxxer:HikariCP", version.ref="hikari" }
-sqldelight-jdbc = { module = "app.cash.sqldelight:jdbc-driver", version.ref="sqldelight" }
-sqldelight-postgresql = { module = "app.cash.sqldelight:postgresql-dialect", version.ref="sqldelight" }
-postgresql = { module="org.postgresql:postgresql", version.ref="postgresql" }
-kjwt-core = { module="io.github.nefilim.kjwt:kjwt-core", version.ref="kjwt" }
-cohort-core = { module="com.sksamuel.cohort:cohort-core", version.ref="cohort" }
-cohort-hikari = { module="com.sksamuel.cohort:cohort-hikari", version.ref="cohort" }
+hikari = { module = "com.zaxxer:HikariCP", version.ref = "hikari" }
+sqldelight-jdbc = { module = "app.cash.sqldelight:jdbc-driver", version.ref = "sqldelight" }
+sqldelight-postgresql = { module = "app.cash.sqldelight:postgresql-dialect", version.ref = "sqldelight" }
+postgresql = { module = "org.postgresql:postgresql", version.ref = "postgresql" }
+kjwt-core = { module = "io.github.nefilim.kjwt:kjwt-core", version.ref = "kjwt" }
+cohort-core = { module = "com.sksamuel.cohort:cohort-core", version.ref = "cohort" }
+cohort-hikari = { module = "com.sksamuel.cohort:cohort-hikari", version.ref = "cohort" }
 openai = { module = "com.cjcrafter:openai", version.ref = "openai" }
 thymeleaf-layout-dialect = { module = "nz.net.ultraq.thymeleaf:thymeleaf-layout-dialect", version.ref = "thymeleaf-layout-dialect" }
+opentelemetry-api = { module = "io.opentelemetry:opentelemetry-api", version.ref = "otel-version" }
+opentelemetry-sdk = { module = "io.opentelemetry:opentelemetry-sdk", version.ref = "otel-version" }
+opentelemetry-extension-kotlin = { module = "io.opentelemetry:opentelemetry-extension-kotlin", version.ref = "otel-version" }
+opentelemetry-otlp-exporter = { module = "io.opentelemetry:opentelemetry-exporter-otlp", version.ref = "otel-version" }
+opentelemetry-ktor = { module = "io.opentelemetry.instrumentation:opentelemetry-ktor-2.0", version.ref = "otel-instrumentation-version-alpha" }
+opentelemetry-instrumentation-annotations = { module = "io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations", version.ref = "otel-instrumentation-version" }
+opentelemetry-logback-appender = { module = "io.opentelemetry.instrumentation:opentelemetry-logback-appender-1.0", version.ref = "otel-instrumentation-version-alpha" }
+
 
 [bundles]
 arrow = ["arrow-core", "arrow-fx"]
@@ -103,6 +114,15 @@ kotest = [
 cohort = [
     "cohort-core",
     "cohort-hikari"
+]
+otel = [
+    "opentelemetry-api",
+    "opentelemetry-sdk",
+    "opentelemetry-extension-kotlin",
+    "opentelemetry-otlp-exporter",
+    "opentelemetry-ktor",
+    "opentelemetry-instrumentation-annotations",
+    "opentelemetry-logback-appender"
 ]
 
 [plugins]

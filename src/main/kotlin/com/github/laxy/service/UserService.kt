@@ -9,6 +9,7 @@ import com.github.laxy.auth.JwtToken
 import com.github.laxy.persistence.UserId
 import com.github.laxy.persistence.UserPersistence
 import com.github.laxy.validation.validate
+import io.opentelemetry.instrumentation.annotations.WithSpan
 
 data class RegisterUser(val username: String, val email: String, val password: String)
 
@@ -43,12 +44,15 @@ interface UserService {
 
 fun userService(persistence: UserPersistence, jwtService: JwtService) =
     object : UserService {
+
+        @WithSpan
         override suspend fun register(input: RegisterUser): Either<DomainError, JwtToken> = either {
             val (username, email, password) = input.validate().bind()
             val userId = persistence.insert(username, email, password).bind()
             return jwtService.generateJwtToken(userId)
         }
 
+        @WithSpan
         override suspend fun login(input: Login): Either<DomainError, Pair<JwtToken, UserInfo>> =
             either {
                 val (email, password) = input.validate().bind()
@@ -57,6 +61,7 @@ fun userService(persistence: UserPersistence, jwtService: JwtService) =
                 Pair(token, info)
             }
 
+        @WithSpan
         override suspend fun update(input: Update): Either<DomainError, UserInfo> = either {
             val (userId, username, email, password) = input.validate().bind()
             ensure(email != null || username != null) {
@@ -65,14 +70,17 @@ fun userService(persistence: UserPersistence, jwtService: JwtService) =
             persistence.update(userId, username, email, password).bind()
         }
 
+        @WithSpan
         override suspend fun getUser(userId: UserId): Either<DomainError, UserInfo> {
             return persistence.select(userId)
         }
 
+        @WithSpan
         override suspend fun getUser(username: String): Either<DomainError, UserInfo> {
             return persistence.select(username)
         }
 
+        @WithSpan
         override suspend fun createTheme(input: CreateTheme): Either<DomainError, UserThemeInfo> =
             either {
                 val (userId, description) = input.validate().bind()

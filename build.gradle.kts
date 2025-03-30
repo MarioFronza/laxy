@@ -65,7 +65,7 @@ tasks.register<ShadowJar>("fatShadowJar") {
         attributes["Main-Class"] = "com.github.laxy.MainKt"
     }
 
-    mergeGroovyExtensionModules() // 👈 Mescla arquivos Groovy corretamente
+    mergeGroovyExtensionModules()
     mergeServiceFiles()
 
     from(sourceSets.main.get().output)
@@ -84,6 +84,7 @@ dependencies {
     implementation(libs.bundles.cohort)
     implementation(libs.openai)
     implementation(libs.thymeleaf.layout.dialect)
+    implementation(libs.bundles.otel)
 
     testImplementation(libs.bundles.ktor.client)
     testImplementation(libs.testcontainers.postgresql)

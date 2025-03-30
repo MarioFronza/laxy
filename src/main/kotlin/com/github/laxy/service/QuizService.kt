@@ -13,6 +13,8 @@ import com.github.laxy.persistence.UserId
 import com.github.laxy.persistence.UserPersistence
 import com.github.laxy.route.Quiz
 import com.github.laxy.util.logger
+import com.github.laxy.util.withSpan
+import io.opentelemetry.instrumentation.annotations.WithSpan
 import java.time.LocalDateTime
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
@@ -74,17 +76,20 @@ fun quizService(
         val log = logger()
 
         override suspend fun getByUser(userId: UserId): Either<DomainError, List<QuizInfo>> =
-            quizPersistence.selectByUser(userId)
+            withSpan(spanName = "QuizService.getByUser") { quizPersistence.selectByUser(userId) }
 
+        @WithSpan
         override suspend fun getQuestionsByQuiz(
             quizId: QuizId
         ): Either<DomainError, List<QuestionInfo>> = quizPersistence.selectQuestionsByQuiz(quizId)
 
+        @WithSpan
         override suspend fun getOptionsByQuestion(
             questionId: QuestionId
         ): Either<DomainError, List<OptionInfo>> =
             quizPersistence.selectOptionsByQuestion(questionId)
 
+        @WithSpan
         override suspend fun createQuiz(input: CreateQuiz): Either<DomainError, Quiz> = either {
             val subject = subjectPersistence.select(input.subjectId).bind()
             val currentTheme = userPersistence.selectCurrentTheme(input.userId).bind()
@@ -129,6 +134,7 @@ fun quizService(
             Quiz(id = quizId.serial, totalQuestions = input.totalQuestions)
         }
 
+        @WithSpan
         override suspend fun listenEvent() = either {
             coroutineScope.launch {
                 QuizEvent.eventChannel.collect { (quizId, response) ->

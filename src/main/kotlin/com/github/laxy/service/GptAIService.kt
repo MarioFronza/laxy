@@ -8,6 +8,7 @@ import com.cjcrafter.openai.chat.chatRequest
 import com.cjcrafter.openai.openAI
 import com.github.laxy.DomainError
 import com.github.laxy.InvalidIntegrationResponse
+import io.opentelemetry.instrumentation.annotations.WithSpan
 
 data class ChatCompletionContent(val message: String)
 
@@ -15,6 +16,7 @@ interface GptAIService {
     suspend fun chatCompletion(input: ChatCompletionContent): Either<DomainError, String>
 }
 
+@WithSpan
 fun gptAIService(openAIKey: String) =
     object : GptAIService {
         override suspend fun chatCompletion(

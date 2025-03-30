@@ -13,16 +13,23 @@ import com.github.laxy.service.QuizInfo
 import com.github.laxy.sqldelight.QuestionOptionsQueries
 import com.github.laxy.sqldelight.QuestionsQueries
 import com.github.laxy.sqldelight.QuizzesQueries
+import com.github.laxy.util.withSpan
+import io.opentelemetry.instrumentation.annotations.WithSpan
 
-@JvmInline value class QuizId(val serial: Long)
+@JvmInline
+value class QuizId(val serial: Long)
 
-@JvmInline value class QuestionId(val serial: Long)
+@JvmInline
+value class QuestionId(val serial: Long)
 
-@JvmInline value class QuestionOptionId(val serial: Long)
+@JvmInline
+value class QuestionOptionId(val serial: Long)
 
-@JvmInline value class QuestionAttemptId(val serial: Long)
+@JvmInline
+value class QuestionAttemptId(val serial: Long)
 
 interface QuizPersistence {
+
     suspend fun selectByUser(userId: UserId): Either<DomainError, List<QuizInfo>>
 
     suspend fun selectQuestionsByQuiz(quizId: QuizId): Either<DomainError, List<QuestionInfo>>
@@ -55,15 +62,19 @@ fun quizPersistence(
     questionOptionsQueries: QuestionOptionsQueries
 ) =
     object : QuizPersistence {
+
         override suspend fun selectByUser(userId: UserId): Either<DomainError, List<QuizInfo>> =
-            either {
-                quizzesQueries
-                    .selectAll(userId) { id, name, totalQuestions, status, createdAt ->
-                        QuizInfo(id, name, totalQuestions, status, createdAt)
-                    }
-                    .executeAsList()
+            withSpan("QuizPersistence.selectByUser") {
+                either {
+                    quizzesQueries
+                        .selectAll(userId) { id, name, totalQuestions, status, createdAt ->
+                            QuizInfo(id, name, totalQuestions, status, createdAt)
+                        }
+                        .executeAsList()
+                }
             }
 
+        @WithSpan
         override suspend fun selectQuestionsByQuiz(
             quizId: QuizId
         ): Either<DomainError, List<QuestionInfo>> = either {
@@ -71,11 +82,10 @@ fun quizPersistence(
                 .selectByQuiz(quizId) { id, description ->
                     val options =
                         questionOptionsQueries
-                            .selectByQuestion(id) {
-                                optionId,
-                                optionDescription,
-                                referenceNumber,
-                                isCorrect ->
+                            .selectByQuestion(id) { optionId,
+                                                    optionDescription,
+                                                    referenceNumber,
+                                                    isCorrect ->
                                 OptionInfo(optionId, optionDescription, referenceNumber, isCorrect)
                             }
                             .executeAsList()
@@ -84,6 +94,7 @@ fun quizPersistence(
                 .executeAsList()
         }
 
+        @WithSpan
         override suspend fun selectOptionsByQuestion(
             questionId: QuestionId
         ): Either<DomainError, List<OptionInfo>> = either {
@@ -94,6 +105,7 @@ fun quizPersistence(
                 .executeAsList()
         }
 
+        @WithSpan
         override suspend fun insertQuiz(
             userId: UserId,
             subjectId: SubjectId,
@@ -106,6 +118,7 @@ fun quizPersistence(
             ensureNotNull(quizId) { QuizCreationError("quizId=$quizId") }
         }
 
+        @WithSpan
         override suspend fun insertQuestion(
             quizId: QuizId,
             description: String
@@ -115,6 +128,7 @@ fun quizPersistence(
             ensureNotNull(questionId) { QuestionCreationError("questionId´=$quizId") }
         }
 
+        @WithSpan
         override suspend fun insertQuestionOption(
             questionId: QuestionId,
             description: String,
@@ -130,6 +144,7 @@ fun quizPersistence(
             }
         }
 
+        @WithSpan
         override suspend fun updateStatus(quizId: QuizId, status: String) {
             quizzesQueries.updateStatus(status, quizId)
         }
