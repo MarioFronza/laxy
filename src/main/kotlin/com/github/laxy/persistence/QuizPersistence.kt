@@ -14,7 +14,6 @@ import com.github.laxy.sqldelight.QuestionOptionsQueries
 import com.github.laxy.sqldelight.QuestionsQueries
 import com.github.laxy.sqldelight.QuizzesQueries
 import com.github.laxy.util.withSpan
-import io.opentelemetry.instrumentation.annotations.WithSpan
 
 @JvmInline value class QuizId(val serial: Long)
 
@@ -71,7 +70,6 @@ fun quizPersistence(
                 }
             }
 
-        @WithSpan
         override suspend fun selectQuestionsByQuiz(
             quizId: QuizId
         ): Either<DomainError, List<QuestionInfo>> =
@@ -100,7 +98,6 @@ fun quizPersistence(
                 }
             }
 
-        @WithSpan
         override suspend fun selectOptionsByQuestion(
             questionId: QuestionId
         ): Either<DomainError, List<OptionInfo>> =
@@ -115,7 +112,6 @@ fun quizPersistence(
                 }
             }
 
-        @WithSpan
         override suspend fun insertQuiz(
             userId: UserId,
             subjectId: SubjectId,
@@ -131,7 +127,6 @@ fun quizPersistence(
                 }
             }
 
-        @WithSpan
         override suspend fun insertQuestion(
             quizId: QuizId,
             description: String
@@ -144,7 +139,6 @@ fun quizPersistence(
                 }
             }
 
-        @WithSpan
         override suspend fun insertQuestionOption(
             questionId: QuestionId,
             description: String,
@@ -163,7 +157,6 @@ fun quizPersistence(
                 }
             }
 
-        @WithSpan
         override suspend fun updateStatus(quizId: QuizId, status: String) {
             quizzesQueries.updateStatus(status, quizId)
         }

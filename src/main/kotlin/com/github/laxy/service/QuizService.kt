@@ -76,7 +76,10 @@ fun quizService(
         val spanPrefix = "QuizService"
 
         override suspend fun getByUser(userId: UserId): Either<DomainError, List<QuizInfo>> =
-            withSpan(spanName = "$spanPrefix.getByUser") { quizPersistence.selectByUser(userId) }
+            withSpan(spanName = "$spanPrefix.getByUser") {
+                log.info("This should have trace_id")
+                quizPersistence.selectByUser(userId)
+            }
 
         override suspend fun getQuestionsByQuiz(
             quizId: QuizId
@@ -135,43 +138,44 @@ fun quizService(
                             gptAIService.chatCompletion(ChatCompletionContent(message)).bind()
                         val formattedResponse = response.replace(Regex("^```json|```$"), "").trim()
                         QuizEvent.eventChannel.emit(quizId to formattedResponse)
+
                     }
                     Quiz(id = quizId.serial, totalQuestions = input.totalQuestions)
                 }
             }
 
-        override suspend fun listenEvent() =
-            withSpan(spanName = "EVENT - $spanPrefix.listenEvent") {
-                either {
-                    coroutineScope.launch {
-                        QuizEvent.eventChannel.collect { (quizId, response) ->
-                            Either.catch { Json.decodeFromString<List<ResponseQuestion>>(response) }
-                                .mapLeft { throwable ->
-                                    log.error(
-                                        "Error parsing GPT response for quiz ID: $quizId: ${throwable.message}"
-                                    )
-                                }
-                                .map { questions ->
-                                    log.info("Processing GPT response for quiz ID: $quizId")
-                                    questions.forEach { question ->
-                                        val questionId =
-                                            quizPersistence
-                                                .insertQuestion(quizId, question.description)
-                                                .bind()
-                                        question.options.forEachIndexed { index, option ->
-                                            quizPersistence.insertQuestionOption(
-                                                questionId,
-                                                option,
-                                                index,
-                                                isCorrect = index == question.correctIndex
-                                            )
-                                        }
+        override suspend fun listenEvent() = either {
+            coroutineScope.launch {
+                QuizEvent.eventChannel.collect { (quizId, response) ->
+                    withSpan(spanName = "[EVENT] - $spanPrefix.listenEvent") { span ->
+                        span.setAttribute("quiz.id", quizId.serial)
+                        Either.catch { Json.decodeFromString<List<ResponseQuestion>>(response) }
+                            .mapLeft { throwable ->
+                                log.error(
+                                    "Error parsing GPT response for quiz ID: $quizId: ${throwable.message}"
+                                )
+                            }
+                            .map { questions ->
+                                log.info("Processing GPT response for quiz ID: $quizId")
+                                questions.forEach { question ->
+                                    val questionId =
+                                        quizPersistence
+                                            .insertQuestion(quizId, question.description)
+                                            .bind()
+                                    question.options.forEachIndexed { index, option ->
+                                        quizPersistence.insertQuestionOption(
+                                            questionId,
+                                            option,
+                                            index,
+                                            isCorrect = index == question.correctIndex
+                                        )
                                     }
-                                    quizPersistence.updateStatus(quizId, "pending")
-                                    log.info("Successfully processed questions for quiz ID: $quizId")
                                 }
-                        }
+                                quizPersistence.updateStatus(quizId, "pending")
+                                log.info("Successfully processed questions for quiz ID: $quizId")
+                            }
                     }
                 }
             }
+        }
     }

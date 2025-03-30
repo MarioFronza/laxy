@@ -64,7 +64,7 @@ fun Application.configure(jwtService: JwtService) {
             } else {
                 val span =
                     tracer
-                        .spanBuilder("HTTP ${call.request.httpMethod.value} $path")
+                        .spanBuilder("[HTTP] - ${call.request.httpMethod.value} $path")
                         .setSpanKind(SpanKind.SERVER)
                         .startSpan()
 

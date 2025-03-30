@@ -41,8 +41,7 @@ import kotlinx.serialization.Serializable
 import nz.net.ultraq.thymeleaf.layoutdialect.LayoutDialect
 import org.thymeleaf.templateresolver.ClassLoaderTemplateResolver
 
-@Serializable
-data class UserSession(val token: String)
+@Serializable data class UserSession(val token: String)
 
 data class CurrentUserId(val userId: UserId) : Principal
 
@@ -102,12 +101,13 @@ fun Application.configureTemplating(
             val password = params["password"].orEmpty()
 
             either {
-                val (token, _) = userService.login(Login(email, password)).bind()
-                call.sessions.set(UserSession(token.value))
-                call.respondRedirect("/dashboard")
-            }.mapLeft {
-                call.respond(respondTemplate("signin", mapOf("error" to "Invalid credentials")))
-            }
+                    val (token, _) = userService.login(Login(email, password)).bind()
+                    call.sessions.set(UserSession(token.value))
+                    call.respondRedirect("/dashboard")
+                }
+                .mapLeft {
+                    call.respond(respondTemplate("signin", mapOf("error" to "Invalid credentials")))
+                }
         }
 
         get("/signup") {
@@ -125,12 +125,14 @@ fun Application.configureTemplating(
             val password = params["password"].orEmpty()
 
             either {
-                val token = userService.register(RegisterUser(username, email, password)).bind().value
-                call.sessions.set(UserSession(token))
-                call.respondRedirect("/dashboard")
-            }.mapLeft {
-                call.respond(respondTemplate("signup", mapOf("error" to "Registration failed")))
-            }
+                    val token =
+                        userService.register(RegisterUser(username, email, password)).bind().value
+                    call.sessions.set(UserSession(token))
+                    call.respondRedirect("/dashboard")
+                }
+                .mapLeft {
+                    call.respond(respondTemplate("signup", mapOf("error" to "Registration failed")))
+                }
         }
 
         get("/signout") {
@@ -142,36 +144,36 @@ fun Application.configureTemplating(
             get("/dashboard") {
                 val current = call.currentUserOrRedirect() ?: return@get
                 either {
-                    val quizzes = quizService.getByUser(current.userId).bind().map {
-                        QuizResponse(
-                            id = it.id.serial,
-                            subject = it.subject,
-                            totalQuestions = it.totalQuestions,
-                            status = it.status,
-                            createdAt = it.createdAt.toBrazilianFormat()
-                        )
+                        val quizzes =
+                            quizService.getByUser(current.userId).bind().map {
+                                QuizResponse(
+                                    id = it.id.serial,
+                                    subject = it.subject,
+                                    totalQuestions = it.totalQuestions,
+                                    status = it.status,
+                                    createdAt = it.createdAt.toBrazilianFormat()
+                                )
+                            }
+                        call.respond(respondTemplate("dashboard", mapOf("quizzes" to quizzes)))
                     }
-                    call.respond(respondTemplate("dashboard", mapOf("quizzes" to quizzes)))
-                }.mapLeft {
-                    call.respond(respondTemplate("dashboard"))
-                }
+                    .mapLeft { call.respond(respondTemplate("dashboard")) }
             }
 
             get("/quizzes") {
                 call.currentUserOrRedirect() ?: return@get
                 either {
-                    val subjects = subjectService.getAllSubjects().bind().map {
-                        Subject(
-                            id = it.id.serial,
-                            name = it.name,
-                            description = it.description,
-                            language = it.language,
-                        )
+                        val subjects =
+                            subjectService.getAllSubjects().bind().map {
+                                Subject(
+                                    id = it.id.serial,
+                                    name = it.name,
+                                    description = it.description,
+                                    language = it.language,
+                                )
+                            }
+                        call.respond(respondTemplate("create-quiz", mapOf("subjects" to subjects)))
                     }
-                    call.respond(respondTemplate("create-quiz", mapOf("subjects" to subjects)))
-                }.mapLeft {
-                    call.respondRedirect("/dashboard")
-                }
+                    .mapLeft { call.respondRedirect("/dashboard") }
             }
 
             post("/quizzes") {
@@ -182,22 +184,21 @@ fun Application.configureTemplating(
                 val totalQuestions = params["totalQuestions"].orEmpty()
 
                 either {
-                    userService.createTheme(
-                        CreateTheme(userId = current.userId, description = theme)
-                    ).bind()
+                        userService
+                            .createTheme(CreateTheme(userId = current.userId, description = theme))
+                            .bind()
 
-                    quizService.createQuiz(
-                        CreateQuiz(
-                            userId = current.userId,
-                            subjectId = SubjectId(subjectId.toLong()),
-                            totalQuestions = totalQuestions.toInt()
+                        quizService.createQuiz(
+                            CreateQuiz(
+                                userId = current.userId,
+                                subjectId = SubjectId(subjectId.toLong()),
+                                totalQuestions = totalQuestions.toInt()
+                            )
                         )
-                    )
 
-                    call.respondRedirect("/dashboard")
-                }.mapLeft {
-                    call.respondRedirect("/quizzes")
-                }
+                        call.respondRedirect("/dashboard")
+                    }
+                    .mapLeft { call.respondRedirect("/quizzes") }
             }
 
             get("/quizzes/{id}/questions") {
@@ -205,24 +206,26 @@ fun Application.configureTemplating(
                 val quizId = call.parameters["id"].orEmpty()
 
                 either {
-                    val questions = quizService.getQuestionsByQuiz(QuizId(quizId.toLong())).bind()
-                    val response = questions.map {
-                        QuestionsResponse(
-                            id = it.id.serial,
-                            description = it.description,
-                            options = it.options.map { option ->
-                                OptionResponse(
-                                    id = option.id.serial,
-                                    description = option.description,
-                                    referenceNumber = option.referenceNumber
+                        val questions =
+                            quizService.getQuestionsByQuiz(QuizId(quizId.toLong())).bind()
+                        val response =
+                            questions.map {
+                                QuestionsResponse(
+                                    id = it.id.serial,
+                                    description = it.description,
+                                    options =
+                                        it.options.map { option ->
+                                            OptionResponse(
+                                                id = option.id.serial,
+                                                description = option.description,
+                                                referenceNumber = option.referenceNumber
+                                            )
+                                        }
                                 )
                             }
-                        )
+                        call.respond(respondTemplate("questions", mapOf("questions" to response)))
                     }
-                    call.respond(respondTemplate("questions", mapOf("questions" to response)))
-                }.mapLeft {
-                    call.respondRedirect("/dashboard")
-                }
+                    .mapLeft { call.respondRedirect("/dashboard") }
             }
         }
     }
