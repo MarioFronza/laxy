@@ -72,10 +72,6 @@ fun Application.configureTemplating(
             return current
         }
 
-        fun Span.setUserIdAttribute(userId: UserId) {
-            this.setAttribute("user.id", userId.toString())
-        }
-
         fun respondTemplate(name: String, data: Map<String, Any> = emptyMap()) =
             ThymeleafContent(name, data)
 
