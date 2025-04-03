@@ -20,6 +20,7 @@ import io.github.nefilim.kjwt.KJWTSignError.InvalidKey
 import io.github.nefilim.kjwt.KJWTSignError.SigningError
 import io.github.nefilim.kjwt.SignedJWT
 import io.github.nefilim.kjwt.sign
+import io.opentelemetry.instrumentation.annotations.WithSpan
 import java.time.Clock
 import java.time.Instant
 import kotlin.time.toJavaDuration
@@ -30,6 +31,7 @@ interface JwtService {
     suspend fun verifyJwtToken(token: JwtToken): Either<DomainError, UserId>
 }
 
+@WithSpan
 fun jwtService(env: Env.Auth, persistence: UserPersistence) =
     object : JwtService {
         override suspend fun generateJwtToken(userId: UserId): Either<JwtGeneration, JwtToken> =

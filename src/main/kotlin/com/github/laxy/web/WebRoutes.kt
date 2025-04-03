@@ -17,6 +17,7 @@ import com.github.laxy.service.SubjectService
 import com.github.laxy.service.UserService
 import com.github.laxy.util.toBrazilianFormat
 import io.ktor.server.application.Application
+import io.ktor.server.application.ApplicationCall
 import io.ktor.server.application.call
 import io.ktor.server.application.install
 import io.ktor.server.auth.Principal
@@ -43,7 +44,7 @@ import org.thymeleaf.templateresolver.ClassLoaderTemplateResolver
 
 data class CurrentUserId(val userId: UserId) : Principal
 
-@Suppress("LongMethod", "CyclomaticComplexMethod")
+@Suppress("LongMethod")
 fun Application.configureTemplating(
     userService: UserService,
     quizService: QuizService,
@@ -59,14 +60,26 @@ fun Application.configureTemplating(
             }
         )
     }
+
     routing {
         staticResources("/static", "static")
+
+        suspend fun ApplicationCall.currentUserOrRedirect(): CurrentUserId? {
+            val current = this.principal<CurrentUserId>()
+            if (current == null) {
+                this.respondRedirect("/signin")
+            }
+            return current
+        }
+
+        fun respondTemplate(name: String, data: Map<String, Any> = emptyMap()) =
+            ThymeleafContent(name, data)
 
         get("/") {
             if (call.sessions.get<UserSession>() != null) {
                 call.respondRedirect("/dashboard")
             } else {
-                call.respond(ThymeleafContent("index", emptyMap()))
+                call.respond(respondTemplate("index"))
             }
         }
 
@@ -74,7 +87,7 @@ fun Application.configureTemplating(
             if (call.sessions.get<UserSession>() != null) {
                 call.respondRedirect("/dashboard")
             } else {
-                call.respond(ThymeleafContent("signin", emptyMap()))
+                call.respond(respondTemplate("signin"))
             }
         }
 
@@ -89,9 +102,7 @@ fun Application.configureTemplating(
                     call.respondRedirect("/dashboard")
                 }
                 .mapLeft {
-                    call.respond(
-                        ThymeleafContent("signin", mapOf("error" to "Invalid credentials"))
-                    )
+                    call.respond(respondTemplate("signin", mapOf("error" to "Invalid credentials")))
                 }
         }
 
@@ -99,7 +110,7 @@ fun Application.configureTemplating(
             if (call.sessions.get<UserSession>() != null) {
                 call.respondRedirect("/dashboard")
             } else {
-                call.respond(ThymeleafContent("signup", emptyMap()))
+                call.respond(respondTemplate("signup"))
             }
         }
 
@@ -116,9 +127,7 @@ fun Application.configureTemplating(
                     call.respondRedirect("/dashboard")
                 }
                 .mapLeft {
-                    call.respond(
-                        ThymeleafContent("signup", mapOf("error" to "Registration failed"))
-                    )
+                    call.respond(respondTemplate("signup", mapOf("error" to "Registration failed")))
                 }
         }
 
@@ -129,85 +138,73 @@ fun Application.configureTemplating(
 
         authenticate("auth-session") {
             get("/dashboard") {
-                val current = call.principal<CurrentUserId>()
-                if (current != null) {
-                    either {
-                            val quizzes =
-                                quizService.getByUser(current.userId).bind().map {
-                                    QuizResponse(
-                                        id = it.id.serial,
-                                        subject = it.subject,
-                                        totalQuestions = it.totalQuestions,
-                                        status = it.status,
-                                        createdAt = it.createdAt.toBrazilianFormat()
-                                    )
-                                }
-                            call.respond(ThymeleafContent("dashboard", mapOf("quizzes" to quizzes)))
-                        }
-                        .mapLeft { call.respond(ThymeleafContent("dashboard", emptyMap())) }
-                } else {
-                    call.respondRedirect("/signin")
-                }
+                val current = call.currentUserOrRedirect() ?: return@get
+                either {
+                        val quizzes =
+                            quizService.getByUser(current.userId).bind().map {
+                                QuizResponse(
+                                    id = it.id.serial,
+                                    subject = it.subject,
+                                    totalQuestions = it.totalQuestions,
+                                    status = it.status,
+                                    createdAt = it.createdAt.toBrazilianFormat()
+                                )
+                            }
+                        call.respond(respondTemplate("dashboard", mapOf("quizzes" to quizzes)))
+                    }
+                    .mapLeft { call.respond(respondTemplate("dashboard")) }
             }
 
             get("/quizzes") {
-                val current = call.principal<CurrentUserId>()
-                if (current != null) {
-                    either {
-                            val subjects =
-                                subjectService.getAllSubjects().bind().map {
-                                    Subject(
-                                        id = it.id.serial,
-                                        name = it.name,
-                                        description = it.description,
-                                        language = it.language,
-                                    )
-                                }
-                            call.respond(
-                                ThymeleafContent("create-quiz", mapOf("subjects" to subjects))
-                            )
-                        }
-                        .mapLeft { call.respondRedirect("/dashboard") }
-                } else {
-                    call.respondRedirect("/signin")
-                }
+                call.currentUserOrRedirect() ?: return@get
+                either {
+                        val subjects =
+                            subjectService.getAllSubjects().bind().map {
+                                Subject(
+                                    id = it.id.serial,
+                                    name = it.name,
+                                    description = it.description,
+                                    language = it.language,
+                                )
+                            }
+                        call.respond(respondTemplate("create-quiz", mapOf("subjects" to subjects)))
+                    }
+                    .mapLeft { call.respondRedirect("/dashboard") }
             }
 
             post("/quizzes") {
-                val current = call.principal<CurrentUserId>()
-                if (current != null) {
-                    val params = call.receiveParameters()
-                    val subjectId = params["subjectId"].orEmpty()
-                    val theme = params["theme"].orEmpty()
-                    val totalQuestions = params["totalQuestions"].orEmpty()
-                    either {
-                            userService
-                                .createTheme(
-                                    CreateTheme(userId = current.userId, description = theme)
-                                )
-                                .bind()
-                            quizService.createQuiz(
-                                CreateQuiz(
-                                    userId = current.userId,
-                                    subjectId = SubjectId(subjectId.toLong()),
-                                    totalQuestions = totalQuestions.toInt()
-                                )
+                val current = call.currentUserOrRedirect() ?: return@post
+                val params = call.receiveParameters()
+                val subjectId = params["subjectId"].orEmpty()
+                val theme = params["theme"].orEmpty()
+                val totalQuestions = params["totalQuestions"].orEmpty()
+
+                either {
+                        userService
+                            .createTheme(CreateTheme(userId = current.userId, description = theme))
+                            .bind()
+
+                        quizService.createQuiz(
+                            CreateQuiz(
+                                userId = current.userId,
+                                subjectId = SubjectId(subjectId.toLong()),
+                                totalQuestions = totalQuestions.toInt()
                             )
-                            call.respondRedirect("/dashboard")
-                        }
-                        .mapLeft { call.respondRedirect("/quizzes") }
-                } else {
-                    call.respondRedirect("/signin")
-                }
+                        )
+
+                        call.respondRedirect("/dashboard")
+                    }
+                    .mapLeft { call.respondRedirect("/quizzes") }
             }
 
             get("/quizzes/{id}/questions") {
+                call.currentUserOrRedirect() ?: return@get
                 val quizId = call.parameters["id"].orEmpty()
-                val current = call.principal<CurrentUserId>()
-                if (current != null) {
-                    either {
-                            val questions =
-                                quizService.getQuestionsByQuiz(QuizId(quizId.toLong())).bind()
+
+                either {
+                        val questions =
+                            quizService.getQuestionsByQuiz(QuizId(quizId.toLong())).bind()
+                        val response =
                             questions.map {
                                 QuestionsResponse(
                                     id = it.id.serial,
@@ -222,14 +219,9 @@ fun Application.configureTemplating(
                                         }
                                 )
                             }
-                            call.respond(
-                                ThymeleafContent("questions", mapOf("questions" to questions))
-                            )
-                        }
-                        .mapLeft { call.respondRedirect("/dashboard") }
-                } else {
-                    call.respondRedirect("/signin")
-                }
+                        call.respond(respondTemplate("questions", mapOf("questions" to response)))
+                    }
+                    .mapLeft { call.respondRedirect("/dashboard") }
             }
         }
     }

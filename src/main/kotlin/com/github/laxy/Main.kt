@@ -7,6 +7,7 @@ import com.github.laxy.env.Dependencies
 import com.github.laxy.env.Env
 import com.github.laxy.env.configure
 import com.github.laxy.env.dependencies
+import com.github.laxy.env.startEventListeners
 import com.github.laxy.route.health
 import com.github.laxy.route.routes
 import com.github.laxy.web.configureTemplating
@@ -19,6 +20,7 @@ fun main(): Unit = SuspendApp {
     resourceScope {
         val dependencies = dependencies(env)
         server(Netty, host = env.http.host, port = env.http.port) { app(dependencies) }
+        dependencies.startEventListeners()
         awaitCancellation()
     }
 }

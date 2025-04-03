@@ -13,6 +13,7 @@ import com.github.laxy.service.UserInfo
 import com.github.laxy.service.UserThemeInfo
 import com.github.laxy.sqldelight.UserThemesQueries
 import com.github.laxy.sqldelight.UsersQueries
+import io.opentelemetry.instrumentation.annotations.WithSpan
 import java.util.UUID.randomUUID
 import javax.crypto.SecretKeyFactory
 import javax.crypto.spec.PBEKeySpec
@@ -61,6 +62,8 @@ fun userPersistence(
     secretKeyFactory: SecretKeyFactory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA512")
 ) =
     object : UserPersistence {
+
+        @WithSpan
         override suspend fun insert(
             username: String,
             email: String,
@@ -78,6 +81,7 @@ fun userPersistence(
                 }
         }
 
+        @WithSpan
         override suspend fun insertTheme(
             userId: UserId,
             description: String
@@ -95,6 +99,7 @@ fun userPersistence(
             )
         }
 
+        @WithSpan
         override suspend fun verifyPassword(
             email: String,
             password: String
@@ -108,6 +113,7 @@ fun userPersistence(
             Pair(userId, UserInfo(username, email))
         }
 
+        @WithSpan
         override suspend fun select(userId: UserId): Either<DomainError, UserInfo> = either {
             val userInfo =
                 usersQueries
@@ -116,11 +122,13 @@ fun userPersistence(
             ensureNotNull(userInfo) { UserNotFound("userId=$userId") }
         }
 
+        @WithSpan
         override suspend fun select(username: String): Either<DomainError, UserInfo> = either {
             val userInfo = usersQueries.selectByUsername(username, ::UserInfo).executeAsOneOrNull()
             ensureNotNull(userInfo) { UserNotFound("username=$username") }
         }
 
+        @WithSpan
         override suspend fun selectCurrentTheme(
             userId: UserId
         ): Either<DomainError, UserThemeInfo> = either {
@@ -129,10 +137,12 @@ fun userPersistence(
             UserThemeInfo(description)
         }
 
+        @WithSpan
         override suspend fun setCurrent(userId: UserId, isCurrent: Boolean) {
             userThemesQueries.setCurrent(isCurrent, userId)
         }
 
+        @WithSpan
         override suspend fun update(
             userId: UserId,
             username: String?,
@@ -153,8 +163,9 @@ fun userPersistence(
             ensureNotNull(info) { UserNotFound("userId=$userId") }
         }
 
-        private fun generateSalt(): ByteArray = randomUUID().toString().toByteArray()
+        @WithSpan private fun generateSalt(): ByteArray = randomUUID().toString().toByteArray()
 
+        @WithSpan
         private fun generateKey(password: String, salt: ByteArray): ByteArray {
             val spec = PBEKeySpec(password.toCharArray(), salt, defaultIterations, defaultKeyLength)
             return secretKeyFactory.generateSecret(spec).encoded

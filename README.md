@@ -1,186 +1,41 @@
-# Laxy API - Available Requests & Responses
+# Laxy
 
-## 1. Authentication
+Laxy is a playful project that combines AI and backend development to generate educational quizzes. It's designed to
+help users practice English through GPT-generated quizzes based on selected themes and subjects. While currently focused
+on English, it's built to support other languages in the future.
 
-### 🔹 Sign Up
-- **POST** /users
-- **Request Body:**
-  {
-  "user": {
-  "username": "exampleUser",
-  "email": "user@example.com",
-  "password": "password123"
-  }
-  }
-- **Response:**
-  {
-  "user": {
-  "email": "user@example.com",
-  "token": "jwt_token_here",
-  "username": "exampleUser"
-  }
-  }
+## Project Goal
 
-### 🔹 Sign In
-- **POST** /users/login
-- **Request Body:**
-  {
-  "user": {
-  "email": "user@example.com",
-  "password": "password123"
-  }
-  }
-- **Response:**
-  {
-  "user": {
-  "email": "user@example.com",
-  "token": "jwt_token_here",
-  "username": "exampleUser"
-  }
-  }
+The primary goal is to explore how to integrate modern backend technologies with AI services in a clean and scalable
+architecture. It serves as a learning platform for:
 
----
+- Structuring production-grade Kotlin applications
+- Integrating with OpenAI APIs
+- Leveraging functional programming patterns
+- Practicing observability and clean architecture
 
-## 2. Languages
+## Features
 
-### 🔹 Get All Languages
-- **GET** /languages
-- **Headers:** Authorization: Bearer <TOKEN>
-- **Response:**
-  {
-  "languages": [
-  {
-  "id": 1,
-  "name": "English",
-  "code": "en"
-  },
-  {
-  "id": 2,
-  "name": "Spanish",
-  "code": "es"
-  }
-  ]
-  }
+- User registration and authentication
+- Language and subject selection
+- Quiz creation using OpenAI completions
+- GPT response parsing and persistence
+- Dynamic HTML frontend with templating
 
-### 🔹 Get Subjects by Language ID
-- **GET** /languages/{id}/subjects
-- **Headers:** Authorization: Bearer <TOKEN>
-- **Response:**
-  {
-  "subjects": [
-  {
-  "id": 1,
-  "name": "History",
-  "description": "Learn about world history."
-  },
-  {
-  "id": 2,
-  "name": "Mathematics",
-  "description": "Advanced algebra and calculus."
-  }
-  ]
-  }
+## Tech Overview
 
----
+- **Kotlin** + **Ktor** for the backend
+- **SQLDelight** for typesafe database access
+- **OpenAI GPT** for quiz generation
+- **Arrow** for functional constructs
+- **OpenTelemetry** for tracing and metrics
+- **Kotest** for tests
+- **Docker & Docker Compose** for containerization
 
-## 3. Subjects
+## Running
 
-### 🔹 Get All Subjects
-- **GET** /subjects
-- **Headers:** Authorization: Bearer <TOKEN>
-- **Response:**
-  {
-  "subjects": [
-  {
-  "id": 1,
-  "name": "History",
-  "description": "World History",
-  "language": "English"
-  },
-  {
-  "id": 2,
-  "name": "Physics",
-  "description": "Fundamentals of physics",
-  "language": "Spanish"
-  }
-  ]
-  }
+To run locally:
 
-### 🔹 Get Subject by ID
-- **GET** /subjects/{id}
-- **Headers:** Authorization: Bearer <TOKEN>
-- **Response:**
-  {
-  "subject": {
-  "id": 1,
-  "name": "History",
-  "description": "World History",
-  "language": "English"
-  }
-  }
-
----
-
-## 4. Quizzes
-
-### 🔹 Get All Quizzes for User
-- **GET** /quizzes
-- **Headers:** Authorization: Bearer <TOKEN>
-- **Response:**
-  {
-  "quizzes": [
-  {
-  "id": 101,
-  "subject": "Mathematics",
-  "totalQuestions": 10,
-  "status": "completed",
-  "createdAt": "2024-03-03T12:00:00Z"
-  }
-  ]
-  }
-
-### 🔹 Get Quiz Questions
-- **GET** /quizzes/{quizId}/questions
-- **Headers:** Authorization: Bearer <TOKEN>
-- **Response:**
-  [
-  {
-  "id": 1,
-  "description": "What is 2 + 2?",
-  "options": [
-  { "id": 11, "description": "3", "referenceNumber": 0 },
-  { "id": 12, "description": "4", "referenceNumber": 1 },
-  { "id": 13, "description": "5", "referenceNumber": 2 },
-  { "id": 14, "description": "6", "referenceNumber": 3 }
-  ]
-  }
-  ]
-
-### 🔹 Get Options for a Question
-- **GET** /quizzes/{quizId}/questions/{questionId}/options
-- **Headers:** Authorization: Bearer <TOKEN>
-- **Response:**
-  [
-  { "id": 11, "description": "3", "referenceNumber": 0 },
-  { "id": 12, "description": "4", "referenceNumber": 1 },
-  { "id": 13, "description": "5", "referenceNumber": 2 },
-  { "id": 14, "description": "6", "referenceNumber": 3 }
-  ]
-
-### 🔹 Create a New Quiz
-- **POST** /quizzes
-- **Headers:** Authorization: Bearer <TOKEN>
-- **Request Body:**
-  {
-  "quiz": {
-  "subjectId": 1,
-  "totalQuestions": 5
-  }
-  }
-- **Response:**
-  {
-  "quiz": {
-  "id": 201,
-  "totalQuestions": 5
-  }
-  }
+```bash
+./gradlew build
+docker-compose up

@@ -7,6 +7,7 @@ import com.github.laxy.DomainError
 import com.github.laxy.SubjectNotFound
 import com.github.laxy.service.SubjectInfo
 import com.github.laxy.sqldelight.SubjectsQueries
+import io.opentelemetry.instrumentation.annotations.WithSpan
 
 @JvmInline value class SubjectId(val serial: Long)
 
@@ -20,6 +21,8 @@ interface SubjectPersistence {
 
 fun subjectPersistence(subjectsQueries: SubjectsQueries) =
     object : SubjectPersistence {
+
+        @WithSpan
         override suspend fun selectAll(): Either<DomainError, List<SubjectInfo>> = either {
             subjectsQueries
                 .selectAll { id, name, description, language ->
@@ -28,6 +31,7 @@ fun subjectPersistence(subjectsQueries: SubjectsQueries) =
                 .executeAsList()
         }
 
+        @WithSpan
         override suspend fun selectByLanguage(
             languageId: LanguageId
         ): Either<DomainError, List<SubjectInfo>> = either {
@@ -38,6 +42,7 @@ fun subjectPersistence(subjectsQueries: SubjectsQueries) =
                 .executeAsList()
         }
 
+        @WithSpan
         override suspend fun select(subjectId: SubjectId): Either<DomainError, SubjectInfo> =
             either {
                 val subjectInfo =
