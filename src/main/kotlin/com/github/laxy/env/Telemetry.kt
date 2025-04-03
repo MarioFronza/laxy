@@ -18,9 +18,8 @@ import io.opentelemetry.semconv.ServiceAttributes.SERVICE_NAME
 import java.time.Duration
 
 fun ResourceScope.otel(env: Env.OpenTelemetry) {
-    val resource = Resource.getDefault().merge(
-        Resource.create(Attributes.of(SERVICE_NAME, env.serviceName))
-    )
+    val resource =
+        Resource.getDefault().merge(Resource.create(Attributes.of(SERVICE_NAME, env.serviceName)))
 
     val metricExporter = OtlpGrpcMetricExporter.builder().setEndpoint(env.endpoint).build()
     val tracerExporter = OtlpGrpcSpanExporter.builder().setEndpoint(env.endpoint).build()

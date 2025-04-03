@@ -28,16 +28,17 @@ import io.ktor.server.sessions.Sessions
 import io.ktor.server.sessions.cookie
 import io.opentelemetry.api.trace.SpanKind
 import io.opentelemetry.api.trace.StatusCode
+import kotlin.time.Duration.Companion.days
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.polymorphic
-import kotlin.time.Duration.Companion.days
 
 val kotlinXSerializersModule = SerializersModule {
     contextual(UserWrapper::class) { UserWrapper.serializer(LoginUser.serializer()) }
     polymorphic(Any::class) { subclass(LoginUser::class, LoginUser.serializer()) }
 }
 
+@Suppress("LongMethod", "TooGenericExceptionCaught")
 fun Application.configure(jwtService: JwtService) {
     install(Routing) {
         intercept(ApplicationCallPipeline.Monitoring) {
@@ -45,10 +46,11 @@ fun Application.configure(jwtService: JwtService) {
             if (path.startsWith("/static") || path == "/favicon.ico") {
                 proceed()
             } else {
-                val span = tracer
-                    .spanBuilder("[HTTP] - ${call.request.httpMethod.value} $path")
-                    .setSpanKind(SpanKind.SERVER)
-                    .startSpan()
+                val span =
+                    tracer
+                        .spanBuilder("[HTTP] - ${call.request.httpMethod.value} $path")
+                        .setSpanKind(SpanKind.SERVER)
+                        .startSpan()
                 span.makeCurrent().use {
                     try {
                         proceed()

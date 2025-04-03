@@ -36,7 +36,6 @@ import io.ktor.server.sessions.sessions
 import io.ktor.server.sessions.set
 import io.ktor.server.thymeleaf.Thymeleaf
 import io.ktor.server.thymeleaf.ThymeleafContent
-import io.opentelemetry.api.trace.Span
 import kotlinx.serialization.Serializable
 import nz.net.ultraq.thymeleaf.layoutdialect.LayoutDialect
 import org.thymeleaf.templateresolver.ClassLoaderTemplateResolver
@@ -45,6 +44,7 @@ import org.thymeleaf.templateresolver.ClassLoaderTemplateResolver
 
 data class CurrentUserId(val userId: UserId) : Principal
 
+@Suppress("LongMethod")
 fun Application.configureTemplating(
     userService: UserService,
     quizService: QuizService,

@@ -13,6 +13,7 @@ private const val OPENAI_TOKEN: String = "token"
 private const val AUTH_SECRET: String = "MySuperStrongSecret"
 private const val AUTH_ISSUER: String = "LaxyIssuer"
 private const val AUTH_DURATION: Int = 30
+private const val OTEL_METRIC_INTERVAL = 10L
 
 private const val OTEL_EXPORTER_ENDPOINT: String = "http://localhost:4317"
 
@@ -46,6 +47,6 @@ data class Env(
     data class OpenTelemetry(
         val endpoint: String = getenv("OTEL_EXPORTER_ENDPOINT") ?: OTEL_EXPORTER_ENDPOINT,
         val serviceName: String = getenv("OTEL_SERVICE_NAME") ?: "laxy",
-        val metricIntervalSeconds: Long = getenv("OTEL_METRIC_INTERVAL")?.toLongOrNull() ?: 10L
+        val metricIntervalSeconds: Long = getenv("OTEL_METRIC_INTERVAL")?.toLongOrNull() ?: OTEL_METRIC_INTERVAL
     )
 }

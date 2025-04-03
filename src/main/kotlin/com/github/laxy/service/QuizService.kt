@@ -15,6 +15,7 @@ import com.github.laxy.route.Quiz
 import com.github.laxy.util.loadTemplate
 import com.github.laxy.util.logger
 import com.github.laxy.util.withSpan
+import java.time.LocalDateTime
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
@@ -22,7 +23,6 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
-import java.time.LocalDateTime
 
 @Serializable
 data class ResponseQuestion(
@@ -78,9 +78,7 @@ fun quizService(
         val spanPrefix = "QuizService"
 
         override suspend fun getByUser(userId: UserId): Either<DomainError, List<QuizInfo>> =
-            withSpan(spanName = "$spanPrefix.getByUser") {
-                quizPersistence.selectByUser(userId)
-            }
+            withSpan(spanName = "$spanPrefix.getByUser") { quizPersistence.selectByUser(userId) }
 
         override suspend fun getQuestionsByQuiz(
             quizId: QuizId
@@ -99,25 +97,32 @@ fun quizService(
         override suspend fun createQuiz(input: CreateQuiz): Either<DomainError, Quiz> =
             withSpan(spanName = "$spanPrefix.createQuiz") {
                 either {
-                    val quizId = quizPersistence.insertQuiz(input.userId, input.subjectId, input.totalQuestions).bind()
+                    val quizId =
+                        quizPersistence
+                            .insertQuiz(input.userId, input.subjectId, input.totalQuestions)
+                            .bind()
                     val prompt = buildGptPrompt(input).bind()
                     coroutineScope.launch { emitGptPrompt(quizId, prompt).bind() }
                     Quiz(id = quizId.serial, totalQuestions = input.totalQuestions)
                 }
             }
 
-        private suspend fun buildGptPrompt(input: CreateQuiz): Either<DomainError, String> = either {
-            val subject = subjectPersistence.select(input.subjectId).bind()
-            val theme = userPersistence.selectCurrentTheme(input.userId).bind()
-            val template = loadTemplate("prompts/quiz_template.txt")
-            template
-                .replace("{totalQuestions}", input.totalQuestions.toString())
-                .replace("{subject}", subject.name)
-                .replace("{language}", subject.language)
-                .replace("{theme}", theme.description)
-        }
+        private suspend fun buildGptPrompt(input: CreateQuiz): Either<DomainError, String> =
+            either {
+                val subject = subjectPersistence.select(input.subjectId).bind()
+                val theme = userPersistence.selectCurrentTheme(input.userId).bind()
+                val template = loadTemplate("prompts/quiz_template.txt")
+                template
+                    .replace("{totalQuestions}", input.totalQuestions.toString())
+                    .replace("{subject}", subject.name)
+                    .replace("{language}", subject.language)
+                    .replace("{theme}", theme.description)
+            }
 
-        private suspend fun emitGptPrompt(quizId: QuizId, message: String): Either<DomainError, Unit> = either {
+        private suspend fun emitGptPrompt(
+            quizId: QuizId,
+            message: String
+        ): Either<DomainError, Unit> = either {
             val response = gptAIService.chatCompletion(ChatCompletionContent(message)).bind()
             val formattedResponse = response.replace(Regex("^```json|```$"), "").trim()
             QuizEvent.eventChannel.emit(quizId to formattedResponse)
@@ -134,9 +139,8 @@ fun quizService(
             withSpan(spanName = "[EVENT] - $spanPrefix.listenEvent") { span ->
                 span.setAttribute("quiz.id", quizId.serial)
 
-                val questionsResult = Either.catch {
-                    Json.decodeFromString<List<ResponseQuestion>>(response)
-                }
+                val questionsResult =
+                    Either.catch { Json.decodeFromString<List<ResponseQuestion>>(response) }
 
                 questionsResult
                     .mapLeft { logParsingError(quizId, it) }
@@ -147,26 +151,25 @@ fun quizService(
             log.error("Error parsing GPT response for quiz ID: $quizId: ${throwable.message}")
         }
 
-        private suspend fun processQuestions(quizId: QuizId, questions: List<ResponseQuestion>) = either {
-            log.info("Processing GPT response for quiz ID: $quizId")
+        private suspend fun processQuestions(quizId: QuizId, questions: List<ResponseQuestion>) =
+            either {
+                log.info("Processing GPT response for quiz ID: $quizId")
 
-            for (question in questions) {
-                val questionId = quizPersistence
-                    .insertQuestion(quizId, question.description)
-                    .bind()
+                for (question in questions) {
+                    val questionId =
+                        quizPersistence.insertQuestion(quizId, question.description).bind()
 
-                question.options.forEachIndexed { index, option ->
-                    quizPersistence.insertQuestionOption(
-                        questionId,
-                        option,
-                        index,
-                        isCorrect = index == question.correctIndex
-                    )
+                    question.options.forEachIndexed { index, option ->
+                        quizPersistence.insertQuestionOption(
+                            questionId,
+                            option,
+                            index,
+                            isCorrect = index == question.correctIndex
+                        )
+                    }
                 }
+
+                quizPersistence.updateStatus(quizId, "pending")
+                log.info("Successfully processed questions for quiz ID: $quizId")
             }
-
-            quizPersistence.updateStatus(quizId, "pending")
-            log.info("Successfully processed questions for quiz ID: $quizId")
-        }
-
     }
