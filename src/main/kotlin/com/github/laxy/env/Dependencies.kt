@@ -18,10 +18,10 @@ import com.github.laxy.service.subjectService
 import com.github.laxy.service.userService
 import com.sksamuel.cohort.HealthCheckRegistry
 import com.sksamuel.cohort.hikari.HikariConnectionsHealthCheck
-import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlin.time.Duration.Companion.seconds
 
 class Dependencies(
     val healthCheck: HealthCheckRegistry,
@@ -34,7 +34,7 @@ class Dependencies(
 
 suspend fun ResourceScope.dependencies(env: Env): Dependencies {
     val coroutineScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
-
+    otel(env.otel)
     val hikari = hikari(env.dataSource)
     val openAI = env.openAI
     val sqlDelight = sqlDelight(hikari)

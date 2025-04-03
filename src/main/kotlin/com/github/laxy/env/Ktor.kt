@@ -26,28 +26,12 @@ import io.ktor.server.response.respondRedirect
 import io.ktor.server.routing.Routing
 import io.ktor.server.sessions.Sessions
 import io.ktor.server.sessions.cookie
-import io.opentelemetry.api.OpenTelemetry
-import io.opentelemetry.api.common.Attributes
 import io.opentelemetry.api.trace.SpanKind
 import io.opentelemetry.api.trace.StatusCode
-import io.opentelemetry.exporter.otlp.logs.OtlpGrpcLogRecordExporter
-import io.opentelemetry.exporter.otlp.metrics.OtlpGrpcMetricExporter
-import io.opentelemetry.exporter.otlp.trace.OtlpGrpcSpanExporter
-import io.opentelemetry.instrumentation.logback.appender.v1_0.OpenTelemetryAppender
-import io.opentelemetry.sdk.OpenTelemetrySdk
-import io.opentelemetry.sdk.logs.SdkLoggerProvider
-import io.opentelemetry.sdk.logs.export.BatchLogRecordProcessor
-import io.opentelemetry.sdk.metrics.SdkMeterProvider
-import io.opentelemetry.sdk.metrics.export.PeriodicMetricReader
-import io.opentelemetry.sdk.resources.Resource
-import io.opentelemetry.sdk.trace.SdkTracerProvider
-import io.opentelemetry.sdk.trace.export.SimpleSpanProcessor
-import io.opentelemetry.semconv.ServiceAttributes.SERVICE_NAME
-import java.time.Duration
-import kotlin.time.Duration.Companion.days
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.polymorphic
+import kotlin.time.Duration.Companion.days
 
 val kotlinXSerializersModule = SerializersModule {
     contextual(UserWrapper::class) { UserWrapper.serializer(LoginUser.serializer()) }
@@ -55,19 +39,16 @@ val kotlinXSerializersModule = SerializersModule {
 }
 
 fun Application.configure(jwtService: JwtService) {
-    initOpenTelemetry()
     install(Routing) {
         intercept(ApplicationCallPipeline.Monitoring) {
             val path = call.request.path()
             if (path.startsWith("/static") || path == "/favicon.ico") {
                 proceed()
             } else {
-                val span =
-                    tracer
-                        .spanBuilder("[HTTP] - ${call.request.httpMethod.value} $path")
-                        .setSpanKind(SpanKind.SERVER)
-                        .startSpan()
-
+                val span = tracer
+                    .spanBuilder("[HTTP] - ${call.request.httpMethod.value} $path")
+                    .setSpanKind(SpanKind.SERVER)
+                    .startSpan()
                 span.makeCurrent().use {
                     try {
                         proceed()
@@ -121,46 +102,4 @@ fun Application.configure(jwtService: JwtService) {
             challenge { call.respondRedirect("/signin") }
         }
     }
-}
-
-fun initOpenTelemetry(): OpenTelemetry {
-    val resource = Resource.getDefault().merge(Resource.create(Attributes.of(SERVICE_NAME, "laxy")))
-
-    val metricExporter =
-        OtlpGrpcMetricExporter.builder().setEndpoint("http://localhost:4317").build()
-    val tracerExporter = OtlpGrpcSpanExporter.builder().setEndpoint("http://localhost:4317").build()
-    val loggerExporter =
-        OtlpGrpcLogRecordExporter.builder().setEndpoint("http://localhost:4317").build()
-
-    val tracerProvider =
-        SdkTracerProvider.builder()
-            .setResource(resource)
-            .addSpanProcessor(SimpleSpanProcessor.create(tracerExporter))
-            .build()
-
-    val metricProvider =
-        SdkMeterProvider.builder()
-            .setResource(resource)
-            .registerMetricReader(
-                PeriodicMetricReader.builder(metricExporter)
-                    .setInterval(Duration.ofSeconds(10))
-                    .build()
-            )
-            .build()
-
-    val loggerProvider =
-        SdkLoggerProvider.builder()
-            .setResource(resource)
-            .addLogRecordProcessor(BatchLogRecordProcessor.builder(loggerExporter).build())
-            .build()
-
-    val openTelemetry =
-        OpenTelemetrySdk.builder()
-            .setTracerProvider(tracerProvider)
-            .setMeterProvider(metricProvider)
-            .setLoggerProvider(loggerProvider)
-            .buildAndRegisterGlobal()
-
-    OpenTelemetryAppender.install(openTelemetry)
-    return openTelemetry
 }
