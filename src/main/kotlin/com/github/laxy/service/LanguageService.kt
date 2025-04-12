@@ -12,7 +12,6 @@ interface LanguageService {
     suspend fun getAllLanguages(): Either<DomainError, List<LanguageInfo>>
 }
 
-@WithSpan
 fun languageService(persistence: LanguagePersistence) =
     object : LanguageService {
         override suspend fun getAllLanguages(): Either<DomainError, List<LanguageInfo>> =

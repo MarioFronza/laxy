@@ -31,7 +31,6 @@ interface JwtService {
     suspend fun verifyJwtToken(token: JwtToken): Either<DomainError, UserId>
 }
 
-@WithSpan
 fun jwtService(env: Env.Auth, persistence: UserPersistence) =
     object : JwtService {
         override suspend fun generateJwtToken(userId: UserId): Either<JwtGeneration, JwtToken> =
