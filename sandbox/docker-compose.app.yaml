@@ -1,0 +1,14 @@
+services:
+  laxy-app:
+    build:
+      context: ../
+    container_name: laxy-app
+    restart: unless-stopped
+    hostname: laxy
+    ports:
+      - "8080:8080"
+    environment:
+      - POSTGRES_URL=jdbc:postgresql://database:5432/laxy-database
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-lgtm:4317
+    depends_on:
+      - database
