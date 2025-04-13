@@ -4,7 +4,7 @@ import arrow.core.Either
 import com.github.laxy.DomainError
 import com.github.laxy.persistence.LanguageId
 import com.github.laxy.persistence.LanguagePersistence
-import io.opentelemetry.instrumentation.annotations.WithSpan
+import com.github.laxy.util.withSpan
 
 data class LanguageInfo(val id: LanguageId, val name: String, val code: String)
 
@@ -14,6 +14,10 @@ interface LanguageService {
 
 fun languageService(persistence: LanguagePersistence) =
     object : LanguageService {
+        val spanPrefix = "LanguageService"
+
         override suspend fun getAllLanguages(): Either<DomainError, List<LanguageInfo>> =
-            persistence.selectAll()
+            withSpan("$spanPrefix.getAllLanguages") {
+                persistence.selectAll()
+            }
     }
