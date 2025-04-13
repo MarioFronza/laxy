@@ -17,7 +17,5 @@ fun languageService(persistence: LanguagePersistence) =
         val spanPrefix = "LanguageService"
 
         override suspend fun getAllLanguages(): Either<DomainError, List<LanguageInfo>> =
-            withSpan("$spanPrefix.getAllLanguages") {
-                persistence.selectAll()
-            }
+            withSpan("$spanPrefix.getAllLanguages") { persistence.selectAll() }
     }

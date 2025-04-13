@@ -29,9 +29,7 @@ fun subjectService(persistence: SubjectPersistence) =
         val spanPrefix = "SubjectService"
 
         override suspend fun getAllSubjects(): Either<DomainError, List<SubjectInfo>> =
-            withSpan("$spanPrefix.getAllSubjects") {
-                persistence.selectAll()
-            }
+            withSpan("$spanPrefix.getAllSubjects") { persistence.selectAll() }
 
         override suspend fun getAllSubjectsByLanguage(
             languageId: LanguageId
