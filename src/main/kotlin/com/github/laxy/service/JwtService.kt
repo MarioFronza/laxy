@@ -38,15 +38,15 @@ fun jwtService(env: Env.Auth, persistence: UserPersistence) =
         override suspend fun generateJwtToken(userId: UserId): Either<JwtGeneration, JwtToken> =
             withSpan("$spanPrefix.generateJwtToken") {
                 JWT.hs512 {
-                        val now = Instant.now(Clock.systemUTC())
-                        issuedAt(now)
-                        expiresAt(now + env.duration.toJavaDuration())
-                        issuer(env.issuer)
-                        claim("id", userId.serial)
-                    }
+                    val now = Instant.now(Clock.systemUTC())
+                    issuedAt(now)
+                    expiresAt(now + env.duration.toJavaDuration())
+                    issuer(env.issuer)
+                    claim("id", userId.serial)
+                }
                     .sign(env.secret)
                     .toUserServiceError()
-                    .map { JwtToken(it.rendered) }
+                    .map { jwt -> JwtToken(jwt.rendered) }
             }
 
         override suspend fun verifyJwtToken(token: JwtToken): Either<DomainError, UserId> = either {
@@ -74,7 +74,7 @@ fun jwtService(env: Env.Auth, persistence: UserPersistence) =
     }
 
 private fun <A : JWSAlgorithm> Either<KJWTSignError, SignedJWT<A>>.toUserServiceError():
-    Either<JwtGeneration, SignedJWT<A>> = mapLeft { jwtError ->
+        Either<JwtGeneration, SignedJWT<A>> = mapLeft { jwtError ->
     when (jwtError) {
         InvalidKey -> JwtGeneration("JWT singing error: invalid Secret Key.")
         InvalidJWTData -> JwtGeneration("JWT singing error: Generated with incorrect JWT data")
