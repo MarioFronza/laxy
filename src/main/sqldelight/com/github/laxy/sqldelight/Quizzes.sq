@@ -28,5 +28,15 @@ RETURNING id;
 
 updateStatus:
 UPDATE quizzes
-SET status = :status
+SET status = :status, updated_at = CURRENT_TIMESTAMP
+WHERE id = :quizId;
+
+selectById:
+SELECT q.id, s.name, q.total_questions, q.status, q.created_at
+FROM quizzes AS q
+INNER JOIN subjects AS s ON q.subject_id = s.id
+WHERE q.id = :quizId;
+
+deleteById:
+DELETE FROM quizzes
 WHERE id = :quizId;

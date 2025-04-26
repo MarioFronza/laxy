@@ -45,7 +45,8 @@ suspend fun ResourceScope.dependencies(env: Env): Dependencies {
         quizPersistence(
             sqlDelight.quizzesQueries,
             sqlDelight.questionsQueries,
-            sqlDelight.questionOptionsQueries
+            sqlDelight.questionOptionsQueries,
+            sqlDelight.questionAttemptsQueries
         )
     val languagePersistence = languagePersistence(sqlDelight.languagesQueries)
 

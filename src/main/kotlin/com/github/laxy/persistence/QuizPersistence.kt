@@ -8,20 +8,26 @@ import com.github.laxy.QuestionCreationError
 import com.github.laxy.QuestionOptionCreationError
 import com.github.laxy.QuizCreationError
 import com.github.laxy.service.OptionInfo
+import com.github.laxy.service.QuestionAttempt
 import com.github.laxy.service.QuestionInfo
 import com.github.laxy.service.QuizInfo
+import com.github.laxy.sqldelight.QuestionAttemptsQueries
 import com.github.laxy.sqldelight.QuestionOptionsQueries
 import com.github.laxy.sqldelight.QuestionsQueries
 import com.github.laxy.sqldelight.QuizzesQueries
 import com.github.laxy.util.withSpan
 
-@JvmInline value class QuizId(val serial: Long)
+@JvmInline
+value class QuizId(val serial: Long)
 
-@JvmInline value class QuestionId(val serial: Long)
+@JvmInline
+value class QuestionId(val serial: Long)
 
-@JvmInline value class QuestionOptionId(val serial: Long)
+@JvmInline
+value class QuestionOptionId(val serial: Long)
 
-@JvmInline value class QuestionAttemptId(val serial: Long)
+@JvmInline
+value class QuestionAttemptId(val serial: Long)
 
 interface QuizPersistence {
 
@@ -32,6 +38,10 @@ interface QuizPersistence {
     suspend fun selectOptionsByQuestion(
         questionId: QuestionId
     ): Either<DomainError, List<OptionInfo>>
+
+    suspend fun selectById(quizId: QuizId): Either<DomainError, QuizInfo>
+
+    suspend fun selectQuestionAttemptsBy(questionId: QuestionId): Either<DomainError, List<QuestionAttempt>>
 
     suspend fun insertQuiz(
         userId: UserId,
@@ -48,13 +58,18 @@ interface QuizPersistence {
         isCorrect: Boolean
     ): Either<DomainError, QuestionOptionId>
 
+    suspend fun insertQuestionAttempt()
+
     suspend fun updateStatus(quizId: QuizId, status: String)
+
+    suspend fun deleteQuiz(quizId: QuizId)
 }
 
 fun quizPersistence(
     quizzesQueries: QuizzesQueries,
     questionsQueries: QuestionsQueries,
-    questionOptionsQueries: QuestionOptionsQueries
+    questionOptionsQueries: QuestionOptionsQueries,
+    questionAttemptsQueries: QuestionAttemptsQueries
 ) =
     object : QuizPersistence {
         val spanPrefix = "QuizPersistence"
@@ -79,11 +94,10 @@ fun quizPersistence(
                         .selectByQuiz(quizId) { id, description ->
                             val options =
                                 questionOptionsQueries
-                                    .selectByQuestion(id) {
-                                        optionId,
-                                        optionDescription,
-                                        referenceNumber,
-                                        isCorrect ->
+                                    .selectByQuestion(id) { optionId,
+                                                            optionDescription,
+                                                            referenceNumber,
+                                                            isCorrect ->
                                         OptionInfo(
                                             optionId,
                                             optionDescription,
@@ -111,6 +125,14 @@ fun quizPersistence(
                         .executeAsList()
                 }
             }
+
+        override suspend fun selectById(quizId: QuizId): Either<DomainError, QuizInfo> {
+            TODO("Not yet implemented")
+        }
+
+        override suspend fun selectQuestionAttemptsBy(questionId: QuestionId): Either<DomainError, List<QuestionAttempt>> {
+            TODO("Not yet implemented")
+        }
 
         override suspend fun insertQuiz(
             userId: UserId,
@@ -157,7 +179,15 @@ fun quizPersistence(
                 }
             }
 
+        override suspend fun insertQuestionAttempt() {
+            TODO("Not yet implemented")
+        }
+
         override suspend fun updateStatus(quizId: QuizId, status: String) {
             quizzesQueries.updateStatus(status, quizId)
+        }
+
+        override suspend fun deleteQuiz(quizId: QuizId) {
+            TODO("Not yet implemented")
         }
     }

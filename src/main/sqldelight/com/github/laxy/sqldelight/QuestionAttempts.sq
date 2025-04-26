@@ -11,3 +11,16 @@ CREATE TABLE IF NOT EXISTS question_attempts (
 );
 
 CREATE INDEX IF NOT EXISTS idx_question_attempt_question_id ON question_attempts(question_id);
+
+insertAttempt:
+INSERT INTO question_attempts (
+    question_id,
+    user_answer,
+    is_correct
+)
+VALUES (:questionId, :userAnswer, :isCorrect);
+
+selectQuestionAttemptByQuestionId:
+SELECT qa.id, qa.question_id, qa.user_answer
+FROM question_attempts AS qa
+ORDER BY created_at DESC;
