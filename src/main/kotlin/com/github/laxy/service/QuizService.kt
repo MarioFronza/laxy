@@ -72,7 +72,6 @@ data class QuizAttemptOutput(
 
 data class QuestionAttemptOutput(
     val userOptionId: QuestionOptionId,
-    val correctOptionId: QuestionOptionId,
     val isCorrect: Boolean
 )
 
@@ -165,7 +164,6 @@ fun quizService(
 
                         QuestionAttemptOutput(
                             userOptionId = questionAttempt.selectedOptionId,
-                            correctOptionId = correctOption.id,
                             isCorrect = questionAttempt.selectedOptionId == correctOption.id
                         )
                     }
