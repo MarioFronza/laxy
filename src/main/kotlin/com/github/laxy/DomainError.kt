@@ -2,6 +2,7 @@ package com.github.laxy
 
 import arrow.core.NonEmptyList
 import arrow.core.nonEmptyListOf
+import com.github.laxy.persistence.QuizId
 import com.github.laxy.validation.InvalidField
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.MissingFieldException
@@ -45,6 +46,8 @@ data class QuestionCreationError(val description: String) : QuizError
 
 data class QuestionOptionCreationError(val description: String) : QuizError
 
+data class QuizAttemptError(val description: String): QuizError
+
 sealed interface JwtError : DomainError
 
 data class JwtGeneration(val description: String) : JwtError
@@ -54,3 +57,6 @@ data class JwtInvalid(val description: String) : JwtError
 sealed interface GptIntegrationError : DomainError
 
 data class InvalidIntegrationResponse(val content: String?) : GptIntegrationError
+
+
+

@@ -13,6 +13,7 @@ import com.github.laxy.MissingParameter
 import com.github.laxy.PasswordNotMatched
 import com.github.laxy.QuestionCreationError
 import com.github.laxy.QuestionOptionCreationError
+import com.github.laxy.QuizAttemptError
 import com.github.laxy.QuizCreationError
 import com.github.laxy.SubjectNotFound
 import com.github.laxy.UserNotFound
@@ -66,6 +67,7 @@ suspend fun PipelineContext<Unit, ApplicationCall>.respond(error: DomainError): 
         is QuestionCreationError -> unprocessable("Creation quiz question unexpected error")
         is QuestionOptionCreationError ->
             unprocessable("Creation quiz question option unexpected error")
+        is QuizAttemptError -> unprocessable("Quiz attempt unexpected error")
     }
 
 private suspend inline fun PipelineContext<Unit, ApplicationCall>.unprocessable(
