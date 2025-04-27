@@ -47,7 +47,12 @@ data class QuizInfo(
     val createdAt: LocalDateTime
 )
 
-data class QuestionInfo(val id: QuestionId, val description: String, val options: List<OptionInfo>)
+data class QuestionInfo(
+    val id: QuestionId,
+    val description: String,
+    val options: List<OptionInfo>,
+    val lastAttempt: QuestionAttempt?
+)
 
 data class OptionInfo(
     val id: QuestionOptionId,
@@ -63,7 +68,8 @@ data class QuizAttempt(
 
 data class QuestionAttempt(
     val id: QuestionId,
-    val selectedOptionId: QuestionOptionId
+    val selectedOptionId: QuestionOptionId,
+    val isCorrect: Boolean
 )
 
 data class QuizAttemptOutput(
@@ -208,11 +214,12 @@ fun quizService(
                     Either.catch { Json.decodeFromString<List<ResponseQuestion>>(response) }
 
                 questionsResult
-                    .mapLeft { logParsingError(quizId, it) }
+                    .mapLeft { processEventError(quizId, it) }
                     .map { processQuestions(quizId, it) }
             }
 
-        private fun logParsingError(quizId: QuizId, throwable: Throwable) {
+        private suspend fun processEventError(quizId: QuizId, throwable: Throwable) {
+            quizPersistence.deleteQuiz(quizId)
             log.error("Error parsing GPT response for quiz ID: $quizId: ${throwable.message}")
         }
 

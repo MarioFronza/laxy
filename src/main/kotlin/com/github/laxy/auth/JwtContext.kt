@@ -11,7 +11,8 @@ import io.ktor.server.auth.parseAuthorizationHeader
 import io.ktor.server.response.respond
 import io.ktor.util.pipeline.PipelineContext
 
-@JvmInline value class JwtToken(val value: String)
+@JvmInline
+value class JwtToken(val value: String)
 
 data class JwtContext(val token: JwtToken, val userId: UserId)
 
@@ -38,14 +39,14 @@ suspend inline fun PipelineContext<Unit, ApplicationCall>.optionalJwtAuth(
     } ?: body(this, null)
 }
 
-suspend fun ApplicationCall.optionalJwtAuth(
+suspend fun optionalJwtAuth(
     jwtService: JwtService,
     token: String?,
 ): JwtContext? {
     return token?.let { validToken ->
         jwtService
             .verifyJwtToken(JwtToken(validToken))
-            .fold({ error -> null }, { userId -> JwtContext(JwtToken(validToken), userId) })
+            .fold({ _ -> null }, { userId -> JwtContext(JwtToken(validToken), userId) })
     }
 }
 

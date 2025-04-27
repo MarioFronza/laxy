@@ -41,7 +41,8 @@ data class QuizResponse(
 data class QuestionsResponse(
     val id: Long,
     val description: String,
-    val options: List<OptionResponse>
+    val options: List<OptionResponse>,
+    val lastAttempt: QuestionAttemptResponse?
 )
 
 @Serializable
@@ -69,7 +70,6 @@ data class QuizAttemptResponse(
 @Serializable
 data class QuestionAttemptResponse(
     val userOptionId: Long,
-    val correctOptionId: Long,
     val isCorrect: Boolean
 )
 
@@ -124,14 +124,14 @@ fun Route.quizRoutes(quizService: QuizService, jwtService: JwtService) {
                     QuestionsResponse(
                         id = it.id.serial,
                         description = it.description,
-                        options =
-                            it.options.map { option ->
-                                OptionResponse(
-                                    id = option.id.serial,
-                                    description = option.description,
-                                    referenceNumber = option.referenceNumber
-                                )
-                            }
+                        options = it.options.map { option ->
+                            OptionResponse(
+                                id = option.id.serial,
+                                description = option.description,
+                                referenceNumber = option.referenceNumber
+                            )
+                        },
+                        lastAttempt = null
                     )
                 }
             }
@@ -187,7 +187,8 @@ fun Route.quizRoutes(quizService: QuizService, jwtService: JwtService) {
                         questions = questions.map { question ->
                             QuestionAttempt(
                                 id = QuestionId(question.id),
-                                selectedOptionId = QuestionOptionId(question.selectedOptionId)
+                                selectedOptionId = QuestionOptionId(question.selectedOptionId),
+                                isCorrect = question.id == question.selectedOptionId
                             )
                         }
                     )).bind()
@@ -195,7 +196,6 @@ fun Route.quizRoutes(quizService: QuizService, jwtService: JwtService) {
                     questions = output.questions.map { question ->
                         QuestionAttemptResponse(
                             userOptionId = question.userOptionId.serial,
-                            correctOptionId = question.correctOptionId.serial,
                             isCorrect = question.isCorrect
                         )
                     }

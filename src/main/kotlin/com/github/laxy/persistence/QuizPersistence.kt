@@ -92,22 +92,24 @@ fun quizPersistence(
             withSpan("$spanPrefix.selectQuestionsByQuiz") {
                 either {
                     questionsQueries
-                        .selectByQuiz(quizId) { id, description ->
-                            val options =
-                                questionOptionsQueries
-                                    .selectByQuestion(id) { optionId,
-                                                            optionDescription,
-                                                            referenceNumber,
-                                                            isCorrect ->
-                                        OptionInfo(
-                                            optionId,
-                                            optionDescription,
-                                            referenceNumber,
-                                            isCorrect
-                                        )
-                                    }
-                                    .executeAsList()
-                            QuestionInfo(id, description, options)
+                        .selectByQuiz(quizId) { id, description, userAnswer, isUserCorrect ->
+                            val options = questionOptionsQueries
+                                .selectByQuestion(id) { optionId, optionDescription, referenceNumber, isCorrect ->
+                                    OptionInfo(
+                                        optionId,
+                                        optionDescription,
+                                        referenceNumber,
+                                        isCorrect
+                                    )
+                                }
+                                .executeAsList()
+                            val lastAttempt = userAnswer?.let { answer ->
+                                QuestionAttempt(
+                                    id = id,
+                                    selectedOptionId = QuestionOptionId(answer.toLong())
+                                )
+                            }
+                            QuestionInfo(id, description, options, lastAttempt)
                         }
                         .executeAsList()
                 }
