@@ -7,6 +7,7 @@ import com.github.laxy.DomainError
 import com.github.laxy.QuestionCreationError
 import com.github.laxy.QuestionOptionCreationError
 import com.github.laxy.QuizCreationError
+import com.github.laxy.QuizSelectionError
 import com.github.laxy.service.OptionInfo
 import com.github.laxy.service.QuestionAttempt
 import com.github.laxy.service.QuestionInfo
@@ -58,7 +59,7 @@ interface QuizPersistence {
         isCorrect: Boolean
     ): Either<DomainError, QuestionOptionId>
 
-    suspend fun insertQuestionAttempt()
+    suspend fun insertQuestionAttempt(questionId: QuestionId, userAnswer: Int, isCorrect: Boolean)
 
     suspend fun updateStatus(quizId: QuizId, status: String)
 
@@ -126,13 +127,34 @@ fun quizPersistence(
                 }
             }
 
-        override suspend fun selectById(quizId: QuizId): Either<DomainError, QuizInfo> {
-            TODO("Not yet implemented")
-        }
+        override suspend fun selectById(quizId: QuizId): Either<DomainError, QuizInfo> =
+            withSpan("$spanPrefix.selectById") {
+                either {
+                    val quiz = quizzesQueries.selectById(quizId) { id, name, totalQuestions, status, createdAt ->
+                        QuizInfo(
+                            id = id,
+                            subject = name,
+                            status = status,
+                            totalQuestions = totalQuestions,
+                            createdAt = createdAt
+                        )
+                    }.executeAsOneOrNull()
+                    ensureNotNull(quiz) { QuizSelectionError("quizId=$quizId") }
+                }
+            }
 
-        override suspend fun selectQuestionAttemptsBy(questionId: QuestionId): Either<DomainError, List<QuestionAttempt>> {
-            TODO("Not yet implemented")
-        }
+        override suspend fun selectQuestionAttemptsBy(questionId: QuestionId): Either<DomainError, List<QuestionAttempt>> =
+            withSpan("$spanPrefix.selectQuestionAttemptsBy") {
+                either {
+                    questionAttemptsQueries.selectQuestionAttemptByQuestionId(questionId) { _, _, userAnswer ->
+                        QuestionAttempt(
+                            id = questionId,
+                            selectedOptionId = QuestionOptionId(userAnswer.toLong())
+                        )
+                    }.executeAsList()
+
+                }
+            }
 
         override suspend fun insertQuiz(
             userId: UserId,
@@ -179,15 +201,25 @@ fun quizPersistence(
                 }
             }
 
-        override suspend fun insertQuestionAttempt() {
-            TODO("Not yet implemented")
+        override suspend fun insertQuestionAttempt(questionId: QuestionId, userAnswer: Int, isCorrect: Boolean) {
+            withSpan("$spanPrefix.insertQuestionAttempt") {
+                questionAttemptsQueries.insertAttempt(
+                    questionId = questionId,
+                    userAnswer = userAnswer,
+                    isCorrect = if (isCorrect) 1 else 0
+                )
+            }
         }
 
         override suspend fun updateStatus(quizId: QuizId, status: String) {
-            quizzesQueries.updateStatus(status, quizId)
+            withSpan("$spanPrefix.updateStatus") {
+                quizzesQueries.updateStatus(status, quizId)
+            }
         }
 
         override suspend fun deleteQuiz(quizId: QuizId) {
-            TODO("Not yet implemented")
+            withSpan("$spanPrefix.deleteQuiz") {
+                quizzesQueries.deleteById(quizId)
+            }
         }
     }
