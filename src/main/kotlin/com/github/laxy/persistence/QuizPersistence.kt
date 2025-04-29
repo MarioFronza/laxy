@@ -59,7 +59,11 @@ interface QuizPersistence {
         isCorrect: Boolean
     ): Either<DomainError, QuestionOptionId>
 
-    suspend fun insertQuestionAttempt(questionId: QuestionId, userAnswer: Int, isCorrect: Boolean)
+    suspend fun insertQuestionAttempt(
+        questionId: QuestionId,
+        userSelectedOption: QuestionOptionId,
+        isCorrect: Boolean
+    )
 
     suspend fun updateStatus(quizId: QuizId, status: String)
 
@@ -91,27 +95,27 @@ fun quizPersistence(
         ): Either<DomainError, List<QuestionInfo>> =
             withSpan("$spanPrefix.selectQuestionsByQuiz") {
                 either {
-                    questionsQueries
-                        .selectByQuiz(quizId) { id, description, userAnswer, isUserCorrect ->
-                            val options = questionOptionsQueries
-                                .selectByQuestion(id) { optionId, optionDescription, referenceNumber, isCorrect ->
-                                    OptionInfo(
-                                        optionId,
-                                        optionDescription,
-                                        referenceNumber,
-                                        isCorrect
-                                    )
-                                }
-                                .executeAsList()
-                            val lastAttempt = userAnswer?.let { answer ->
-                                QuestionAttempt(
-                                    id = id,
-                                    selectedOptionId = QuestionOptionId(answer.toLong()),
-                                    isCorrect = isUserCorrect == 1
+                    questionsQueries.selectByQuiz(quizId) { id, description ->
+                        val options = questionOptionsQueries
+                            .selectByQuestion(id) { optionId, optionDescription, referenceNumber, isCorrect ->
+                                OptionInfo(
+                                    optionId,
+                                    optionDescription,
+                                    referenceNumber,
+                                    isCorrect
                                 )
                             }
-                            QuestionInfo(id, description, options, lastAttempt)
-                        }
+                            .executeAsList()
+                        val lastAttempt =
+                            questionAttemptsQueries.selectLastAttemptByQuestionId(id) { userSelectedOption, isCorrect ->
+                                QuestionAttempt(
+                                    id = id,
+                                    selectedOptionId = userSelectedOption,
+                                    isCorrect = isCorrect
+                                )
+                            }.executeAsOneOrNull()
+                        QuestionInfo(id, description, options, lastAttempt)
+                    }
                         .executeAsList()
                 }
             }
@@ -152,8 +156,8 @@ fun quizPersistence(
                     questionAttemptsQueries.selectQuestionAttemptByQuestionId(questionId) { _, _, userAnswer, isCorrect ->
                         QuestionAttempt(
                             id = questionId,
-                            selectedOptionId = QuestionOptionId(userAnswer.toLong()),
-                            isCorrect = isCorrect == 1
+                            selectedOptionId = userAnswer,
+                            isCorrect = isCorrect
                         )
                     }.executeAsList()
 
@@ -205,12 +209,16 @@ fun quizPersistence(
                 }
             }
 
-        override suspend fun insertQuestionAttempt(questionId: QuestionId, userAnswer: Int, isCorrect: Boolean) {
+        override suspend fun insertQuestionAttempt(
+            questionId: QuestionId,
+            userSelectedOption: QuestionOptionId,
+            isCorrect: Boolean
+        ) {
             withSpan("$spanPrefix.insertQuestionAttempt") {
                 questionAttemptsQueries.insertAttempt(
                     questionId = questionId,
-                    userAnswer = userAnswer,
-                    isCorrect = if (isCorrect) 1 else 0
+                    userSelectedOption = userSelectedOption,
+                    isCorrect = isCorrect
                 )
             }
         }

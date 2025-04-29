@@ -1,11 +1,12 @@
 import com.github.laxy.persistence.QuestionAttemptId;
 import com.github.laxy.persistence.QuestionId;
+import com.github.laxy.persistence.QuestionOptionId;
 
 CREATE TABLE IF NOT EXISTS question_attempts (
     id BIGSERIAL AS QuestionAttemptId PRIMARY KEY,
-    question_id BIGSERIAL AS QuestionId REFERENCES questions(id) ON DELETE CASCADE,
-    user_answer INT NOT NULL,
-    is_correct INT NOT NULL,
+    question_id BIGSERIAL AS QuestionId NOT NULL REFERENCES questions(id) ON DELETE CASCADE,
+    user_selected_option BIGSERIAL AS QuestionOptionId NOT NULL REFERENCES question_options(id) ON DELETE CASCADE,
+    is_correct BOOLEAN NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
@@ -15,13 +16,22 @@ CREATE INDEX IF NOT EXISTS idx_question_attempt_question_id ON question_attempts
 insertAttempt:
 INSERT INTO question_attempts (
     question_id,
-    user_answer,
+    user_selected_option,
     is_correct
 )
-VALUES (:questionId, :userAnswer, :isCorrect);
+VALUES (:questionId, :userSelectedOption, :isCorrect);
 
 selectQuestionAttemptByQuestionId:
-SELECT qa.id, qa.question_id, qa.user_answer, qa.is_correct
+SELECT qa.id, qa.question_id, qa.user_selected_option, qa.is_correct
 FROM question_attempts AS qa
 WHERE qa.question_id = :questionId
 ORDER BY created_at DESC;
+
+selectLastAttemptByQuestionId:
+SELECT
+  qa.user_selected_option,
+  qa.is_correct
+FROM question_attempts AS qa
+WHERE qa.question_id = :questionId
+ORDER BY qa.created_at DESC
+LIMIT 1;

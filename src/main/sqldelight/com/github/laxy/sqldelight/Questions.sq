@@ -3,7 +3,7 @@ import com.github.laxy.persistence.QuizId;
 
 CREATE TABLE IF NOT EXISTS questions (
    id BIGSERIAL AS QuestionId PRIMARY KEY,
-   quiz_id BIGSERIAL AS QuizId REFERENCES quizzes(id) ON DELETE CASCADE,
+   quiz_id BIGSERIAL AS QuizId NOT NULL REFERENCES quizzes(id) ON DELETE CASCADE,
    description TEXT NOT NULL,
    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
@@ -14,19 +14,8 @@ CREATE INDEX IF NOT EXISTS idx_question_quiz_id ON questions(quiz_id);
 selectByQuiz:
 SELECT
   qu.id,
-  qu.description,
-  qa.user_answer,
-  qa.is_correct AS is_user_correct
+  qu.description
 FROM questions AS qu
-INNER JOIN quizzes AS q ON qu.quiz_id = q.id
-LEFT JOIN question_attempts AS qa
-  ON qa.id = (
-    SELECT qa2.id
-    FROM question_attempts AS qa2
-    WHERE qa2.question_id = qu.id
-    ORDER BY qa2.created_at DESC
-    LIMIT 1
-  )
 WHERE qu.quiz_id = :quizId
 ORDER BY qu.created_at DESC;
 

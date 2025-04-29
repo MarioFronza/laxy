@@ -43,7 +43,7 @@ suspend fun ResourceScope.sqlDelight(dataSource: DataSource): SqlDelight {
     return SqlDelight(
         driver,
         Languages.Adapter(languageIdAdapter),
-        Question_attempts.Adapter(quizAttemptIdAdapter, questionIdAdapter),
+        Question_attempts.Adapter(quizAttemptIdAdapter, questionIdAdapter, questionOptionIdAdapter),
         Question_options.Adapter(questionOptionIdAdapter, questionIdAdapter),
         Questions.Adapter(questionIdAdapter, quizIdAdapter),
         Quizzes.Adapter(quizIdAdapter, userIdAdapter, subjectIdAdapter),
