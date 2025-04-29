@@ -106,7 +106,8 @@ fun quizPersistence(
                             val lastAttempt = userAnswer?.let { answer ->
                                 QuestionAttempt(
                                     id = id,
-                                    selectedOptionId = QuestionOptionId(answer.toLong())
+                                    selectedOptionId = QuestionOptionId(answer.toLong()),
+                                    isCorrect = isUserCorrect == 1
                                 )
                             }
                             QuestionInfo(id, description, options, lastAttempt)
@@ -148,10 +149,11 @@ fun quizPersistence(
         override suspend fun selectQuestionAttemptsBy(questionId: QuestionId): Either<DomainError, List<QuestionAttempt>> =
             withSpan("$spanPrefix.selectQuestionAttemptsBy") {
                 either {
-                    questionAttemptsQueries.selectQuestionAttemptByQuestionId(questionId) { _, _, userAnswer ->
+                    questionAttemptsQueries.selectQuestionAttemptByQuestionId(questionId) { _, _, userAnswer, isCorrect ->
                         QuestionAttempt(
                             id = questionId,
-                            selectedOptionId = QuestionOptionId(userAnswer.toLong())
+                            selectedOptionId = QuestionOptionId(userAnswer.toLong()),
+                            isCorrect = isCorrect == 1
                         )
                     }.executeAsList()
 

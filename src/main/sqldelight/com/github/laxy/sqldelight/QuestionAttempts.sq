@@ -21,7 +21,7 @@ INSERT INTO question_attempts (
 VALUES (:questionId, :userAnswer, :isCorrect);
 
 selectQuestionAttemptByQuestionId:
-SELECT qa.id, qa.question_id, qa.user_answer
+SELECT qa.id, qa.question_id, qa.user_answer, qa.is_correct
 FROM question_attempts AS qa
 WHERE qa.question_id = :questionId
 ORDER BY created_at DESC;

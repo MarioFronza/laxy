@@ -209,14 +209,14 @@ fun Application.configureTemplating(
                                 QuestionsResponse(
                                     id = it.id.serial,
                                     description = it.description,
-                                    options =
-                                        it.options.map { option ->
+                                    options = it.options.map { option ->
                                             OptionResponse(
                                                 id = option.id.serial,
                                                 description = option.description,
                                                 referenceNumber = option.referenceNumber
                                             )
-                                        }
+                                        },
+                                    lastAttempt = null
                                 )
                             }
                         call.respond(respondTemplate("questions", mapOf("questions" to response)))
