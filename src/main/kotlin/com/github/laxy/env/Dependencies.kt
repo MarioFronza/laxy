@@ -21,10 +21,10 @@ import com.github.laxy.service.subjectService
 import com.github.laxy.service.userService
 import com.sksamuel.cohort.HealthCheckRegistry
 import com.sksamuel.cohort.hikari.HikariConnectionsHealthCheck
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
-import kotlin.time.Duration.Companion.seconds
 
 class Dependencies(
     val healthCheck: HealthCheckRegistry,
@@ -45,11 +45,12 @@ suspend fun ResourceScope.dependencies(env: Env): Dependencies {
     val userPersistence = userPersistence(sqlDelight.usersQueries, sqlDelight.userThemesQueries)
     val subjectPersistence = subjectPersistence(sqlDelight.subjectsQueries)
     val quizPersistence = quizPersistence(sqlDelight.quizzesQueries)
-    val questionPersistence = questionPersistence(
-        sqlDelight.questionsQueries,
-        sqlDelight.questionOptionsQueries,
-        sqlDelight.questionAttemptsQueries
-    )
+    val questionPersistence =
+        questionPersistence(
+            sqlDelight.questionsQueries,
+            sqlDelight.questionOptionsQueries,
+            sqlDelight.questionAttemptsQueries
+        )
     val questionOptionsPersistence = questionOptionsPersistence(sqlDelight.questionOptionsQueries)
     val questionAttemptsPersistence = questionAttemptPersistence(sqlDelight.questionAttemptsQueries)
     val languagePersistence = languagePersistence(sqlDelight.languagesQueries)
@@ -60,16 +61,17 @@ suspend fun ResourceScope.dependencies(env: Env): Dependencies {
     val gptAIService = gptAIService(openAI.token)
     val languageService = languageService(languagePersistence)
 
-    val quizService = quizService(
-        userPersistence,
-        subjectPersistence,
-        quizPersistence,
-        questionPersistence,
-        questionOptionsPersistence,
-        questionAttemptsPersistence,
-        gptAIService,
-        coroutineScope
-    )
+    val quizService =
+        quizService(
+            userPersistence,
+            subjectPersistence,
+            quizPersistence,
+            questionPersistence,
+            questionOptionsPersistence,
+            questionAttemptsPersistence,
+            gptAIService,
+            coroutineScope
+        )
 
     val checks =
         HealthCheckRegistry(Dispatchers.Default) {

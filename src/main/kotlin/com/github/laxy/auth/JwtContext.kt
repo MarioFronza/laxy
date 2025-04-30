@@ -11,8 +11,7 @@ import io.ktor.server.auth.parseAuthorizationHeader
 import io.ktor.server.response.respond
 import io.ktor.util.pipeline.PipelineContext
 
-@JvmInline
-value class JwtToken(val value: String)
+@JvmInline value class JwtToken(val value: String)
 
 data class JwtContext(val token: JwtToken, val userId: UserId)
 

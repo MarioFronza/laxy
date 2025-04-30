@@ -58,6 +58,3 @@ data class JwtInvalid(val description: String) : JwtError
 sealed interface GptIntegrationError : DomainError
 
 data class InvalidIntegrationResponse(val content: String?) : GptIntegrationError
-
-
-

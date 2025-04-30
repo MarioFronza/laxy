@@ -22,6 +22,7 @@ import com.github.laxy.util.loadTemplate
 import com.github.laxy.util.logger
 import com.github.laxy.util.withSpan
 import io.opentelemetry.api.trace.StatusCode.ERROR
+import java.time.LocalDateTime
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
@@ -31,7 +32,6 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
-import java.time.LocalDateTime
 
 @Serializable
 data class ResponseQuestion(
@@ -64,10 +64,7 @@ data class OptionInfo(
     val isCorrect: Boolean
 )
 
-data class QuizAttempt(
-    val quizId: QuizId,
-    val questions: List<QuestionAttempt>
-)
+data class QuizAttempt(val quizId: QuizId, val questions: List<QuestionAttempt>)
 
 data class QuestionAttempt(
     val id: QuestionId,
@@ -75,14 +72,9 @@ data class QuestionAttempt(
     val isCorrect: Boolean
 )
 
-data class QuizAttemptOutput(
-    val questions: List<QuestionAttemptOutput>
-)
+data class QuizAttemptOutput(val questions: List<QuestionAttemptOutput>)
 
-data class QuestionAttemptOutput(
-    val userOptionId: QuestionOptionId,
-    val isCorrect: Boolean
-)
+data class QuestionAttemptOutput(val userOptionId: QuestionOptionId, val isCorrect: Boolean)
 
 object QuizEvent {
     val eventChannel = MutableSharedFlow<Pair<QuizId, String>>(extraBufferCapacity = 100)
@@ -111,157 +103,179 @@ fun quizService(
     questionAttemptPersistence: QuestionAttemptPersistence,
     gptAIService: GptAIService,
     coroutineScope: CoroutineScope
-) = object : QuizService {
-    val log = logger()
-    val spanPrefix = "QuizService"
+) =
+    object : QuizService {
+        val log = logger()
+        val spanPrefix = "QuizService"
 
-    override suspend fun getByUser(userId: UserId): Either<DomainError, List<QuizInfo>> =
-        withSpan("$spanPrefix.getByUser") { quizPersistence.selectByUser(userId) }
+        override suspend fun getByUser(userId: UserId): Either<DomainError, List<QuizInfo>> =
+            withSpan("$spanPrefix.getByUser") { quizPersistence.selectByUser(userId) }
 
-    override suspend fun getQuestionsByQuiz(quizId: QuizId): Either<DomainError, List<QuestionInfo>> =
-        withSpan("$spanPrefix.getQuestionsByQuiz") {
-            questionPersistence.selectQuestionsByQuiz(quizId)
-        }
-
-    override suspend fun getOptionsByQuestion(questionId: QuestionId): Either<DomainError, List<OptionInfo>> =
-        withSpan("$spanPrefix.getOptionsByQuestion") {
-            questionOptionsPersistence.selectOptionsByQuestion(questionId)
-        }
-
-    override suspend fun createQuiz(input: CreateQuiz): Either<DomainError, Quiz> =
-        withSpan("$spanPrefix.createQuiz") {
-            either {
-                val quizId = quizPersistence.insertQuiz(input.userId, input.subjectId, input.totalQuestions).bind()
-                val prompt = buildGptPrompt(input).bind()
-                coroutineScope.launch { emitGptPrompt(quizId, prompt).bind() }
-                Quiz(id = quizId.serial, totalQuestions = input.totalQuestions)
+        override suspend fun getQuestionsByQuiz(
+            quizId: QuizId
+        ): Either<DomainError, List<QuestionInfo>> =
+            withSpan("$spanPrefix.getQuestionsByQuiz") {
+                questionPersistence.selectQuestionsByQuiz(quizId)
             }
-        }
 
-    override suspend fun quizAttempt(input: QuizAttempt): Either<DomainError, QuizAttemptOutput> =
-        withSpan("$spanPrefix.quizAttempt") { span ->
-            either {
-                val quizId = input.quizId
-                span.setAttribute("quiz.id", quizId.serial)
+        override suspend fun getOptionsByQuestion(
+            questionId: QuestionId
+        ): Either<DomainError, List<OptionInfo>> =
+            withSpan("$spanPrefix.getOptionsByQuestion") {
+                questionOptionsPersistence.selectOptionsByQuestion(questionId)
+            }
 
-                val persistedQuestions = questionPersistence.selectQuestionsByQuiz(quizId).bind()
-
-                ensure(input.questions.size == persistedQuestions.size) {
-                    span.setStatus(ERROR)
-                    QuizAttemptError(
-                        "Mismatch between input questions (${input.questions.size}) and persisted questions (${persistedQuestions.size}) for quizId: ${quizId.serial}"
-                    )
+        override suspend fun createQuiz(input: CreateQuiz): Either<DomainError, Quiz> =
+            withSpan("$spanPrefix.createQuiz") {
+                either {
+                    val quizId =
+                        quizPersistence
+                            .insertQuiz(input.userId, input.subjectId, input.totalQuestions)
+                            .bind()
+                    val prompt = buildGptPrompt(input).bind()
+                    coroutineScope.launch { emitGptPrompt(quizId, prompt).bind() }
+                    Quiz(id = quizId.serial, totalQuestions = input.totalQuestions)
                 }
+            }
 
-                val questionsById = persistedQuestions.associateBy { it.id }
+        override suspend fun quizAttempt(
+            input: QuizAttempt
+        ): Either<DomainError, QuizAttemptOutput> =
+            withSpan("$spanPrefix.quizAttempt") { span ->
+                either {
+                    val quizId = input.quizId
+                    span.setAttribute("quiz.id", quizId.serial)
 
-                val questionAttempts = input.questions.map { questionAttempt ->
-                    val question = questionsById[questionAttempt.id]
-                    val correctOption = question?.options?.firstOrNull { it.isCorrect }
+                    val persistedQuestions =
+                        questionPersistence.selectQuestionsByQuiz(quizId).bind()
 
-                    ensureNotNull(correctOption) {
+                    ensure(input.questions.size == persistedQuestions.size) {
                         span.setStatus(ERROR)
-                        QuizAttemptError("Could not find correct option for questionId: ${questionAttempt.id.serial}")
+                        QuizAttemptError(
+                            "Mismatch between input questions (${input.questions.size}) " +
+                                    "and persisted questions (${persistedQuestions.size}) for quizId: ${quizId.serial}"
+                        )
                     }
 
-                    questionAttemptPersistence.insertQuestionAttempt(
-                        questionId = questionAttempt.id,
-                        userSelectedOption = questionAttempt.selectedOptionId,
-                        isCorrect = (questionAttempt.selectedOptionId == correctOption.id)
-                    )
+                    val questionsById = persistedQuestions.associateBy { it.id }
 
-                    QuestionAttemptOutput(
-                        userOptionId = questionAttempt.selectedOptionId,
-                        isCorrect = (questionAttempt.selectedOptionId == correctOption.id)
-                    )
+                    val questionAttempts =
+                        input.questions.map { questionAttempt ->
+                            val question = questionsById[questionAttempt.id]
+                            val correctOption = question?.options?.firstOrNull { it.isCorrect }
+
+                            ensureNotNull(correctOption) {
+                                span.setStatus(ERROR)
+                                QuizAttemptError(
+                                    "Could not find correct option for questionId: ${questionAttempt.id.serial}"
+                                )
+                            }
+
+                            questionAttemptPersistence.insertQuestionAttempt(
+                                questionId = questionAttempt.id,
+                                userSelectedOption = questionAttempt.selectedOptionId,
+                                isCorrect = (questionAttempt.selectedOptionId == correctOption.id)
+                            )
+
+                            QuestionAttemptOutput(
+                                userOptionId = questionAttempt.selectedOptionId,
+                                isCorrect = (questionAttempt.selectedOptionId == correctOption.id)
+                            )
+                        }
+
+                    quizPersistence.updateStatus(quizId, "completed")
+
+                    QuizAttemptOutput(questionAttempts)
                 }
-
-                quizPersistence.updateStatus(quizId, "completed")
-
-                QuizAttemptOutput(questionAttempts)
-            }
-        }
-
-    private suspend fun buildGptPrompt(input: CreateQuiz): Either<DomainError, String> = either {
-        val subject = subjectPersistence.select(input.subjectId).bind()
-        val theme = userPersistence.selectCurrentTheme(input.userId).bind()
-        val template = loadTemplate("prompts/quiz_template.txt")
-        template
-            .replace("{totalQuestions}", input.totalQuestions.toString())
-            .replace("{subject}", subject.name)
-            .replace("{language}", subject.language)
-            .replace("{theme}", theme.description)
-    }
-
-    private suspend fun emitGptPrompt(quizId: QuizId, message: String): Either<DomainError, Unit> = either {
-        val response = gptAIService.chatCompletion(ChatCompletionContent(message)).bind()
-        val formattedResponse = response.replace(Regex("^```json|```$"), "").trim()
-        QuizEvent.eventChannel.emit(quizId to formattedResponse)
-    }
-
-    override suspend fun listenEvent(): Job =
-        coroutineScope.launch(SupervisorJob()) {
-            QuizEvent.eventChannel.collect { (quizId, response) ->
-                handleEvent(quizId, response)
-            }
-        }
-
-    private suspend fun handleEvent(quizId: QuizId, response: String) =
-        withSpan(spanName = "[EVENT] - $spanPrefix.listenEvent") { span ->
-            span.setAttribute("quiz.id", quizId.serial)
-
-            val questionsResult = Either.catch {
-                Json.decodeFromString<List<ResponseQuestion>>(response)
             }
 
-            questionsResult
-                .mapLeft { processEventError(quizId, it) }
-                .map { processQuestions(quizId, it) }
+        private suspend fun buildGptPrompt(input: CreateQuiz): Either<DomainError, String> =
+            either {
+                val subject = subjectPersistence.select(input.subjectId).bind()
+                val theme = userPersistence.selectCurrentTheme(input.userId).bind()
+                val template = loadTemplate("prompts/quiz_template.txt")
+                template
+                    .replace("{totalQuestions}", input.totalQuestions.toString())
+                    .replace("{subject}", subject.name)
+                    .replace("{language}", subject.language)
+                    .replace("{theme}", theme.description)
+            }
+
+        private suspend fun emitGptPrompt(
+            quizId: QuizId,
+            message: String
+        ): Either<DomainError, Unit> = either {
+            val response = gptAIService.chatCompletion(ChatCompletionContent(message)).bind()
+            val formattedResponse = response.replace(Regex("^```json|```$"), "").trim()
+            QuizEvent.eventChannel.emit(quizId to formattedResponse)
         }
 
-    private suspend fun processEventError(quizId: QuizId, throwable: Throwable) {
-        quizPersistence.deleteQuiz(quizId)
-        log.error("Error parsing GPT response for quiz ID: $quizId: ${throwable.message}")
-    }
+        override suspend fun listenEvent(): Job =
+            coroutineScope.launch(SupervisorJob()) {
+                QuizEvent.eventChannel.collect { (quizId, response) ->
+                    handleEvent(quizId, response)
+                }
+            }
 
-    private suspend fun processQuestions(quizId: QuizId, questions: List<ResponseQuestion>): Either<DomainError, Unit> =
-        either {
+        private suspend fun handleEvent(quizId: QuizId, response: String) =
+            withSpan(spanName = "[EVENT] - $spanPrefix.listenEvent") { span ->
+                span.setAttribute("quiz.id", quizId.serial)
+
+                val questionsResult =
+                    Either.catch { Json.decodeFromString<List<ResponseQuestion>>(response) }
+
+                questionsResult
+                    .mapLeft { processEventError(quizId, it) }
+                    .map { processQuestions(quizId, it) }
+            }
+
+        private suspend fun processEventError(quizId: QuizId, throwable: Throwable) {
+            quizPersistence.deleteQuiz(quizId)
+            log.error("Error parsing GPT response for quiz ID: $quizId: ${throwable.message}")
+        }
+
+        private suspend fun processQuestions(
+            quizId: QuizId,
+            questions: List<ResponseQuestion>
+        ): Either<DomainError, Unit> = either {
             log.info("Processing GPT response for quiz ID: $quizId")
 
             coroutineScope {
-                questions.map { question ->
-                    async {
-                        insertQuestionWithOptions(quizId, question).bind()
+                questions
+                    .map { question ->
+                        async { insertQuestionWithOptions(quizId, question).bind() }
                     }
-                }.map { it.await() }
+                    .map { it.await() }
             }
 
             quizPersistence.updateStatus(quizId, "pending")
             log.info("Successfully processed questions for quiz ID: $quizId")
         }
 
-    private suspend fun insertQuestionWithOptions(
-        quizId: QuizId,
-        question: ResponseQuestion
-    ): Either<DomainError, Unit> = either {
-        val questionId = questionPersistence.insertQuestion(quizId, question.description).bind()
+        private suspend fun insertQuestionWithOptions(
+            quizId: QuizId,
+            question: ResponseQuestion
+        ): Either<DomainError, Unit> = either {
+            val questionId = questionPersistence.insertQuestion(quizId, question.description).bind()
 
-        question.options.forEachIndexed { index, option ->
-            insertOption(questionId, option, index, index == question.correctIndex).bind()
+            question.options.forEachIndexed { index, option ->
+                insertOption(questionId, option, index, index == question.correctIndex).bind()
+            }
+        }
+
+        private suspend fun insertOption(
+            questionId: QuestionId,
+            option: String,
+            index: Int,
+            isCorrect: Boolean
+        ): Either<DomainError, Unit> = either {
+            questionOptionsPersistence
+                .insertQuestionOption(
+                    questionId = questionId,
+                    description = option,
+                    referenceNumber = index,
+                    isCorrect = isCorrect
+                )
+                .bind()
         }
     }
-
-    private suspend fun insertOption(
-        questionId: QuestionId,
-        option: String,
-        index: Int,
-        isCorrect: Boolean
-    ): Either<DomainError, Unit> = either {
-        questionOptionsPersistence.insertQuestionOption(
-            questionId = questionId,
-            description = option,
-            referenceNumber = index,
-            isCorrect = isCorrect
-        ).bind()
-    }
-}

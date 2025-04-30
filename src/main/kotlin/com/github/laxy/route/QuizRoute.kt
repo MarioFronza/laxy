@@ -19,14 +19,11 @@ import io.ktor.server.resources.post
 import io.ktor.server.routing.Route
 import kotlinx.serialization.Serializable
 
-@Serializable
-data class QuizWrapper<T : Any>(val quiz: T)
+@Serializable data class QuizWrapper<T : Any>(val quiz: T)
 
-@Serializable
-data class QuizzesWrapper<T : Any>(val quizzes: T)
+@Serializable data class QuizzesWrapper<T : Any>(val quizzes: T)
 
-@Serializable
-data class Quiz(val id: Long, val totalQuestions: Int)
+@Serializable data class Quiz(val id: Long, val totalQuestions: Int)
 
 @Serializable
 data class QuizResponse(
@@ -48,30 +45,16 @@ data class QuestionsResponse(
 @Serializable
 data class OptionResponse(val id: Long, val description: String, val referenceNumber: Int)
 
-@Serializable
-data class NewQuiz(val subjectId: Long, val totalQuestions: Int)
+@Serializable data class NewQuiz(val subjectId: Long, val totalQuestions: Int)
+
+@Serializable data class QuizAttemptRequest(val questions: List<QuestionAttemptRequest>)
+
+@Serializable data class QuestionAttemptRequest(val id: Long, val selectedOptionId: Long)
+
+@Serializable data class QuizAttemptResponse(val questions: List<QuestionAttemptResponse>)
 
 @Serializable
-data class QuizAttemptRequest(
-    val questions: List<QuestionAttemptRequest>
-)
-
-@Serializable
-data class QuestionAttemptRequest(
-    val id: Long,
-    val selectedOptionId: Long
-)
-
-@Serializable
-data class QuizAttemptResponse(
-    val questions: List<QuestionAttemptResponse>
-)
-
-@Serializable
-data class QuestionAttemptResponse(
-    val userOptionId: Long,
-    val isCorrect: Boolean
-)
+data class QuestionAttemptResponse(val selectedOptionId: Long, val isCorrect: Boolean)
 
 @Resource("/quizzes")
 data class QuizzesResource(val parent: RootResource = RootResource) {
@@ -100,18 +83,18 @@ fun Route.quizRoutes(quizService: QuizService, jwtService: JwtService) {
     get<QuizzesResource> {
         jwtAuth(jwtService) { (_, userId) ->
             either {
-                val quizzes =
-                    quizService.getByUser(userId).bind().map {
-                        QuizResponse(
-                            id = it.id.serial,
-                            subject = it.subject,
-                            totalQuestions = it.totalQuestions,
-                            status = it.status,
-                            createdAt = it.createdAt.toString()
-                        )
-                    }
-                QuizzesWrapper(quizzes)
-            }
+                    val quizzes =
+                        quizService.getByUser(userId).bind().map {
+                            QuizResponse(
+                                id = it.id.serial,
+                                subject = it.subject,
+                                totalQuestions = it.totalQuestions,
+                                status = it.status,
+                                createdAt = it.createdAt.toString()
+                            )
+                        }
+                    QuizzesWrapper(quizzes)
+                }
                 .respond(this, OK)
         }
     }
@@ -119,22 +102,23 @@ fun Route.quizRoutes(quizService: QuizService, jwtService: JwtService) {
     get<QuizzesResource.QuizQuestionsResource> { resource ->
         jwtAuth(jwtService) {
             either {
-                val questions = quizService.getQuestionsByQuiz(QuizId(resource.quizId)).bind()
-                questions.map {
-                    QuestionsResponse(
-                        id = it.id.serial,
-                        description = it.description,
-                        options = it.options.map { option ->
-                            OptionResponse(
-                                id = option.id.serial,
-                                description = option.description,
-                                referenceNumber = option.referenceNumber
-                            )
-                        },
-                        lastAttempt = null
-                    )
+                    val questions = quizService.getQuestionsByQuiz(QuizId(resource.quizId)).bind()
+                    questions.map {
+                        QuestionsResponse(
+                            id = it.id.serial,
+                            description = it.description,
+                            options =
+                                it.options.map { option ->
+                                    OptionResponse(
+                                        id = option.id.serial,
+                                        description = option.description,
+                                        referenceNumber = option.referenceNumber
+                                    )
+                                },
+                            lastAttempt = null
+                        )
+                    }
                 }
-            }
                 .respond(this, OK)
         }
     }
@@ -142,16 +126,16 @@ fun Route.quizRoutes(quizService: QuizService, jwtService: JwtService) {
     get<QuizzesResource.QuizQuestionsResource.QuestionOptionsResource> { resource ->
         jwtAuth(jwtService) {
             either {
-                val options =
-                    quizService.getOptionsByQuestion(QuestionId(resource.questionId)).bind()
-                options.map {
-                    OptionResponse(
-                        id = it.id.serial,
-                        description = it.description,
-                        referenceNumber = it.referenceNumber
-                    )
+                    val options =
+                        quizService.getOptionsByQuestion(QuestionId(resource.questionId)).bind()
+                    options.map {
+                        OptionResponse(
+                            id = it.id.serial,
+                            description = it.description,
+                            referenceNumber = it.referenceNumber
+                        )
+                    }
                 }
-            }
                 .respond(this, OK)
         }
     }
@@ -159,20 +143,20 @@ fun Route.quizRoutes(quizService: QuizService, jwtService: JwtService) {
     post<QuizzesResource> {
         jwtAuth(jwtService) { (_, userId) ->
             either {
-                val (subjectId, totalQuestions) =
-                    receiveCatching<QuizWrapper<NewQuiz>>().bind().quiz
-                val quiz =
-                    quizService
-                        .createQuiz(
-                            CreateQuiz(
-                                userId = userId,
-                                subjectId = SubjectId(subjectId),
-                                totalQuestions
+                    val (subjectId, totalQuestions) =
+                        receiveCatching<QuizWrapper<NewQuiz>>().bind().quiz
+                    val quiz =
+                        quizService
+                            .createQuiz(
+                                CreateQuiz(
+                                    userId = userId,
+                                    subjectId = SubjectId(subjectId),
+                                    totalQuestions
+                                )
                             )
-                        )
-                        .bind()
-                QuizWrapper(quiz)
-            }
+                            .bind()
+                    QuizWrapper(quiz)
+                }
                 .respond(this, Created)
         }
     }
@@ -180,27 +164,35 @@ fun Route.quizRoutes(quizService: QuizService, jwtService: JwtService) {
     post<QuizzesResource.QuizAttemptsResource> { resource ->
         jwtAuth(jwtService) {
             either {
-                val (questions) = receiveCatching<QuizAttemptRequest>().bind()
-                val output = quizService.quizAttempt(
-                    QuizAttempt(
-                        quizId = QuizId(resource.quizId),
-                        questions = questions.map { question ->
-                            QuestionAttempt(
-                                id = QuestionId(question.id),
-                                selectedOptionId = QuestionOptionId(question.selectedOptionId),
-                                isCorrect = question.id == question.selectedOptionId
+                    val (questions) = receiveCatching<QuizAttemptRequest>().bind()
+                    val output =
+                        quizService
+                            .quizAttempt(
+                                QuizAttempt(
+                                    quizId = QuizId(resource.quizId),
+                                    questions =
+                                        questions.map { question ->
+                                            QuestionAttempt(
+                                                id = QuestionId(question.id),
+                                                selectedOptionId =
+                                                    QuestionOptionId(question.selectedOptionId),
+                                                isCorrect = question.id == question.selectedOptionId
+                                            )
+                                        }
+                                )
                             )
-                        }
-                    )).bind()
-                QuizAttemptResponse(
-                    questions = output.questions.map { question ->
-                        QuestionAttemptResponse(
-                            userOptionId = question.userOptionId.serial,
-                            isCorrect = question.isCorrect
-                        )
-                    }
-                )
-            }.respond(this, OK)
+                            .bind()
+                    QuizAttemptResponse(
+                        questions =
+                            output.questions.map { question ->
+                                QuestionAttemptResponse(
+                                    selectedOptionId = question.userOptionId.serial,
+                                    isCorrect = question.isCorrect
+                                )
+                            }
+                    )
+                }
+                .respond(this, OK)
         }
     }
 }
