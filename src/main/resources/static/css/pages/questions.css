@@ -75,3 +75,15 @@ h1 {
     background: #cc4444;
 }
 
+
+.correct {
+    border: 2px solid #4CAF50;
+}
+
+.incorrect {
+    border: 2px solid #ff5555;
+}
+
+.options input[disabled] + span {
+    color: #888;  /* Optional: make text gray if disabled */
+}

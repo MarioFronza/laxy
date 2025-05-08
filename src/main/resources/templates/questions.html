@@ -11,17 +11,29 @@
     <div class="quiz-container">
         <h1>Questions</h1>
         <form id="quizForm">
-            <div class="question" th:each="question: ${questions}">
+
+            <div class="question"
+                 th:classappend="${question.lastAttempt != null} ? (${question.lastAttempt.isCorrect} ? ' correct' : ' incorrect') : ''"
+                 th:each="question: ${questions}">
                 <p th:text="${question.description}"></p>
                 <div class="options">
                     <div class="option" th:each="option: ${question.options}">
                         <label>
-                            <input id="${option.id}" name="option" required th:text="${option.description}"
-                                   type="radio"/>
+                            <input
+                                    id="${option.id}"
+                                    name="option__${question.id}"
+                                    th:checked="${question.lastAttempt != null} ? (${option.id} == ${question.lastAttempt.selectedOptionId}) : false"
+                                    th:disabled="${question.lastAttempt != null and question.lastAttempt.isCorrect}"
+                                    th:value="${option.id}"
+                                    type="radio"
+                            />
+                            <span th:text="${option.description}"></span>
                         </label>
                     </div>
                 </div>
             </div>
+
+
             <div class="quiz-actions">
                 <button class="button" type="submit">Submit Quiz</button>
                 <button class="delete-quiz" type="button">🗑 Delete Quiz</button>
