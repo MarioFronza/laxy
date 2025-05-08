@@ -20,10 +20,10 @@
                     <div class="option" th:each="option: ${question.options}">
                         <label>
                             <input
-                                    id="${option.id}"
-                                    name="option__${question.id}"
-                                    th:checked="${question.lastAttempt != null} ? (${option.id} == ${question.lastAttempt.selectedOptionId}) : false"
+                                    th:checked="${question.lastAttempt != null and option.id == question.lastAttempt.selectedOptionId}"
                                     th:disabled="${question.lastAttempt != null and question.lastAttempt.isCorrect}"
+                                    th:id="${option.id}"
+                                    th:name="'option__' + ${question.id}"
                                     th:value="${option.id}"
                                     type="radio"
                             />
