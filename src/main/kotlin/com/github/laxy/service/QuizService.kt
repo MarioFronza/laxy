@@ -22,6 +22,7 @@ import com.github.laxy.util.loadTemplate
 import com.github.laxy.util.logger
 import com.github.laxy.util.withSpan
 import io.opentelemetry.api.trace.StatusCode.ERROR
+import java.time.LocalDateTime
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
@@ -31,7 +32,6 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
-import java.time.LocalDateTime
 
 @Serializable
 data class ResponseQuestion(
@@ -96,6 +96,7 @@ interface QuizService {
     suspend fun deleteById(id: QuizId)
 }
 
+@Suppress("LongParameterList")
 fun quizService(
     userPersistence: UserPersistence,
     subjectPersistence: SubjectPersistence,
@@ -155,7 +156,7 @@ fun quizService(
                         span.setStatus(ERROR)
                         QuizAttemptError(
                             "Mismatch between input questions (${input.questions.size}) " +
-                                    "and persisted questions (${persistedQuestions.size}) for quizId: ${quizId.serial}"
+                                "and persisted questions (${persistedQuestions.size}) for quizId: ${quizId.serial}"
                         )
                     }
 
@@ -208,13 +209,15 @@ fun quizService(
             message: String
         ): Either<DomainError, Unit> = either {
             Either.catch {
-                val response = gptAIService.chatCompletion(ChatCompletionContent(message)).bind()
-                val formattedResponse = response.replace(Regex("^```json|```$"), "").trim()
-                QuizEvent.eventChannel.emit(quizId to formattedResponse)
-            }.mapLeft {
-                quizPersistence.deleteQuiz(quizId)
-                log.error("Error during GPT chatCompletion for quiz ID: $quizId: ${it.message}")
-            }
+                    val response =
+                        gptAIService.chatCompletion(ChatCompletionContent(message)).bind()
+                    val formattedResponse = response.replace(Regex("^```json|```$"), "").trim()
+                    QuizEvent.eventChannel.emit(quizId to formattedResponse)
+                }
+                .mapLeft {
+                    quizPersistence.deleteQuiz(quizId)
+                    log.error("Error during GPT chatCompletion for quiz ID: $quizId: ${it.message}")
+                }
         }
 
         override suspend fun listenEvent(): Job =
@@ -225,9 +228,7 @@ fun quizService(
             }
 
         override suspend fun deleteById(id: QuizId) =
-            withSpan("$spanPrefix.deleteById") {
-                quizPersistence.deleteQuiz(id)
-            }
+            withSpan("$spanPrefix.deleteById") { quizPersistence.deleteQuiz(id) }
 
         private suspend fun handleEvent(quizId: QuizId, response: String) =
             withSpan(spanName = "[EVENT] - $spanPrefix.listenEvent") { span ->

@@ -26,6 +26,7 @@ import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 
+@Suppress("LongMethod")
 fun Route.quizRoutes(
     quizService: QuizService,
     subjectService: SubjectService,
@@ -35,35 +36,35 @@ fun Route.quizRoutes(
         get("/dashboard") {
             val current = call.currentUserOrRedirect() ?: return@get
             either {
-                val quizzes =
-                    quizService.getByUser(current.userId).bind().map {
-                        QuizResponse(
-                            id = it.id.serial,
-                            subject = it.subject,
-                            totalQuestions = it.totalQuestions,
-                            status = it.status,
-                            createdAt = it.createdAt.toBrazilianFormat()
-                        )
-                    }
-                call.respond(respondTemplate("dashboard", mapOf("quizzes" to quizzes)))
-            }
+                    val quizzes =
+                        quizService.getByUser(current.userId).bind().map {
+                            QuizResponse(
+                                id = it.id.serial,
+                                subject = it.subject,
+                                totalQuestions = it.totalQuestions,
+                                status = it.status,
+                                createdAt = it.createdAt.toBrazilianFormat()
+                            )
+                        }
+                    call.respond(respondTemplate("dashboard", mapOf("quizzes" to quizzes)))
+                }
                 .mapLeft { call.respond(respondTemplate("dashboard")) }
         }
 
         get("/quizzes") {
             call.currentUserOrRedirect() ?: return@get
             either {
-                val subjects =
-                    subjectService.getAllSubjects().bind().map {
-                        Subject(
-                            id = it.id.serial,
-                            name = it.name,
-                            description = it.description,
-                            language = it.language,
-                        )
-                    }
-                call.respond(respondTemplate("create-quiz", mapOf("subjects" to subjects)))
-            }
+                    val subjects =
+                        subjectService.getAllSubjects().bind().map {
+                            Subject(
+                                id = it.id.serial,
+                                name = it.name,
+                                description = it.description,
+                                language = it.language,
+                            )
+                        }
+                    call.respond(respondTemplate("create-quiz", mapOf("subjects" to subjects)))
+                }
                 .mapLeft { call.respondRedirect("/dashboard") }
         }
 
@@ -75,20 +76,20 @@ fun Route.quizRoutes(
             val totalQuestions = params["totalQuestions"].orEmpty()
 
             either {
-                userService
-                    .createTheme(CreateTheme(userId = current.userId, description = theme))
-                    .bind()
+                    userService
+                        .createTheme(CreateTheme(userId = current.userId, description = theme))
+                        .bind()
 
-                quizService.createQuiz(
-                    CreateQuiz(
-                        userId = current.userId,
-                        subjectId = SubjectId(subjectId.toLong()),
-                        totalQuestions = totalQuestions.toInt()
+                    quizService.createQuiz(
+                        CreateQuiz(
+                            userId = current.userId,
+                            subjectId = SubjectId(subjectId.toLong()),
+                            totalQuestions = totalQuestions.toInt()
+                        )
                     )
-                )
 
-                call.respondRedirect("/dashboard")
-            }
+                    call.respondRedirect("/dashboard")
+                }
                 .mapLeft { call.respondRedirect("/quizzes") }
         }
 
@@ -97,42 +98,38 @@ fun Route.quizRoutes(
             val quizId = call.parameters["id"].orEmpty()
 
             either {
-                val questions = quizService.getQuestionsByQuiz(QuizId(quizId.toLong())).bind()
-                val response =
-                    questions.map {
-                        QuestionsResponse(
-                            id = it.id.serial,
-                            description = it.description,
-                            options =
-                                it.options.map { option ->
-                                    OptionResponse(
-                                        id = option.id.serial,
-                                        description = option.description,
-                                        referenceNumber = option.referenceNumber
-                                    )
-                                },
-                            lastAttempt =
-                                it.lastAttempt?.let { attempt ->
-                                    QuestionAttemptResponse(
-                                        selectedOptionId = attempt.selectedOptionId.serial,
-                                        isCorrect = attempt.isCorrect
-                                    )
-                                }
-                        )
-                    }
-                call.respond(
-                    respondTemplate(
-                        "questions", mapOf(
-                            "questions" to response,
-                            "quizId" to quizId
+                    val questions = quizService.getQuestionsByQuiz(QuizId(quizId.toLong())).bind()
+                    val response =
+                        questions.map {
+                            QuestionsResponse(
+                                id = it.id.serial,
+                                description = it.description,
+                                options =
+                                    it.options.map { option ->
+                                        OptionResponse(
+                                            id = option.id.serial,
+                                            description = option.description,
+                                            referenceNumber = option.referenceNumber
+                                        )
+                                    },
+                                lastAttempt =
+                                    it.lastAttempt?.let { attempt ->
+                                        QuestionAttemptResponse(
+                                            selectedOptionId = attempt.selectedOptionId.serial,
+                                            isCorrect = attempt.isCorrect
+                                        )
+                                    }
+                            )
+                        }
+                    call.respond(
+                        respondTemplate(
+                            "questions",
+                            mapOf("questions" to response, "quizId" to quizId)
                         )
                     )
-                )
-            }
+                }
                 .mapLeft { call.respondRedirect("/dashboard") }
         }
-
-
 
         post("/quizzes/{id}/attempt") {
             call.currentUserOrRedirect() ?: return@post
@@ -146,31 +143,31 @@ fun Route.quizRoutes(
             val params = call.receiveParameters()
 
             either {
-                val questions = quizService.getQuestionsByQuiz(QuizId(quizId)).bind()
+                    val questions = quizService.getQuestionsByQuiz(QuizId(quizId)).bind()
 
-                val attempts = questions.mapNotNull { question ->
-                    val selectedOptionId = params["option__${question.id.serial}"]?.toLongOrNull()
-                    selectedOptionId?.let {
-                        QuestionAttempt(
-                            id = question.id,
-                            selectedOptionId = QuestionOptionId(it),
-                            isCorrect = false
-                        )
+                    val attempts =
+                        questions.mapNotNull { question ->
+                            val selectedOptionId =
+                                params["option__${question.id.serial}"]?.toLongOrNull()
+                            selectedOptionId?.let {
+                                QuestionAttempt(
+                                    id = question.id,
+                                    selectedOptionId = QuestionOptionId(it),
+                                    isCorrect = false
+                                )
+                            }
+                        }
+
+                    if (attempts.isEmpty()) {
+                        call.respondRedirect("/quizzes/$quizId/questions")
+                        return@either Unit
                     }
-                }
 
-                if (attempts.isEmpty()) {
+                    quizService.quizAttempt(QuizAttempt(QuizId(quizId), attempts)).bind()
                     call.respondRedirect("/quizzes/$quizId/questions")
-                    return@either Unit
                 }
-
-                quizService.quizAttempt(QuizAttempt(QuizId(quizId), attempts)).bind()
-                call.respondRedirect("/quizzes/$quizId/questions")
-            }.mapLeft {
-                call.respondRedirect("/quizzes/$quizId/questions")
-            }
+                .mapLeft { call.respondRedirect("/quizzes/$quizId/questions") }
         }
-
 
         post("/quizzes/{id}") {
             call.currentUserOrRedirect() ?: return@post
