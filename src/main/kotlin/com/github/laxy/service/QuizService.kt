@@ -22,7 +22,6 @@ import com.github.laxy.util.loadTemplate
 import com.github.laxy.util.logger
 import com.github.laxy.util.withSpan
 import io.opentelemetry.api.trace.StatusCode.ERROR
-import java.time.LocalDateTime
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
@@ -32,6 +31,7 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+import java.time.LocalDateTime
 
 @Serializable
 data class ResponseQuestion(
@@ -92,6 +92,8 @@ interface QuizService {
     suspend fun quizAttempt(input: QuizAttempt): Either<DomainError, QuizAttemptOutput>
 
     suspend fun listenEvent(): Job
+
+    suspend fun deleteById(id: QuizId)
 }
 
 fun quizService(
@@ -205,9 +207,14 @@ fun quizService(
             quizId: QuizId,
             message: String
         ): Either<DomainError, Unit> = either {
-            val response = gptAIService.chatCompletion(ChatCompletionContent(message)).bind()
-            val formattedResponse = response.replace(Regex("^```json|```$"), "").trim()
-            QuizEvent.eventChannel.emit(quizId to formattedResponse)
+            Either.catch {
+                val response = gptAIService.chatCompletion(ChatCompletionContent(message)).bind()
+                val formattedResponse = response.replace(Regex("^```json|```$"), "").trim()
+                QuizEvent.eventChannel.emit(quizId to formattedResponse)
+            }.mapLeft {
+                quizPersistence.deleteQuiz(quizId)
+                log.error("Error during GPT chatCompletion for quiz ID: $quizId: ${it.message}")
+            }
         }
 
         override suspend fun listenEvent(): Job =
@@ -215,6 +222,11 @@ fun quizService(
                 QuizEvent.eventChannel.collect { (quizId, response) ->
                     handleEvent(quizId, response)
                 }
+            }
+
+        override suspend fun deleteById(id: QuizId) =
+            withSpan("$spanPrefix.deleteById") {
+                quizPersistence.deleteQuiz(id)
             }
 
         private suspend fun handleEvent(quizId: QuizId, response: String) =

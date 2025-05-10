@@ -39,7 +39,7 @@ data class QuestionsResponse(
     val id: Long,
     val description: String,
     val options: List<OptionResponse>,
-    val lastAttempt: QuestionAttemptResponse?
+    val lastAttempt: QuestionAttemptResponse?,
 )
 
 @Serializable
@@ -115,7 +115,7 @@ fun Route.quizRoutes(quizService: QuizService, jwtService: JwtService) {
                                         referenceNumber = option.referenceNumber
                                     )
                                 },
-                            lastAttempt = null
+                            lastAttempt = null,
                         )
                     }
                 }
