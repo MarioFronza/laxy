@@ -16,26 +16,31 @@ interface GptAIService {
     suspend fun chatCompletion(input: ChatCompletionContent): Either<DomainError, String>
 }
 
-fun gptAIService(openAIKey: String) =
-    object : GptAIService {
-        val spanPrefix = "GptAIService"
+class DefaultGptAIService(
+    private val openAIKey: String,
+) : GptAIService {
 
-        override suspend fun chatCompletion(
-            input: ChatCompletionContent
-        ): Either<DomainError, String> =
-            withSpan(spanName = "$spanPrefix.chatCompletion") {
-                val model = "gpt-3.5-turbo"
-                it.setAttribute("model", model)
-                either {
-                    val openAI = openAI { apiKey(openAIKey) }
-                    val request = chatRequest {
-                        model(model)
-                        addMessage(input.message.toSystemMessage())
-                    }
-                    val completion = openAI.createChatCompletion(request)[0]
-                    val content = completion.message.content
-                    ensureNotNull(content) { InvalidIntegrationResponse(content) }
-                    content
+    private val spanPrefix = "GptAIService"
+    private val openAI = openAI { apiKey(openAIKey) }
+
+    override suspend fun chatCompletion(input: ChatCompletionContent): Either<DomainError, String> =
+        withSpan(spanName = "$spanPrefix.chatCompletion") { span ->
+            span.setAttribute("model", MODEL)
+            either {
+                val request = chatRequest {
+                    model(MODEL)
+                    addMessage(input.message.toSystemMessage())
                 }
+                val completion = openAI.createChatCompletion(request)[0]
+                val content = completion.message.content
+                ensureNotNull(content) { InvalidIntegrationResponse(content) }
+                content
             }
+        }
+
+    companion object {
+        private const val MODEL = "gpt-4.1-mini"
     }
+}
+
+fun gptAIService(openAIKey: String): GptAIService = DefaultGptAIService(openAIKey)

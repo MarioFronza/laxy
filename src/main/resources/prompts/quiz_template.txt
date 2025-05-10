@@ -11,13 +11,13 @@ Each question must help the user improve their understanding of:
 Incorporate the theme/context: "{theme}" into each question to provide relevant, practical, and immersive language exposure.
 
 Each question must include:
-- `description`: A clear, concise question in the target language or about its usage.
-- `options`: A list of four possible answers.
-- `correctIndex`: The index (0-3) of the correct answer.
+- `description`: A clear, concise question written in {language}, or written in English asking about {language} usage.
+- `options`: A list of four distinct, plausible answers.
+- `correctIndex`: The index (0-3) of the correct answer, matching exactly.
 
 Output Format:
-- Must be a valid JSON array of objects.
-- No extra text, no code blocks, no markdown—just plain JSON.
+- Must be a valid raw JSON array of objects (not a JSON string).
+- No extra text, no explanations, no code blocks, no markdown — just plain JSON.
 
 Example:
 [
@@ -32,3 +32,4 @@ Example:
     "correctIndex": 1
   }
 ]
+

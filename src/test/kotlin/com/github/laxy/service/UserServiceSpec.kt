@@ -1,4 +1,4 @@
-package com.github.laxy.domain.user
+package com.github.laxy.service
 
 import arrow.core.nonEmptyListOf
 import com.github.laxy.EmptyUpdate
@@ -8,9 +8,6 @@ import com.github.laxy.SuspendFun
 import com.github.laxy.UsernameAlreadyExists
 import com.github.laxy.auth.JwtToken
 import com.github.laxy.persistence.UserId
-import com.github.laxy.service.Login
-import com.github.laxy.service.RegisterUser
-import com.github.laxy.service.Update
 import com.github.laxy.validation.InvalidEmail
 import com.github.laxy.validation.InvalidPassword
 import com.github.laxy.validation.InvalidUsername

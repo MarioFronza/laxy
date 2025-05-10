@@ -10,23 +10,36 @@
 <div layout:fragment="nav-content">
     <div class="quiz-container">
         <h1>Questions</h1>
-        <form id="quizForm">
-            <div class="question" th:each="question: ${questions}">
-                <p th:text="${question.description}"></p>
-                <div class="options">
-                    <div class="option" th:each="option: ${question.options}">
-                        <label>
-                            <input id="${option.id}" name="option" required th:text="${option.description}"
-                                   type="radio"/>
-                        </label>
+        <div class="quiz-actions">
+            <form method="post" th:action="@{~/quizzes/{id}/attempt(id=${quizId})}">
+                <div class="question"
+                     th:classappend="${question.lastAttempt != null} ? (${question.lastAttempt.isCorrect} ? ' correct' : ' incorrect') : ''"
+                     th:each="question: ${questions}">
+                    <p th:text="${question.description}"></p>
+                    <div class="options">
+                        <div class="option" th:each="option: ${question.options}">
+                            <label>
+                                <input
+                                        th:checked="${question.lastAttempt != null and option.id == question.lastAttempt.selectedOptionId}"
+                                        th:id="${option.id}"
+                                        th:name="'option__' + ${question.id}"
+                                        th:value="${option.id}"
+                                        type="radio"
+                                />
+                                <span th:text="${option.description}"></span>
+                            </label>
+                        </div>
                     </div>
                 </div>
-            </div>
-            <div class="quiz-actions">
                 <button class="button" type="submit">Submit Quiz</button>
-                <button class="delete-quiz" type="button">🗑 Delete Quiz</button>
-            </div>
-        </form>
+            </form>
+            <form method="post" th:action="@{~/quizzes/{id}(id=${quizId})}">
+                <button class="delete-quiz"
+                        type="submit">
+                    Remove Quiz
+                </button>
+            </form>
+        </div>
     </div>
 </div>
 </body>

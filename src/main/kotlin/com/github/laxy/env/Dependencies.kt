@@ -2,6 +2,9 @@ package com.github.laxy.env
 
 import arrow.fx.coroutines.continuations.ResourceScope
 import com.github.laxy.persistence.languagePersistence
+import com.github.laxy.persistence.questionAttemptPersistence
+import com.github.laxy.persistence.questionOptionsPersistence
+import com.github.laxy.persistence.questionPersistence
 import com.github.laxy.persistence.quizPersistence
 import com.github.laxy.persistence.subjectPersistence
 import com.github.laxy.persistence.userPersistence
@@ -41,12 +44,15 @@ suspend fun ResourceScope.dependencies(env: Env): Dependencies {
 
     val userPersistence = userPersistence(sqlDelight.usersQueries, sqlDelight.userThemesQueries)
     val subjectPersistence = subjectPersistence(sqlDelight.subjectsQueries)
-    val quizPersistence =
-        quizPersistence(
-            sqlDelight.quizzesQueries,
+    val quizPersistence = quizPersistence(sqlDelight.quizzesQueries)
+    val questionPersistence =
+        questionPersistence(
             sqlDelight.questionsQueries,
-            sqlDelight.questionOptionsQueries
+            sqlDelight.questionOptionsQueries,
+            sqlDelight.questionAttemptsQueries
         )
+    val questionOptionsPersistence = questionOptionsPersistence(sqlDelight.questionOptionsQueries)
+    val questionAttemptsPersistence = questionAttemptPersistence(sqlDelight.questionAttemptsQueries)
     val languagePersistence = languagePersistence(sqlDelight.languagesQueries)
 
     val subjectService = subjectService(subjectPersistence)
@@ -60,6 +66,9 @@ suspend fun ResourceScope.dependencies(env: Env): Dependencies {
             userPersistence,
             subjectPersistence,
             quizPersistence,
+            questionPersistence,
+            questionOptionsPersistence,
+            questionAttemptsPersistence,
             gptAIService,
             coroutineScope
         )

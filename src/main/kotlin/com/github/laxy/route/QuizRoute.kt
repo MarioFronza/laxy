@@ -3,10 +3,13 @@ package com.github.laxy.route
 import arrow.core.raise.either
 import com.github.laxy.auth.jwtAuth
 import com.github.laxy.persistence.QuestionId
+import com.github.laxy.persistence.QuestionOptionId
 import com.github.laxy.persistence.QuizId
 import com.github.laxy.persistence.SubjectId
 import com.github.laxy.service.CreateQuiz
 import com.github.laxy.service.JwtService
+import com.github.laxy.service.QuestionAttempt
+import com.github.laxy.service.QuizAttempt
 import com.github.laxy.service.QuizService
 import io.ktor.http.HttpStatusCode.Companion.Created
 import io.ktor.http.HttpStatusCode.Companion.OK
@@ -35,13 +38,23 @@ data class QuizResponse(
 data class QuestionsResponse(
     val id: Long,
     val description: String,
-    val options: List<OptionResponse>
+    val options: List<OptionResponse>,
+    val lastAttempt: QuestionAttemptResponse?,
 )
 
 @Serializable
 data class OptionResponse(val id: Long, val description: String, val referenceNumber: Int)
 
 @Serializable data class NewQuiz(val subjectId: Long, val totalQuestions: Int)
+
+@Serializable data class QuizAttemptRequest(val questions: List<QuestionAttemptRequest>)
+
+@Serializable data class QuestionAttemptRequest(val id: Long, val selectedOptionId: Long)
+
+@Serializable data class QuizAttemptResponse(val questions: List<QuestionAttemptResponse>)
+
+@Serializable
+data class QuestionAttemptResponse(val selectedOptionId: Long, val isCorrect: Boolean)
 
 @Resource("/quizzes")
 data class QuizzesResource(val parent: RootResource = RootResource) {
@@ -57,6 +70,12 @@ data class QuizzesResource(val parent: RootResource = RootResource) {
             val parent: QuizQuestionsResource = QuizQuestionsResource(quizId)
         )
     }
+
+    @Resource("/{quizId}/attempts")
+    data class QuizAttemptsResource(
+        val quizId: Long,
+        val parent: QuizzesResource = QuizzesResource()
+    )
 }
 
 @Suppress("LongMethod")
@@ -95,7 +114,8 @@ fun Route.quizRoutes(quizService: QuizService, jwtService: JwtService) {
                                         description = option.description,
                                         referenceNumber = option.referenceNumber
                                     )
-                                }
+                                },
+                            lastAttempt = null,
                         )
                     }
                 }
@@ -138,6 +158,41 @@ fun Route.quizRoutes(quizService: QuizService, jwtService: JwtService) {
                     QuizWrapper(quiz)
                 }
                 .respond(this, Created)
+        }
+    }
+
+    post<QuizzesResource.QuizAttemptsResource> { resource ->
+        jwtAuth(jwtService) {
+            either {
+                    val (questions) = receiveCatching<QuizAttemptRequest>().bind()
+                    val output =
+                        quizService
+                            .quizAttempt(
+                                QuizAttempt(
+                                    quizId = QuizId(resource.quizId),
+                                    questions =
+                                        questions.map { question ->
+                                            QuestionAttempt(
+                                                id = QuestionId(question.id),
+                                                selectedOptionId =
+                                                    QuestionOptionId(question.selectedOptionId),
+                                                isCorrect = question.id == question.selectedOptionId
+                                            )
+                                        }
+                                )
+                            )
+                            .bind()
+                    QuizAttemptResponse(
+                        questions =
+                            output.questions.map { question ->
+                                QuestionAttemptResponse(
+                                    selectedOptionId = question.userOptionId.serial,
+                                    isCorrect = question.isCorrect
+                                )
+                            }
+                    )
+                }
+                .respond(this, OK)
         }
     }
 }

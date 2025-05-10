@@ -41,9 +41,13 @@ data class SubjectNotFound(val property: String) : SubjectError
 
 data class QuizCreationError(val description: String) : QuizError
 
+data class QuizSelectionError(val description: String) : QuizError
+
 data class QuestionCreationError(val description: String) : QuizError
 
 data class QuestionOptionCreationError(val description: String) : QuizError
+
+data class QuizAttemptError(val description: String) : QuizError
 
 sealed interface JwtError : DomainError
 

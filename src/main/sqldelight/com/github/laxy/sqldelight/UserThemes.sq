@@ -3,7 +3,7 @@ import com.github.laxy.persistence.UserThemeId;
 
 CREATE TABLE IF NOT EXISTS user_themes (
     id BIGSERIAL AS UserThemeId PRIMARY KEY,
-    user_id BIGSERIAL AS UserId REFERENCES users(id) ON DELETE CASCADE,
+    user_id BIGSERIAL AS UserId NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     description TEXT NOT NULL,
     current BOOLEAN NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,

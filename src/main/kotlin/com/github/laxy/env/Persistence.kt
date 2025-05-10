@@ -6,6 +6,7 @@ import arrow.fx.coroutines.autoCloseable
 import arrow.fx.coroutines.closeable
 import arrow.fx.coroutines.continuations.ResourceScope
 import com.github.laxy.persistence.LanguageId
+import com.github.laxy.persistence.QuestionAttemptId
 import com.github.laxy.persistence.QuestionId
 import com.github.laxy.persistence.QuestionOptionId
 import com.github.laxy.persistence.QuizId
@@ -13,6 +14,7 @@ import com.github.laxy.persistence.SubjectId
 import com.github.laxy.persistence.UserId
 import com.github.laxy.persistence.UserThemeId
 import com.github.laxy.sqldelight.Languages
+import com.github.laxy.sqldelight.Question_attempts
 import com.github.laxy.sqldelight.Question_options
 import com.github.laxy.sqldelight.Questions
 import com.github.laxy.sqldelight.Quizzes
@@ -41,6 +43,7 @@ suspend fun ResourceScope.sqlDelight(dataSource: DataSource): SqlDelight {
     return SqlDelight(
         driver,
         Languages.Adapter(languageIdAdapter),
+        Question_attempts.Adapter(quizAttemptIdAdapter, questionIdAdapter, questionOptionIdAdapter),
         Question_options.Adapter(questionOptionIdAdapter, questionIdAdapter),
         Questions.Adapter(questionIdAdapter, quizIdAdapter),
         Quizzes.Adapter(quizIdAdapter, userIdAdapter, subjectIdAdapter),
@@ -56,6 +59,7 @@ private val subjectIdAdapter = columnAdapter(::SubjectId, SubjectId::serial)
 private val quizIdAdapter = columnAdapter(::QuizId, QuizId::serial)
 private val questionIdAdapter = columnAdapter(::QuestionId, QuestionId::serial)
 private val questionOptionIdAdapter = columnAdapter(::QuestionOptionId, QuestionOptionId::serial)
+private val quizAttemptIdAdapter = columnAdapter(::QuestionAttemptId, QuestionAttemptId::serial)
 private val languageIdAdapter = columnAdapter(::LanguageId, LanguageId::serial)
 
 private inline fun <A : Any, B> columnAdapter(

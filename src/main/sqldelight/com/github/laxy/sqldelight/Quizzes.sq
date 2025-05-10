@@ -4,8 +4,8 @@ import com.github.laxy.persistence.UserId;
 
 CREATE TABLE IF NOT EXISTS quizzes (
     id BIGSERIAL AS QuizId PRIMARY KEY,
-    user_id BIGSERIAL AS UserId REFERENCES users(id) ON DELETE CASCADE,
-    subject_id BIGSERIAL AS SubjectId REFERENCES subjects ON DELETE CASCADE,
+    user_id BIGSERIAL AS UserId NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    subject_id BIGSERIAL AS SubjectId NOT NULL REFERENCES subjects ON DELETE CASCADE,
     total_questions INT NOT NULL,
     status VARCHAR(20) NOT NULL CHECK (status IN ('creating', 'pending', 'completed')) DEFAULT 'creating',
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -28,5 +28,15 @@ RETURNING id;
 
 updateStatus:
 UPDATE quizzes
-SET status = :status
+SET status = :status, updated_at = CURRENT_TIMESTAMP
+WHERE id = :quizId;
+
+selectById:
+SELECT q.id, s.name, q.total_questions, q.status, q.created_at
+FROM quizzes AS q
+INNER JOIN subjects AS s ON q.subject_id = s.id
+WHERE q.id = :quizId;
+
+deleteById:
+DELETE FROM quizzes
 WHERE id = :quizId;

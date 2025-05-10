@@ -1,6 +1,5 @@
 package com.github.laxy.env
 
-import arrow.fx.coroutines.ResourceScope
 import io.opentelemetry.api.common.Attributes
 import io.opentelemetry.exporter.otlp.logs.OtlpGrpcLogRecordExporter
 import io.opentelemetry.exporter.otlp.metrics.OtlpGrpcMetricExporter
@@ -17,7 +16,7 @@ import io.opentelemetry.sdk.trace.export.SimpleSpanProcessor
 import io.opentelemetry.semconv.ServiceAttributes.SERVICE_NAME
 import java.time.Duration
 
-fun ResourceScope.otel(env: Env.OpenTelemetry) {
+fun otel(env: Env.OpenTelemetry) {
     val resource =
         Resource.getDefault().merge(Resource.create(Attributes.of(SERVICE_NAME, env.serviceName)))
 
