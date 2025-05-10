@@ -120,17 +120,22 @@ fun Route.quizRoutes(
                                 }
                         )
                     }
-                call.respond(respondTemplate("questions", mapOf(
-                    "questions" to response,
-                    "quizId" to quizId
-                )))
+                call.respond(
+                    respondTemplate(
+                        "questions", mapOf(
+                            "questions" to response,
+                            "quizId" to quizId
+                        )
+                    )
+                )
             }
                 .mapLeft { call.respondRedirect("/dashboard") }
         }
 
 
+
         post("/quizzes/{id}/attempt") {
-           call.currentUserOrRedirect() ?: return@post
+            call.currentUserOrRedirect() ?: return@post
             val quizId = call.parameters["id"]?.toLongOrNull()
 
             if (quizId == null) {
@@ -143,16 +148,20 @@ fun Route.quizRoutes(
             either {
                 val questions = quizService.getQuestionsByQuiz(QuizId(quizId)).bind()
 
-                val attempts = questions.map { question ->
-                    val selectedOptionId =
-                        params["option__${question.id.serial}"]?.toLongOrNull()
-                            ?: throw IllegalArgumentException("No option selected for question ${question.id.serial}")
+                val attempts = questions.mapNotNull { question ->
+                    val selectedOptionId = params["option__${question.id.serial}"]?.toLongOrNull()
+                    selectedOptionId?.let {
+                        QuestionAttempt(
+                            id = question.id,
+                            selectedOptionId = QuestionOptionId(it),
+                            isCorrect = false
+                        )
+                    }
+                }
 
-                    QuestionAttempt(
-                        id = question.id,
-                        selectedOptionId = QuestionOptionId(selectedOptionId),
-                        isCorrect = false
-                    )
+                if (attempts.isEmpty()) {
+                    call.respondRedirect("/quizzes/$quizId/questions")
+                    return@either Unit
                 }
 
                 quizService.quizAttempt(QuizAttempt(QuizId(quizId), attempts)).bind()
@@ -162,8 +171,10 @@ fun Route.quizRoutes(
             }
         }
 
+
         post("/quizzes/{id}") {
             call.currentUserOrRedirect() ?: return@post
+            println(call.parameters)
             val quizId = call.parameters["id"].orEmpty()
             quizService.deleteById(QuizId(quizId.toLong()))
             call.respondRedirect("/dashboard")

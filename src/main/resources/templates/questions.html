@@ -10,34 +10,34 @@
 <div layout:fragment="nav-content">
     <div class="quiz-container">
         <h1>Questions</h1>
-        <div class="question"
-             th:classappend="${question.lastAttempt != null} ? (${question.lastAttempt.isCorrect} ? ' correct' : ' incorrect') : ''"
-             th:each="question: ${questions}">
-            <p th:text="${question.description}"></p>
-            <div class="options">
-                <div class="option" th:each="option: ${question.options}">
-                    <label>
-                        <input
-                                th:checked="${question.lastAttempt != null and option.id == question.lastAttempt.selectedOptionId}"
-                                th:disabled="${question.lastAttempt != null and question.lastAttempt.isCorrect}"
-                                th:id="${option.id}"
-                                th:name="'option__' + ${question.id}"
-                                th:value="${option.id}"
-                                type="radio"
-                        />
-                        <span th:text="${option.description}"></span>
-                    </label>
-                </div>
-            </div>
-        </div>
-
         <div class="quiz-actions">
-            <form id="quizForm">
+            <form method="post" th:action="@{~/quizzes/{id}/attempt(id=${quizId})}">
+                <div class="question"
+                     th:classappend="${question.lastAttempt != null} ? (${question.lastAttempt.isCorrect} ? ' correct' : ' incorrect') : ''"
+                     th:each="question: ${questions}">
+                    <p th:text="${question.description}"></p>
+                    <div class="options">
+                        <div class="option" th:each="option: ${question.options}">
+                            <label>
+                                <input
+                                        th:checked="${question.lastAttempt != null and option.id == question.lastAttempt.selectedOptionId}"
+                                        th:id="${option.id}"
+                                        th:name="'option__' + ${question.id}"
+                                        th:value="${option.id}"
+                                        type="radio"
+                                />
+                                <span th:text="${option.description}"></span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
                 <button class="button" type="submit">Submit Quiz</button>
             </form>
-
             <form method="post" th:action="@{~/quizzes/{id}(id=${quizId})}">
-                <button class="delete-quiz button" type="submit">🗑 Delete Quiz</button>
+                <button class="delete-quiz"
+                        type="submit">
+                    Remove Quiz
+                </button>
             </form>
         </div>
     </div>
