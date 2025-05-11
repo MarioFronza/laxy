@@ -95,6 +95,8 @@ fun Application.configure(jwtService: JwtService) {
             cookie.path = "/"
             @Suppress("MagicNumber")
             cookie.maxAgeInSeconds = 10
+            cookie.secure = true
+            cookie.extensions["SameSite"] = "None"
         }
     }
     install(Authentication) {

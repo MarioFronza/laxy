@@ -17,5 +17,5 @@ function showAlert(message, type = 'success') {
     setTimeout(() => {
         alertBox.classList.remove('show');
         alertBox.classList.add('hidden');
-    }, 5000);
+    }, 3000);
 }
