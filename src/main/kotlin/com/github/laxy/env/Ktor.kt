@@ -6,6 +6,7 @@ import com.github.laxy.route.UserWrapper
 import com.github.laxy.service.JwtService
 import com.github.laxy.util.tracer
 import com.github.laxy.web.CurrentUserId
+import com.github.laxy.web.PageMessage
 import com.github.laxy.web.UserSession
 import io.ktor.http.HttpHeaders
 import io.ktor.serialization.kotlinx.json.json
@@ -89,6 +90,11 @@ fun Application.configure(jwtService: JwtService) {
             @Suppress("MagicNumber")
             cookie.maxAgeInSeconds = 7 * 24 * 60 * 60 // 1 week
             cookie.httpOnly = true // Prevent JavaScript access
+        }
+        cookie<PageMessage>("flash_message") {
+            cookie.path = "/"
+            @Suppress("MagicNumber")
+            cookie.maxAgeInSeconds = 10
         }
     }
     install(Authentication) {

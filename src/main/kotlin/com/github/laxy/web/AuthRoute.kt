@@ -6,7 +6,6 @@ import com.github.laxy.service.RegisterUser
 import com.github.laxy.service.UserService
 import io.ktor.server.application.call
 import io.ktor.server.request.receiveParameters
-import io.ktor.server.response.respond
 import io.ktor.server.response.respondRedirect
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
@@ -21,7 +20,7 @@ fun Route.authRoutes(userService: UserService) {
         if (call.sessions.get<UserSession>() != null) {
             call.respondRedirect("/dashboard")
         } else {
-            call.respond(respondTemplate("index"))
+            call.respondTemplateWithFlash("index")
         }
     }
 
@@ -29,7 +28,7 @@ fun Route.authRoutes(userService: UserService) {
         if (call.sessions.get<UserSession>() != null) {
             call.respondRedirect("/dashboard")
         } else {
-            call.respond(respondTemplate("signin"))
+            call.respondTemplateWithFlash("signin")
         }
     }
 
@@ -41,18 +40,16 @@ fun Route.authRoutes(userService: UserService) {
         either {
                 val (token, _) = userService.login(Login(email, password)).bind()
                 call.sessions.set(UserSession(token.value))
-                call.respondRedirect("/dashboard")
+                call.successRedirect("/dashboard", "Signed in successfully.")
             }
-            .mapLeft {
-                call.respond(respondTemplate("signin", mapOf("error" to "Invalid credentials")))
-            }
+            .mapLeft { error -> call.respondTemplate("signin", message = error.toPageMessage()) }
     }
 
     get("/signup") {
         if (call.sessions.get<UserSession>() != null) {
             call.respondRedirect("/dashboard")
         } else {
-            call.respond(respondTemplate("signup"))
+            call.respondTemplateWithFlash("signup")
         }
     }
 
@@ -66,15 +63,13 @@ fun Route.authRoutes(userService: UserService) {
                 val token =
                     userService.register(RegisterUser(username, email, password)).bind().value
                 call.sessions.set(UserSession(token))
-                call.respondRedirect("/dashboard")
+                call.successRedirect("/dashboard", "Account created successfully.")
             }
-            .mapLeft {
-                call.respond(respondTemplate("signup", mapOf("error" to "Registration failed")))
-            }
+            .mapLeft { error -> call.respondTemplate("signup", message = error.toPageMessage()) }
     }
 
     get("/signout") {
         call.sessions.clear<UserSession>()
-        call.respondRedirect("/signin")
+        call.successRedirect("/signin", "You have been signed out.")
     }
 }

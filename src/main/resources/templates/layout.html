@@ -15,5 +15,13 @@
     <div layout:fragment="content"></div>
 </main>
 <script src="/static/js/script.js"></script>
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    const pageMessage = /*[[${message}]]*/ null;
+    if (pageMessage !== null) {
+        showAlert(pageMessage.message, pageMessage.type);
+    }
+    /*]]>*/
+</script>
 </body>
 </html>
