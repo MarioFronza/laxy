@@ -1,0 +1,32 @@
+.alert-box {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 16px 24px;
+    border-radius: 8px;
+    font-size: 16px;
+    z-index: 9999;
+    transition: opacity 0.5s ease-in-out;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.alert-box.success {
+    background-color: #4CAF50;
+    color: white;
+}
+
+.alert-box.error {
+    background-color: #F44336;
+    color: white;
+}
+
+.alert-box.hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.alert-box.show {
+    opacity: 1;
+    pointer-events: auto;
+}

@@ -8,3 +8,14 @@ document.addEventListener("DOMContentLoaded", () => {
         })
     }
 })
+
+function showAlert(message, type = 'success') {
+    const alertBox = document.getElementById('alertBox');
+    alertBox.textContent = message;
+    alertBox.className = `alert-box ${type} show`;
+
+    setTimeout(() => {
+        alertBox.classList.remove('show');
+        alertBox.classList.add('hidden');
+    }, 5000);
+}

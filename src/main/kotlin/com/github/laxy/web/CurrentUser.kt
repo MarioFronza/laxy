@@ -5,7 +5,6 @@ import io.ktor.server.application.ApplicationCall
 import io.ktor.server.auth.Principal
 import io.ktor.server.auth.principal
 import io.ktor.server.response.respondRedirect
-import io.ktor.server.thymeleaf.ThymeleafContent
 import kotlinx.serialization.Serializable
 
 @Serializable data class UserSession(val token: String)
@@ -17,6 +16,3 @@ suspend fun ApplicationCall.currentUserOrRedirect(): CurrentUserId? {
     if (current == null) this.respondRedirect("/signin")
     return current
 }
-
-fun respondTemplate(name: String, data: Map<String, Any> = emptyMap()) =
-    ThymeleafContent(name, data)

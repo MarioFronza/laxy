@@ -20,8 +20,6 @@ import com.github.laxy.util.toBrazilianFormat
 import io.ktor.server.application.call
 import io.ktor.server.auth.authenticate
 import io.ktor.server.request.receiveParameters
-import io.ktor.server.response.respond
-import io.ktor.server.response.respondRedirect
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
 import io.ktor.server.routing.post
@@ -46,9 +44,13 @@ fun Route.quizRoutes(
                                 createdAt = it.createdAt.toBrazilianFormat()
                             )
                         }
-                    call.respond(respondTemplate("dashboard", mapOf("quizzes" to quizzes)))
+                    call.respondTemplate(
+                        "dashboard",
+                        mapOf("quizzes" to quizzes),
+                        call.consumeFlashMessage()
+                    )
                 }
-                .mapLeft { call.respond(respondTemplate("dashboard")) }
+                .mapLeft { call.respondTemplate("dashboard", message = call.consumeFlashMessage()) }
         }
 
         get("/quizzes") {
@@ -63,9 +65,13 @@ fun Route.quizRoutes(
                                 language = it.language,
                             )
                         }
-                    call.respond(respondTemplate("create-quiz", mapOf("subjects" to subjects)))
+                    call.respondTemplate(
+                        "create-quiz",
+                        mapOf("subjects" to subjects),
+                        call.consumeFlashMessage()
+                    )
                 }
-                .mapLeft { call.respondRedirect("/dashboard") }
+                .mapLeft { call.errorRedirect("/dashboard", "Could not load subjects.") }
         }
 
         post("/quizzes") {
@@ -88,9 +94,9 @@ fun Route.quizRoutes(
                         )
                     )
 
-                    call.respondRedirect("/dashboard")
+                    call.successRedirect("/dashboard", "Quiz created successfully.")
                 }
-                .mapLeft { call.respondRedirect("/quizzes") }
+                .mapLeft { error -> call.redirectWithFlash("/quizzes", error.toPageMessage()) }
         }
 
         get("/quizzes/{id}/questions") {
@@ -121,22 +127,21 @@ fun Route.quizRoutes(
                                     }
                             )
                         }
-                    call.respond(
-                        respondTemplate(
-                            "questions",
-                            mapOf("questions" to response, "quizId" to quizId)
-                        )
+
+                    call.respondTemplate(
+                        "questions",
+                        mapOf("questions" to response, "quizId" to quizId),
+                        call.consumeFlashMessage()
                     )
                 }
-                .mapLeft { call.respondRedirect("/dashboard") }
+                .mapLeft { call.errorRedirect("/dashboard", "Failed to load quiz questions.") }
         }
 
         post("/quizzes/{id}/attempt") {
             call.currentUserOrRedirect() ?: return@post
             val quizId = call.parameters["id"]?.toLongOrNull()
-
             if (quizId == null) {
-                call.respondRedirect("/dashboard")
+                call.errorRedirect("/dashboard", "Invalid quiz ID.")
                 return@post
             }
 
@@ -159,22 +164,29 @@ fun Route.quizRoutes(
                         }
 
                     if (attempts.isEmpty()) {
-                        call.respondRedirect("/quizzes/$quizId/questions")
+                        call.errorRedirect(
+                            "/quizzes/$quizId/questions",
+                            "Please select all options."
+                        )
                         return@either Unit
                     }
 
                     quizService.quizAttempt(QuizAttempt(QuizId(quizId), attempts)).bind()
-                    call.respondRedirect("/quizzes/$quizId/questions")
+                    call.successRedirect(
+                        "/quizzes/$quizId/questions",
+                        "Your answers have been submitted."
+                    )
                 }
-                .mapLeft { call.respondRedirect("/quizzes/$quizId/questions") }
+                .mapLeft { error ->
+                    call.redirectWithFlash("/quizzes/$quizId/questions", error.toPageMessage())
+                }
         }
 
         post("/quizzes/{id}") {
             call.currentUserOrRedirect() ?: return@post
-            println(call.parameters)
             val quizId = call.parameters["id"].orEmpty()
             quizService.deleteById(QuizId(quizId.toLong()))
-            call.respondRedirect("/dashboard")
+            call.successRedirect("/dashboard", "Quiz deleted successfully.")
         }
     }
 }
