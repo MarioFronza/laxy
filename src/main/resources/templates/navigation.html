@@ -8,16 +8,18 @@
 </head>
 <body>
 <div layout:fragment="content">
-    <nav class="navbar">
-        <a class="logo" th:href="@{~/dashboard}">Laxy</a>
-        <button class="menu-toggle" id="menuToggle">&#9776;</button>
-        <ul class="nav-links" id="navLinks">
-            <li><a th:href="@{~/quizzes}">Create Quiz</a></li>
-            <li><a class="signout" th:href="@{~/signout}">Sign Out</a></li>
-        </ul>
-    </nav>
-
-    <div layout:fragment="nav-content"></div>
+    <div class="layout-container">
+        <aside class="sidebar">
+            <a class="logo" th:href="@{~/dashboard}">Laxy</a>
+            <nav class="sidebar-nav">
+                <a th:href="@{~/dashboard}">Dashboard</a>
+                <a th:href="@{~/quizzes}">Create Quiz</a>
+                <button id="themeToggle">Toggle Theme</button>
+                <a class="signout" th:href="@{~/signout}">Sign Out</a>
+            </nav>
+        </aside>
+        <div class="main-content" layout:fragment="nav-content"></div>
+    </div>
 
 </div>
 </body>

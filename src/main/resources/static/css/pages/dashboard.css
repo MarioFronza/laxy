@@ -1,7 +1,7 @@
 .dashboard-container {
-    margin-top: 80px;
-    width: 100vw;
+    width: 100%;
     max-width: 800px;
+    margin: 0 auto;
     text-align: center;
     padding-bottom: 50px;
 }

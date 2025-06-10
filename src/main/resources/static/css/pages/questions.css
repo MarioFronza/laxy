@@ -1,7 +1,7 @@
 .quiz-container {
-    margin-top: 80px;
-    width: 100vw;
+    width: 100%;
     max-width: 800px;
+    margin: 0 auto;
     text-align: center;
     padding-bottom: 50px;
 }
@@ -12,7 +12,7 @@ h1 {
 }
 
 .question {
-    background: #1e1e1e;
+    background: var(--surface-color);
     padding: 15px;
     border-radius: 8px;
     margin-bottom: 15px;
@@ -33,7 +33,7 @@ h1 {
 .options label {
     display: flex;
     align-items: center;
-    background: #2a2a2a;
+    background: var(--surface-elevated);
     padding: 10px;
     border-radius: 5px;
     cursor: pointer;
@@ -46,11 +46,11 @@ h1 {
 }
 
 .options label:hover {
-    background: #373737;
+    background: var(--surface-color);
 }
 
 .options input:checked+label {
-    background: #bb86fc;
+    background: var(--accent-color);
     color: white;
 }
 
@@ -63,7 +63,7 @@ h1 {
 }
 
 .delete-quiz {
-    background: #cc4444;
+    background: var(--danger-color);
     display: inline-block;
     padding: 12px 24px;
     color: white;
@@ -84,7 +84,7 @@ h1 {
 }
 
 .incorrect {
-    border: 2px solid #ff5555;
+    border: 2px solid var(--danger-color);
 }
 
 .options input[disabled]+span {

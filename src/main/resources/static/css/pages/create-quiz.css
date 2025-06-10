@@ -12,7 +12,7 @@
     width: 400px;
     max-width: 100%;
     padding: 30px;
-    background: #1e1e1e;
+    background: var(--surface-color);
     border-radius: 10px;
     box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.4);
 }
@@ -32,15 +32,15 @@
 .input-group label {
     font-size: 14px;
     margin-bottom: 5px;
-    color: #b0b0b0;
+    color: var(--text-secondary-color);
 }
 
 .input-group select {
     padding: 12px;
     border-radius: 5px;
-    border: 1px solid #333;
-    background: #2a2a2a;
-    color: #e0e0e0;
+    border: 1px solid var(--surface-elevated);
+    background: var(--surface-elevated);
+    color: var(--text-color);
 }
 
 .input-group textarea {
@@ -49,9 +49,9 @@
     padding: 12px;
     font-size: 18px;
     border-radius: 8px;
-    border: 1px solid #333;
-    background: #2a2a2a;
-    color: #e0e0e0;
+    border: 1px solid var(--surface-elevated);
+    background: var(--surface-elevated);
+    color: var(--text-color);
     resize: none;
 }
 
@@ -65,7 +65,7 @@
 .radio-group label {
     display: flex;
     align-items: center;
-    background: #2a2a2a;
+    background: var(--surface-elevated);
     padding: 8px 12px;
     border-radius: 5px;
     cursor: pointer;
@@ -78,11 +78,11 @@
 }
 
 .radio-group label:hover {
-    background: #373737;
+    background: var(--surface-color);
 }
 
 .radio-group input:checked+label {
-    background: #bb86fc;
+    background: var(--accent-color);
     color: white;
 }
 
@@ -90,7 +90,7 @@
 .input-group textarea:focus,
 .input-group select:focus {
     outline: none;
-    border-color: #bb86fc;
+    border-color: var(--accent-color);
     box-shadow: 0px 0px 8px rgba(187, 134, 252, 0.5);
 }
 

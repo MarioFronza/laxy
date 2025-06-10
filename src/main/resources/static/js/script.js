@@ -1,13 +1,17 @@
-document.addEventListener("DOMContentLoaded", () => {
-    const menuToggle = document.getElementById("menuToggle");
-    const navLinks = document.getElementById("navLinks");
-
-    if(menuToggle) {
-        menuToggle.addEventListener("click", () => {
-            navLinks.classList.toggle("active");
-        })
+document.addEventListener('DOMContentLoaded', () => {
+    const themeToggle = document.getElementById('themeToggle');
+    const stored = localStorage.getItem('theme');
+    if (stored === 'light') {
+        document.body.classList.add('light');
     }
-})
+    if (themeToggle) {
+        themeToggle.addEventListener('click', () => {
+            document.body.classList.toggle('light');
+            const mode = document.body.classList.contains('light') ? 'light' : 'dark';
+            localStorage.setItem('theme', mode);
+        });
+    }
+});
 
 function showAlert(message, type = 'success') {
     const alertBox = document.getElementById('alertBox');

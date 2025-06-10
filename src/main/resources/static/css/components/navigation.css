@@ -1,78 +1,56 @@
-.navbar {
-    width: 100%;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background: #1e1e1e;
+.sidebar {
+    width: var(--sidebar-width);
+    min-height: 100vh;
+    background: var(--surface-color);
     position: fixed;
-    padding: 15px 20px;
-    z-index: 1000;
     top: 0;
     left: 0;
+    padding: 24px 16px;
+    box-shadow: 2px 0 8px rgba(0,0,0,0.2);
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
 }
 
-.navbar .logo {
+.sidebar .logo {
     font-size: 24px;
     font-weight: bold;
-    color: #bb86fc;
+    color: var(--accent-color);
     text-decoration: none;
+    margin-bottom: 8px;
 }
 
-.nav-links {
-    list-style: none;
+.sidebar-nav {
     display: flex;
-    gap: 20px;
+    flex-direction: column;
+    gap: 8px;
+    list-style: none;
 }
 
-.nav-links li {
-    display: inline;
-}
-
-.nav-links a {
-    color: #e0e0e0;
+.sidebar-nav a,
+#themeToggle {
+    padding: 10px;
+    border-radius: 4px;
+    color: var(--text-color);
     text-decoration: none;
-    transition: color 0.3s;
+    background: transparent;
+    border: none;
+    text-align: left;
+    cursor: pointer;
+    transition: background 0.2s;
 }
 
-.nav-links a:hover {
-    color: #bb86fc;
+.sidebar-nav a:hover,
+#themeToggle:hover {
+    background: var(--surface-elevated);
 }
 
 .signout {
-    color: #ff5555 !important;
-    font-weight: bold;
+    color: var(--danger-color);
 }
 
-.signout:hover {
-    color: #ff7777 !important;
-}
-
-.menu-toggle {
-    display: none;
-    font-size: 24px;
-    background: none;
-    color: white;
-    border: none;
-    cursor: pointer;
-}
-
-@media (max-width: 786px) {
-    .nav-links {
-        display: none;
-        flex-direction: column;
-        position: absolute;
-        top: 60px;
-        right: 0;
-        background: #1e1e1e;
-        width: 200px;
-        padding: 10px;
-    }
-
-    .nav-links.active {
-        display: flex;
-    }
-
-    .menu-toggle {
-        display: block;
-    }
+.main-content {
+    margin-left: var(--sidebar-width);
+    padding: 20px;
+    width: calc(100% - var(--sidebar-width));
 }

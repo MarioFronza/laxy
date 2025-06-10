@@ -8,6 +8,26 @@
 @import url("pages/create-quiz.css");
 @import url("pages/questions.css");
 
+:root {
+    --sidebar-width: 220px;
+    --bg-color: #121212;
+    --surface-color: #1e1e1e;
+    --surface-elevated: #2a2a2a;
+    --text-color: #e0e0e0;
+    --text-secondary-color: #b0b0b0;
+    --primary-color: #6200ea;
+    --accent-color: #bb86fc;
+    --danger-color: #ff5555;
+}
+
+body.light {
+    --bg-color: #fafafa;
+    --surface-color: #ffffff;
+    --surface-elevated: #f0f0f0;
+    --text-color: #333333;
+    --text-secondary-color: #666666;
+}
+
 * {
     margin: 0;
     padding: 0;
@@ -26,8 +46,8 @@ body {
     flex-direction: column;
     align-items: center;
     line-height: 1.6;
-    background: #121212;
-    color: #e0e0e0;
+    background: var(--bg-color);
+    color: var(--text-color);
     opacity: 0;
     animation: fadeIn 0.8s ease-in-out forwards;
     overflow-x: hidden;
@@ -50,10 +70,10 @@ body {
 }
 
 ::-webkit-scrollbar-track {
-    background: #222;
+    background: var(--surface-color);
 }
 
 ::-webkit-scrollbar-thumb {
-    background: #bb86fc;
+    background: var(--accent-color);
     border-radius: 4px;
 }
