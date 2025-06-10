@@ -81,6 +81,7 @@ dependencies {
     implementation(libs.sqldelight.jdbc)
     implementation(libs.hikari)
     implementation(libs.postgresql)
+    implementation(libs.flyway.core)
     implementation(libs.bundles.cohort)
     implementation(libs.openai)
     implementation(libs.thymeleaf.layout.dialect)

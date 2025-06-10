@@ -21,6 +21,7 @@ import com.github.laxy.service.subjectService
 import com.github.laxy.service.userService
 import com.sksamuel.cohort.HealthCheckRegistry
 import com.sksamuel.cohort.hikari.HikariConnectionsHealthCheck
+import com.github.laxy.env.flyway
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -39,6 +40,7 @@ suspend fun ResourceScope.dependencies(env: Env): Dependencies {
     val coroutineScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
     otel(env.otel)
     val hikari = hikari(env.dataSource)
+    flyway(hikari)
     val openAI = env.openAI
     val sqlDelight = sqlDelight(hikari)
 

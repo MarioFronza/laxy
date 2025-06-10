@@ -25,6 +25,7 @@ thymeleaf-layout-dialect = "3.4.0"
 otel-version = "1.48.0"
 otel-instrumentation-version-alpha = "2.14.0-alpha"
 otel-instrumentation-version = "2.14.0"
+flyway = "9.22.0"
 
 [libraries]
 arrow-core = { module = "io.arrow-kt:arrow-core", version.ref = "arrow" }
@@ -73,6 +74,7 @@ cohort-core = { module = "com.sksamuel.cohort:cohort-core", version.ref = "cohor
 cohort-hikari = { module = "com.sksamuel.cohort:cohort-hikari", version.ref = "cohort" }
 openai = { module = "com.cjcrafter:openai", version.ref = "openai" }
 thymeleaf-layout-dialect = { module = "nz.net.ultraq.thymeleaf:thymeleaf-layout-dialect", version.ref = "thymeleaf-layout-dialect" }
+flyway-core = { module = "org.flywaydb:flyway-core", version.ref = "flyway" }
 opentelemetry-api = { module = "io.opentelemetry:opentelemetry-api", version.ref = "otel-version" }
 opentelemetry-sdk = { module = "io.opentelemetry:opentelemetry-sdk", version.ref = "otel-version" }
 opentelemetry-extension-kotlin = { module = "io.opentelemetry:opentelemetry-extension-kotlin", version.ref = "otel-version" }

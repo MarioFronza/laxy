@@ -39,7 +39,6 @@ suspend fun ResourceScope.hikari(env: Env.DataSource) = autoCloseable {
 
 suspend fun ResourceScope.sqlDelight(dataSource: DataSource): SqlDelight {
     val driver = closeable { dataSource.asJdbcDriver() }
-    SqlDelight.Schema.create(driver)
     return SqlDelight(
         driver,
         Languages.Adapter(languageIdAdapter),
