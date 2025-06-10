@@ -11,6 +11,7 @@ import com.github.laxy.persistence.UserId
 import com.github.laxy.validation.InvalidEmail
 import com.github.laxy.validation.InvalidPassword
 import com.github.laxy.validation.InvalidUsername
+import com.github.laxy.validation.InvalidThemeDescription
 import io.github.nefilim.kjwt.JWSHMAC512Algorithm
 import io.github.nefilim.kjwt.JWT
 import io.kotest.assertions.arrow.core.shouldBeLeft
@@ -231,6 +232,172 @@ class UserServiceSpec :
                     val res = userService.update(Update(token.id(), null, null, null))
                     res shouldBeLeft
                         EmptyUpdate("Cannot update user with ${token.id()} with only null values")
+                }
+
+                "given an empty username, should return IncorrectInput when calls update" {
+                    val token =
+                        userService
+                            .register(RegisterUser(validUsername, validEmail, validPassword))
+                            .shouldBeRight()
+                    val res = userService.update(Update(token.id(), "", null, null))
+                    val errors =
+                        nonEmptyListOf("Cannot be blank", "is too short (minimum is 1 characters)")
+                    val expected = IncorrectInput(InvalidUsername(errors))
+                    res shouldBeLeft expected
+                }
+
+                "given a too long username, should return IncorrectInput when calls update" {
+                    val token =
+                        userService
+                            .register(RegisterUser(validUsername, validEmail, validPassword))
+                            .shouldBeRight()
+                    val name = "this is a too long username you should change too a shorter one"
+                    val res = userService.update(Update(token.id(), name, null, null))
+                    val errors = nonEmptyListOf("is too long (maximum is 25 characters)")
+                    val expected = IncorrectInput(InvalidUsername(errors))
+                    res shouldBeLeft expected
+                }
+
+                "given an empty email, should return IncorrectInput when calls update" {
+                    val token =
+                        userService
+                            .register(RegisterUser(validUsername, validEmail, validPassword))
+                            .shouldBeRight()
+                    val res = userService.update(Update(token.id(), null, "", null))
+                    val errors = nonEmptyListOf("Cannot be blank", "'' is invalid email")
+                    val expected = IncorrectInput(InvalidEmail(errors))
+                    res shouldBeLeft expected
+                }
+
+                "given an invalid email, should return IncorrectInput when calls update" {
+                    val token =
+                        userService
+                            .register(RegisterUser(validUsername, validEmail, validPassword))
+                            .shouldBeRight()
+                    val res = userService.update(Update(token.id(), null, "AAAA", null))
+                    val errors = nonEmptyListOf("'AAAA' is invalid email")
+                    val expected = IncorrectInput(InvalidEmail(errors))
+                    res shouldBeLeft expected
+                }
+
+                "given a too long email, should return IncorrectInput when calls update" {
+                    val token =
+                        userService
+                            .register(RegisterUser(validUsername, validEmail, validPassword))
+                            .shouldBeRight()
+                    val email = "${(0..340).joinToString("") { "A" }}@domain.com"
+                    val res = userService.update(Update(token.id(), null, email, null))
+                    val errors = nonEmptyListOf("is too long (maximum is 350 characters)")
+                    val expected = IncorrectInput(InvalidEmail(errors))
+                    res shouldBeLeft expected
+                }
+
+                "given an empty password, should return IncorrectInput when calls update" {
+                    val token =
+                        userService
+                            .register(RegisterUser(validUsername, validEmail, validPassword))
+                            .shouldBeRight()
+                    val res = userService.update(Update(token.id(), null, null, ""))
+                    val errors =
+                        nonEmptyListOf("Cannot be blank", "is too short (minimum is 8 characters)")
+                    val expected = IncorrectInput(InvalidPassword(errors))
+                    res shouldBeLeft expected
+                }
+
+                "given a too long password, should return IncorrectInput when calls update" {
+                    val token =
+                        userService
+                            .register(RegisterUser(validUsername, validEmail, validPassword))
+                            .shouldBeRight()
+                    val password = (0..100).joinToString("") { "A" }
+                    val res = userService.update(Update(token.id(), null, null, password))
+                    val errors = nonEmptyListOf("is too long (maximum is 100 characters)")
+                    val expected = IncorrectInput(InvalidPassword(errors))
+                    res shouldBeLeft expected
+                }
+
+                "given a valid username, should return Success when calls update" {
+                    val token =
+                        userService
+                            .register(RegisterUser(validUsername, validEmail, validPassword))
+                            .shouldBeRight()
+                    val newUsername = "newUsername"
+                    val res = userService.update(Update(token.id(), newUsername, null, null)).shouldBeRight()
+                    assert(res.username == newUsername)
+                    assert(res.email == validEmail)
+                }
+
+                "given a valid email, should return Success when calls update" {
+                    val token =
+                        userService
+                            .register(RegisterUser(validUsername, validEmail, validPassword))
+                            .shouldBeRight()
+                    val newEmail = "other@domain.com"
+                    val res = userService.update(Update(token.id(), null, newEmail, null)).shouldBeRight()
+                    assert(res.username == validUsername)
+                    assert(res.email == newEmail)
+                }
+
+                "given a valid password, should return Success when calls update" {
+                    val token =
+                        userService
+                            .register(RegisterUser(validUsername, validEmail, validPassword))
+                            .shouldBeRight()
+                    val newPassword = "987654321"
+                    val res = userService.update(Update(token.id(), null, null, newPassword)).shouldBeRight()
+                    assert(res.username == validUsername)
+                    assert(res.email == validEmail)
+
+                    userService
+                        .login(Login(validEmail, newPassword))
+                        .shouldBeRight()
+                }
+            }
+
+        "getUser" -
+            {
+                "given a valid id, should return Success when calls getUser(userId)" {
+                    val token =
+                        userService
+                            .register(RegisterUser(validUsername, validEmail, validPassword))
+                            .shouldBeRight()
+                    val res = userService.getUser(token.id()).shouldBeRight()
+                    assert(res.username == validUsername)
+                    assert(res.email == validEmail)
+                }
+
+                "given a valid username, should return Success when calls getUser(username)" {
+                    userService
+                        .register(RegisterUser(validUsername, validEmail, validPassword))
+                        .shouldBeRight()
+                    val res = userService.getUser(validUsername).shouldBeRight()
+                    assert(res.username == validUsername)
+                    assert(res.email == validEmail)
+                }
+            }
+
+        "createTheme" -
+            {
+                "given an empty description, should return IncorrectInput when calls createTheme" {
+                    val token =
+                        userService
+                            .register(RegisterUser(validUsername, validEmail, validPassword))
+                            .shouldBeRight()
+                    val res = userService.createTheme(CreateTheme(token.id(), ""))
+                    val errors =
+                        nonEmptyListOf("Cannot be blank", "is too short (minimum is 10 characters)")
+                    val expected = IncorrectInput(InvalidThemeDescription(errors))
+                    res shouldBeLeft expected
+                }
+
+                "given a valid description, should return Success when calls createTheme" {
+                    val token =
+                        userService
+                            .register(RegisterUser(validUsername, validEmail, validPassword))
+                            .shouldBeRight()
+                    val description = "my awesome theme"
+                    val res = userService.createTheme(CreateTheme(token.id(), description)).shouldBeRight()
+                    assert(res.description == description)
                 }
             }
     })
