@@ -117,7 +117,7 @@ fun userPersistence(
         override suspend fun select(userId: UserId): Either<DomainError, UserInfo> = either {
             val userInfo =
                 usersQueries
-                    .selectById(userId) { email, username, _, _ -> UserInfo(username, email) }
+                    .selectById(userId) { username, email, _, _ -> UserInfo(username, email) }
                     .executeAsOneOrNull()
             ensureNotNull(userInfo) { UserNotFound("userId=$userId") }
         }
@@ -152,7 +152,7 @@ fun userPersistence(
             val info =
                 usersQueries.transactionWithResult {
                     usersQueries.selectById(userId).executeAsOneOrNull()?.let {
-                        (oldEmail, oldUsername, salt, oldPassword) ->
+                        (oldUsername, oldEmail, salt, oldPassword) ->
                         val newPassword = password?.let { generateKey(it, salt) } ?: oldPassword
                         val newEmail = email ?: oldEmail
                         val newUsername = username ?: oldUsername
