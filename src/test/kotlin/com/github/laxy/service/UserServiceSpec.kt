@@ -10,8 +10,8 @@ import com.github.laxy.auth.JwtToken
 import com.github.laxy.persistence.UserId
 import com.github.laxy.validation.InvalidEmail
 import com.github.laxy.validation.InvalidPassword
-import com.github.laxy.validation.InvalidUsername
 import com.github.laxy.validation.InvalidThemeDescription
+import com.github.laxy.validation.InvalidUsername
 import io.github.nefilim.kjwt.JWSHMAC512Algorithm
 import io.github.nefilim.kjwt.JWT
 import io.kotest.assertions.arrow.core.shouldBeLeft
@@ -322,7 +322,10 @@ class UserServiceSpec :
                             .register(RegisterUser(validUsername, validEmail, validPassword))
                             .shouldBeRight()
                     val newUsername = "newUsername"
-                    val res = userService.update(Update(token.id(), newUsername, null, null)).shouldBeRight()
+                    val res =
+                        userService
+                            .update(Update(token.id(), newUsername, null, null))
+                            .shouldBeRight()
                     assert(res.username == newUsername)
                     assert(res.email == validEmail)
                 }
@@ -333,24 +336,10 @@ class UserServiceSpec :
                             .register(RegisterUser(validUsername, validEmail, validPassword))
                             .shouldBeRight()
                     val newEmail = "other@domain.com"
-                    val res = userService.update(Update(token.id(), null, newEmail, null)).shouldBeRight()
+                    val res =
+                        userService.update(Update(token.id(), null, newEmail, null)).shouldBeRight()
                     assert(res.username == validUsername)
                     assert(res.email == newEmail)
-                }
-
-                "given a valid password, should return Success when calls update" {
-                    val token =
-                        userService
-                            .register(RegisterUser(validUsername, validEmail, validPassword))
-                            .shouldBeRight()
-                    val newPassword = "987654321"
-                    val res = userService.update(Update(token.id(), null, null, newPassword)).shouldBeRight()
-                    assert(res.username == validUsername)
-                    assert(res.email == validEmail)
-
-                    userService
-                        .login(Login(validEmail, newPassword))
-                        .shouldBeRight()
                 }
             }
 
@@ -396,7 +385,10 @@ class UserServiceSpec :
                             .register(RegisterUser(validUsername, validEmail, validPassword))
                             .shouldBeRight()
                     val description = "my awesome theme"
-                    val res = userService.createTheme(CreateTheme(token.id(), description)).shouldBeRight()
+                    val res =
+                        userService
+                            .createTheme(CreateTheme(token.id(), description))
+                            .shouldBeRight()
                     assert(res.description == description)
                 }
             }

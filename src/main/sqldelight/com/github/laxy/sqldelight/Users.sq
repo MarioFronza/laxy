@@ -13,17 +13,17 @@ CREATE TABLE IF NOT EXISTS users (
 CREATE INDEX IF NOT EXISTS idx_user_email ON users(email);
 
 selectByEmail:
-SELECT email, username
+SELECT username, email
 FROM users
 WHERE email = :email;
 
 selectByUsername:
-SELECT email, username
+SELECT username, email
 FROM users
 WHERE username = :username;
 
 selectById:
-SELECT email, username, salt, hashed_password
+SELECT username, email, salt, hashed_password
 FROM users
 WHERE id = :id;
 
