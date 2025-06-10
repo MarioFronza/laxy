@@ -8,22 +8,14 @@
 </head>
 <body>
 <div layout:fragment="content">
-    <section class="home-wrapper">
-        <div class="home-container">
-            <h1>Level up your language skills with <span class="highlight">Laxy</span></h1>
-            <p>Generate AI-powered quizzes tailored to your interests.</p>
-            <a class="button" th:href="signin">Get Started</a>
-        </div>
+    <section class="hero">
+        <h1>Level up your language skills with <span class="highlight">Laxy</span></h1>
+        <p>Generate AI-powered quizzes tailored to your interests.</p>
+        <a class="button" th:href="signin">Get Started</a>
     </section>
 
-    <section class="about">
-        <div class="about-image">
-            <img src="https://via.placeholder.com/600x350.png?text=Laxy+Preview" alt="Laxy preview">
-        </div>
-        <div class="about-content">
-            <h2>Instant Quizzes at Your Fingertips</h2>
-            <p>Create, practice and track progress all in one place.</p>
-        </div>
+    <section class="showcase">
+        <img src="https://via.placeholder.com/800x450.png?text=Laxy+App" alt="Laxy preview">
     </section>
 
     <section class="features">
@@ -38,6 +30,27 @@
         <div class="feature">
             <h2>Progress Tracking</h2>
             <p>Review past attempts and improve with every quiz.</p>
+        </div>
+    </section>
+
+    <section class="workflow">
+        <h2>How it works</h2>
+        <div class="steps">
+            <div class="step">
+                <div class="step-number">1</div>
+                <h3>Pick a Topic</h3>
+                <p>Select from trending themes or add your own.</p>
+            </div>
+            <div class="step">
+                <div class="step-number">2</div>
+                <h3>Take the Quiz</h3>
+                <p>Answer questions generated on the fly by Laxy.</p>
+            </div>
+            <div class="step">
+                <div class="step-number">3</div>
+                <h3>Track Progress</h3>
+                <p>See results instantly and watch your skills grow.</p>
+            </div>
         </div>
     </section>
 
