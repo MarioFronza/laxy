@@ -7,6 +7,17 @@
     <meta charset="UTF-8">
     <meta content="width=device-width, initial-scale=1" name="viewport">
     <title th:text="${title}">Laxy App</title>
+    <meta name="color-scheme" content="light dark">
+    <script>
+        (function () {
+            try {
+                var stored = localStorage.getItem('theme');
+                var systemDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+                var theme = stored || (systemDark ? 'dark' : 'light');
+                document.documentElement.setAttribute('data-theme', theme);
+            } catch (e) { /* noop */ }
+        })();
+    </script>
     <link href="/static/css/styles.css" rel="stylesheet">
 </head>
 <body>

@@ -1,58 +1,49 @@
 .navbar {
-    width: 100%;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background: #1e1e1e;
     position: fixed;
-    padding: 15px 20px;
+    top: 0; left: 0; right: 0;
     z-index: 1000;
-    top: 0;
-    left: 0;
+    background: var(--bg-elev);
+    border-bottom: 1px solid var(--border);
+}
+
+.navbar-inner {
+    height: 64px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 0 16px;
 }
 
 .navbar .logo {
-    font-size: 24px;
-    font-weight: bold;
-    color: #bb86fc;
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text);
     text-decoration: none;
 }
+
+.nav-actions { display: flex; align-items: center; gap: 10px; }
 
 .nav-links {
     list-style: none;
     display: flex;
-    gap: 20px;
+    align-items: center;
+    gap: 16px;
 }
+.nav-links a { color: var(--text); text-decoration: none; }
+.nav-links a:hover { color: var(--primary); }
 
-.nav-links li {
-    display: inline;
-}
+.signout { color: var(--danger) !important; font-weight: 600; }
+.signout:hover { opacity: 0.9; }
 
-.nav-links a {
-    color: #e0e0e0;
-    text-decoration: none;
-    transition: color 0.3s;
-}
-
-.nav-links a:hover {
-    color: #bb86fc;
-}
-
-.signout {
-    color: #ff5555 !important;
-    font-weight: bold;
-}
-
-.signout:hover {
-    color: #ff7777 !important;
-}
-
-.menu-toggle {
+.menu-toggle, .theme-toggle {
     display: none;
-    font-size: 24px;
-    background: none;
-    color: white;
-    border: none;
+    font-size: 20px;
+    background: transparent;
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 6px 10px;
     cursor: pointer;
 }
 
@@ -61,18 +52,16 @@
         display: none;
         flex-direction: column;
         position: absolute;
-        top: 60px;
-        right: 0;
-        background: #1e1e1e;
-        width: 200px;
+        top: 64px; right: 12px;
+        background: var(--bg-elev);
+        border: 1px solid var(--border);
+        border-radius: 12px;
         padding: 10px;
+        box-shadow: var(--card-shadow);
     }
-
-    .nav-links.active {
-        display: flex;
-    }
-
-    .menu-toggle {
-        display: block;
-    }
+    .nav-links.active { display: flex; }
+    .menu-toggle { display: inline-flex; }
 }
+
+/* Show theme toggle on all viewports */
+.theme-toggle { display: inline-flex; align-items: center; gap: 6px; }

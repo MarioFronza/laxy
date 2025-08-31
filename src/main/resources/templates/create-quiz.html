@@ -10,12 +10,12 @@
 <body>
 <div layout:fragment="nav-content">
     <div class="form-wrapper">
-        <div class="form-container">
+        <div class="form-container card">
             <h1>Create Quiz</h1>
             <form method="post" th:action="quizzes">
                 <div class="input-group">
                     <label for="subject">Select Subject</label>
-                    <select id="subject" name="subjectId">
+                    <select class="select" id="subject" name="subjectId">
                         <div th:each="subject: ${subjects}">
                             <option th:name="subjectId" th:text="${subject.name}" th:value="${subject.id}"></option>
                         </div>
@@ -24,7 +24,7 @@
 
                 <div class="input-group">
                     <label>
-                        <textarea
+                        <textarea class="textarea"
                                 name="theme"
                                 placeholder="Something you like, work with, or are interested in. Example: 'Space Exploration', 'Artificial Intelligence', 'Medieval History'."
                                 required></textarea>
@@ -33,16 +33,10 @@
 
                 <div class="input-group">
                     <label>Total Questions</label>
-                    <div class="radio-group">
-                        <label>
-                            <input name="totalQuestions" required type="radio" value="5"> 5
-                        </label>
-                        <label>
-                            <input name="totalQuestions" type="radio" value="10"> 10
-                        </label>
-                        <label>
-                            <input name="totalQuestions" type="radio" value="15"> 15
-                        </label>
+                    <div class="radio-group chip-group">
+                        <label class="chip"><input name="totalQuestions" required type="radio" value="5"><span>5</span></label>
+                        <label class="chip"><input name="totalQuestions" type="radio" value="10"><span>10</span></label>
+                        <label class="chip"><input name="totalQuestions" type="radio" value="15"><span>15</span></label>
                     </div>
                 </div>
 

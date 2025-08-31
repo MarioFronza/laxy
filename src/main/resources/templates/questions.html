@@ -9,7 +9,7 @@
 <body>
 <div layout:fragment="nav-content">
     <div class="quiz-container">
-        <h1>Questions</h1>
+        <h1 class="page-title">Questions</h1>
         <div class="quiz-actions">
             <form method="post" th:action="@{~/quizzes/{id}/attempt(id=${quizId})}">
                 <div class="question"
@@ -34,7 +34,7 @@
                 <button class="button" type="submit">Submit Quiz</button>
             </form>
             <form method="post" th:action="@{~/quizzes/{id}(id=${quizId})}">
-                <button class="delete-quiz"
+                <button class="button danger"
                         type="submit">
                     Remove Quiz
                 </button>

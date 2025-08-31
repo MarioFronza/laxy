@@ -1,41 +1,54 @@
 # Laxy
 
-Laxy is a playful project that combines AI and backend development to generate educational quizzes. It's designed to
-help users practice English through GPT-generated quizzes based on selected themes and subjects. While currently focused
-on English, it's built to support other languages in the future.
-
-## Project Goal
-
-The primary goal is to explore how to integrate modern backend technologies with AI services in a clean and scalable
-architecture. It serves as a learning platform for:
-
-- Structuring production-grade Kotlin applications
-- Integrating with OpenAI APIs
-- Leveraging functional programming patterns
-- Practicing observability and clean architecture
+AI‑assisted quiz generator built with Kotlin + Ktor. Users pick a language/subject, quizzes are generated via OpenAI and stored using SQLDelight. Includes a simple HTML UI (Thymeleaf) and observability via OpenTelemetry.
 
 ## Features
+- Auth (JWT), subjects/languages, quiz creation and attempts
+- Ktor server with typed routes and templates
+- SQLDelight schema and queries, HikariCP, Postgres
+- Test suite with Kotest and Testcontainers
 
-- User registration and authentication
-- Language and subject selection
-- Quiz creation using OpenAI completions
-- GPT response parsing and persistence
-- Dynamic HTML frontend with templating
+## Tech Stack
+- Kotlin 2.x, Ktor 2.x, Arrow, Kotlinx Serialization
+- SQLDelight, HikariCP, PostgreSQL
+- OpenAI client, OpenTelemetry, Logback
+- Gradle (Kotlin DSL), Detekt, Spotless, Kover
 
-## Tech Overview
+## Quick Start
+Prereqs: JDK 21, Docker (for tests), Git.
 
-- **Kotlin** + **Ktor** for the backend
-- **SQLDelight** for typesafe database access
-- **OpenAI GPT** for quiz generation
-- **Arrow** for functional constructs
-- **OpenTelemetry** for tracing and metrics
-- **Kotest** for tests
-- **Docker & Docker Compose** for containerization
-
-## Running
-
-To run locally:
-
+Build and run locally:
 ```bash
-./gradlew build
-docker-compose up
+./gradlew build            # compile, lint (detekt), test
+./gradlew run              # start server (http://localhost:8080)
+```
+
+Config via environment variables (defaults in `src/main/kotlin/com/github/laxy/env/Env.kt`):
+`POSTGRES_URL`, `POSTGRES_USERNAME`, `POSTGRES_PASSWORD`, `OPENAI_TOKEN`, `JWT_*`, `OTEL_*`.
+
+## Testing & Quality
+```bash
+./gradlew test             # runs Kotest (requires Docker for Testcontainers)
+./gradlew koverHtmlReport  # open build/reports/kover/html/index.html
+./gradlew spotlessApply    # format
+./gradlew detekt           # lint
+```
+
+## Docker
+Build and run the container image locally:
+```bash
+docker build -t laxy-app:local .
+docker run --rm -p 8080:8080 \
+  -e POSTGRES_URL="jdbc:postgresql://host.docker.internal:5432/laxy-database" \
+  -e POSTGRES_USERNAME=postgres -e POSTGRES_PASSWORD=postgres \
+  laxy-app:local
+```
+
+## Project Structure
+- `src/main/kotlin/com/github/laxy/` – application code (routes, services, persistence, env)
+- `src/main/resources/` – templates (Thymeleaf), static assets, logging
+- `src/main/sqldelight/` – SQLDelight schema and queries
+- `src/test/kotlin/` – tests (`*Spec.kt`)
+
+## Contributing
+See AGENTS.md for coding style, commands, testing, and PR guidelines. PR templates are provided under `.github/PULL_REQUEST_TEMPLATE/`.

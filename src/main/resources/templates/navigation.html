@@ -9,15 +9,20 @@
 <body>
 <div layout:fragment="content">
     <nav class="navbar">
-        <a class="logo" th:href="@{~/dashboard}">Laxy</a>
-        <button class="menu-toggle" id="menuToggle">&#9776;</button>
-        <ul class="nav-links" id="navLinks">
-            <li><a th:href="@{~/quizzes}">Create Quiz</a></li>
-            <li><a class="signout" th:href="@{~/signout}">Sign Out</a></li>
-        </ul>
+        <div class="navbar-inner container">
+            <a class="logo" th:href="@{~/dashboard}">Laxy</a>
+            <div class="nav-actions">
+                <button aria-label="Toggle menu" class="menu-toggle" id="menuToggle">☰</button>
+                <button aria-label="Toggle theme" class="theme-toggle" id="themeToggle">🌗</button>
+                <ul class="nav-links" id="navLinks">
+                    <li><a th:href="@{~/quizzes}">Create Quiz</a></li>
+                    <li><a class="signout" th:href="@{~/signout}">Sign Out</a></li>
+                </ul>
+            </div>
+        </div>
     </nav>
 
-    <div layout:fragment="nav-content"></div>
+    <div class="container page" layout:fragment="nav-content"></div>
 
 </div>
 </body>

@@ -39,7 +39,7 @@ class DefaultGptAIService(
         }
 
     companion object {
-        private const val MODEL = "gpt-4.1-mini"
+        private const val MODEL = "gpt-4o-mini"
     }
 }
 

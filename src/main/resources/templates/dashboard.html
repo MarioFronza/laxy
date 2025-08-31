@@ -9,9 +9,9 @@
 <body>
 <div layout:fragment="nav-content">
     <div class="dashboard-container">
-        <h1>Your Quizzes</h1>
+        <h1 class="page-title">Your Quizzes</h1>
         <div class="quiz-list">
-            <div class="quiz-item" th:classappend="${quiz.status}"
+            <div class="quiz-item card" th:classappend="${quiz.status}"
                  th:each="quiz: ${quizzes}">
                 <a class="quiz-link" th:href="@{~/quizzes/{quizId}/questions(quizId=${quiz.id})}">
                     <div class="quiz-details">
@@ -19,7 +19,7 @@
                         <p th:text="${quiz.totalQuestions} + ' ' + questions"></p>
                         <p th:text="${quiz.createdAt}"></p>
                     </div>
-                    <span class="quiz-status" th:text="${quiz.status}"></span>
+                    <span class="quiz-status muted" th:text="${quiz.status}"></span>
                 </a>
             </div>
         </div>
