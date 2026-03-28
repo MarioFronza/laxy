@@ -13,8 +13,9 @@ import kotlinx.coroutines.withContext
 
 val tracer: Tracer = GlobalOpenTelemetry.getTracer("coroutine")
 
-fun <E, A> Either<E, A>.onLeftRecordSpan(span: Span): Either<E, A> =
-    onLeft { span.setStatus(StatusCode.ERROR) }
+fun <E, A> Either<E, A>.onLeftRecordSpan(span: Span): Either<E, A> = onLeft {
+    span.setStatus(StatusCode.ERROR)
+}
 
 suspend fun <T> withSpan(
     spanName: String,

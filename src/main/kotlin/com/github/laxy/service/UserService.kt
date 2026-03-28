@@ -50,34 +50,37 @@ fun userService(persistence: UserPersistence, jwtService: JwtService) =
         override suspend fun register(input: RegisterUser): Either<DomainError, JwtToken> =
             withSpan("$spanPrefix.register") { span ->
                 either {
-                    val (username, email, password) = input.validate().bind()
-                    val userId = persistence.insert(username, email, password).bind()
-                    span.setAttribute("user.id", userId.serial)
-                    jwtService.generateJwtToken(userId).bind()
-                }.onLeftRecordSpan(span)
+                        val (username, email, password) = input.validate().bind()
+                        val userId = persistence.insert(username, email, password).bind()
+                        span.setAttribute("user.id", userId.serial)
+                        jwtService.generateJwtToken(userId).bind()
+                    }
+                    .onLeftRecordSpan(span)
             }
 
         override suspend fun login(input: Login): Either<DomainError, Pair<JwtToken, UserInfo>> =
             withSpan("$spanPrefix.login") { span ->
                 either {
-                    val (email, password) = input.validate().bind()
-                    val (userId, info) = persistence.verifyPassword(email, password).bind()
-                    span.setAttribute("user.id", userId.serial)
-                    val token = jwtService.generateJwtToken(userId).bind()
-                    Pair(token, info)
-                }.onLeftRecordSpan(span)
+                        val (email, password) = input.validate().bind()
+                        val (userId, info) = persistence.verifyPassword(email, password).bind()
+                        span.setAttribute("user.id", userId.serial)
+                        val token = jwtService.generateJwtToken(userId).bind()
+                        Pair(token, info)
+                    }
+                    .onLeftRecordSpan(span)
             }
 
         override suspend fun update(input: Update): Either<DomainError, UserInfo> =
             withSpan("$spanPrefix.update") { span ->
                 span.setAttribute("user.id", input.userId.serial)
                 either {
-                    val (userId, username, email, password) = input.validate().bind()
-                    ensure(email != null || username != null) {
-                        EmptyUpdate("Cannot update user with $userId with only null values")
+                        val (userId, username, email, password) = input.validate().bind()
+                        ensure(email != null || username != null) {
+                            EmptyUpdate("Cannot update user with $userId with only null values")
+                        }
+                        persistence.update(userId, username, email, password).bind()
                     }
-                    persistence.update(userId, username, email, password).bind()
-                }.onLeftRecordSpan(span)
+                    .onLeftRecordSpan(span)
             }
 
         override suspend fun getUser(userId: UserId): Either<DomainError, UserInfo> =
@@ -95,11 +98,12 @@ fun userService(persistence: UserPersistence, jwtService: JwtService) =
         override suspend fun createTheme(input: CreateTheme): Either<DomainError, UserThemeInfo> =
             withSpan("$spanPrefix.createTheme") { span ->
                 either {
-                    val (userId, description) = input.validate().bind()
-                    span.setAttribute("user.id", userId.serial)
-                    persistence.setCurrent(userId, isCurrent = false)
-                    val theme = persistence.insertTheme(userId, description)
-                    theme.bind()
-                }.onLeftRecordSpan(span)
+                        val (userId, description) = input.validate().bind()
+                        span.setAttribute("user.id", userId.serial)
+                        persistence.setCurrent(userId, isCurrent = false)
+                        val theme = persistence.insertTheme(userId, description)
+                        theme.bind()
+                    }
+                    .onLeftRecordSpan(span)
             }
     }

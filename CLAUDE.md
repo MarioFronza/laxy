@@ -62,3 +62,7 @@ route/ (Ktor handlers) → service/ (business logic, returns Either) → persist
 **Auth:** JWT tokens via `kjwt`. Auth logic lives in `auth/`.
 
 **Frontend:** Server-side HTML via Thymeleaf configured in `web/`.
+
+## Workflow
+
+Always run `./gradlew spotlessApply` before committing to ensure consistent formatting.
