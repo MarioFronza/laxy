@@ -1,5 +1,6 @@
 package com.github.laxy.util
 
+import arrow.core.Either
 import io.opentelemetry.api.GlobalOpenTelemetry
 import io.opentelemetry.api.trace.Span
 import io.opentelemetry.api.trace.SpanBuilder
@@ -11,6 +12,9 @@ import kotlin.coroutines.EmptyCoroutineContext
 import kotlinx.coroutines.withContext
 
 val tracer: Tracer = GlobalOpenTelemetry.getTracer("coroutine")
+
+fun <E, A> Either<E, A>.onLeftRecordSpan(span: Span): Either<E, A> =
+    onLeft { span.setStatus(StatusCode.ERROR) }
 
 suspend fun <T> withSpan(
     spanName: String,
