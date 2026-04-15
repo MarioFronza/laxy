@@ -1,0 +1,50 @@
+services:
+  database:
+    image: postgres:16
+    container_name: laxy-database
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: laxy-database
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ../config/sql/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d laxy-database"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  laxy-app:
+    profiles: [app]
+    build:
+      context: ../
+    container_name: laxy-app
+    hostname: laxy
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      POSTGRES_URL: jdbc:postgresql://database:5432/laxy-database
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-lgtm:4317
+    depends_on:
+      database:
+        condition: service_healthy
+      otel-lgtm:
+        condition: service_started
+
+  otel-lgtm:
+    profiles: [observability]
+    image: grafana/otel-lgtm:0.8.1
+    container_name: otel-lgtm
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+      - "4317:4317"
+      - "4318:4318"
+
+volumes:
+  postgres_data:
