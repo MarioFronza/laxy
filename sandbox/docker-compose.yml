@@ -11,7 +11,6 @@ services:
       POSTGRES_DB: laxy-database
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ../config/sql/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres -d laxy-database"]
       interval: 5s
@@ -29,12 +28,11 @@ services:
       - "8080:8080"
     environment:
       POSTGRES_URL: jdbc:postgresql://database:5432/laxy-database
+      OTEL_ENABLED: "true"
       OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-lgtm:4317
     depends_on:
       database:
         condition: service_healthy
-      otel-lgtm:
-        condition: service_started
 
   otel-lgtm:
     profiles: [observability]
