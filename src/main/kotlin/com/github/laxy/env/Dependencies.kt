@@ -37,7 +37,7 @@ class Dependencies(
 
 suspend fun ResourceScope.dependencies(env: Env): Dependencies {
     val coroutineScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
-    otel(env.otel)
+    if (env.otel.enabled) otel(env.otel)
     val hikari = hikari(env.dataSource)
     val openAI = env.openAI
     val sqlDelight = sqlDelight(hikari)

@@ -45,6 +45,7 @@ data class Env(
     )
 
     data class OpenTelemetry(
+        val enabled: Boolean = getenv("OTEL_ENABLED")?.toBooleanStrictOrNull() ?: false,
         val endpoint: String = getenv("OTEL_EXPORTER_ENDPOINT") ?: OTEL_EXPORTER_ENDPOINT,
         val serviceName: String = getenv("OTEL_SERVICE_NAME") ?: "laxy",
         val metricIntervalSeconds: Long =
