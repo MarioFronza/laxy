@@ -10,6 +10,9 @@ import com.github.laxy.persistence.UserId
 import com.github.laxy.persistence.UserPersistence
 import com.github.laxy.util.logger
 import com.github.laxy.util.onLeftRecordSpan
+import com.github.laxy.util.resultAttributes
+import com.github.laxy.util.userLoginCounter
+import com.github.laxy.util.userRegisteredCounter
 import com.github.laxy.util.withSpan
 import com.github.laxy.validation.validate
 
@@ -59,6 +62,7 @@ fun userService(persistence: UserPersistence, jwtService: JwtService) =
                         jwtService.generateJwtToken(userId).bind()
                     }
                     .onLeftRecordSpan(span)
+                    .also { userRegisteredCounter.add(1, resultAttributes(it.isRight())) }
                     .onLeft { log.warn("Registration failed for email={}: {}", input.email, it) }
             }
 
@@ -73,6 +77,7 @@ fun userService(persistence: UserPersistence, jwtService: JwtService) =
                         Pair(token, info)
                     }
                     .onLeftRecordSpan(span)
+                    .also { userLoginCounter.add(1, resultAttributes(it.isRight())) }
                     .onLeft { log.warn("Login failed for email={}: {}", input.email, it) }
             }
 

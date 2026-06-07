@@ -8,7 +8,9 @@ import com.cjcrafter.openai.chat.chatRequest
 import com.cjcrafter.openai.openAI
 import com.github.laxy.DomainError
 import com.github.laxy.InvalidIntegrationResponse
+import com.github.laxy.util.gptCompletionCounter
 import com.github.laxy.util.logger
+import com.github.laxy.util.resultAttributes
 import com.github.laxy.util.withSpan
 
 data class ChatCompletionContent(val message: String)
@@ -40,6 +42,7 @@ class DefaultGptAIService(
                     log.info("Chat completion succeeded model={}", MODEL)
                     content
                 }
+                .also { gptCompletionCounter.add(1, resultAttributes(it.isRight())) }
                 .onLeft { log.error("Chat completion failed model={}: {}", MODEL, it) }
         }
 

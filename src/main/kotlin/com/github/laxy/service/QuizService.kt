@@ -20,6 +20,10 @@ import com.github.laxy.persistence.UserPersistence
 import com.github.laxy.route.Quiz
 import com.github.laxy.util.loadTemplate
 import com.github.laxy.util.logger
+import com.github.laxy.util.quizAttemptCounter
+import com.github.laxy.util.quizCreatedCounter
+import com.github.laxy.util.quizDeletedCounter
+import com.github.laxy.util.resultAttributes
 import com.github.laxy.util.withSpan
 import io.opentelemetry.api.trace.StatusCode.ERROR
 import java.time.LocalDateTime
@@ -131,14 +135,15 @@ fun quizService(
         override suspend fun createQuiz(input: CreateQuiz): Either<DomainError, Quiz> =
             withSpan("$spanPrefix.createQuiz") {
                 either {
-                    val quizId =
-                        quizPersistence
-                            .insertQuiz(input.userId, input.subjectId, input.totalQuestions)
-                            .bind()
-                    val prompt = buildGptPrompt(input).bind()
-                    coroutineScope.launch { emitGptPrompt(quizId, prompt).bind() }
-                    Quiz(id = quizId.serial, totalQuestions = input.totalQuestions)
-                }
+                        val quizId =
+                            quizPersistence
+                                .insertQuiz(input.userId, input.subjectId, input.totalQuestions)
+                                .bind()
+                        val prompt = buildGptPrompt(input).bind()
+                        coroutineScope.launch { emitGptPrompt(quizId, prompt).bind() }
+                        Quiz(id = quizId.serial, totalQuestions = input.totalQuestions)
+                    }
+                    .also { quizCreatedCounter.add(1, resultAttributes(it.isRight())) }
             }
 
         override suspend fun quizAttempt(
@@ -190,6 +195,7 @@ fun quizService(
 
                     QuizAttemptOutput(questionAttempts)
                 }
+                    .also { quizAttemptCounter.add(1, resultAttributes(it.isRight())) }
             }
 
         private suspend fun buildGptPrompt(input: CreateQuiz): Either<DomainError, String> =
@@ -228,7 +234,10 @@ fun quizService(
             }
 
         override suspend fun deleteById(id: QuizId) =
-            withSpan("$spanPrefix.deleteById") { quizPersistence.deleteQuiz(id) }
+            withSpan("$spanPrefix.deleteById") {
+                quizPersistence.deleteQuiz(id)
+                quizDeletedCounter.add(1)
+            }
 
         private suspend fun handleEvent(quizId: QuizId, response: String) =
             withSpan(spanName = "[EVENT] - $spanPrefix.listenEvent") { span ->
