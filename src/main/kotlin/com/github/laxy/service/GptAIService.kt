@@ -8,6 +8,7 @@ import com.cjcrafter.openai.chat.chatRequest
 import com.cjcrafter.openai.openAI
 import com.github.laxy.DomainError
 import com.github.laxy.InvalidIntegrationResponse
+import com.github.laxy.util.logger
 import com.github.laxy.util.withSpan
 
 data class ChatCompletionContent(val message: String)
@@ -21,21 +22,25 @@ class DefaultGptAIService(
 ) : GptAIService {
 
     private val spanPrefix = "GptAIService"
+    private val log = logger()
     private val openAI = openAI { apiKey(openAIKey) }
 
     override suspend fun chatCompletion(input: ChatCompletionContent): Either<DomainError, String> =
         withSpan(spanName = "$spanPrefix.chatCompletion") { span ->
             span.setAttribute("model", MODEL)
+            log.info("Sending chat completion request to GPT model={}", MODEL)
             either {
-                val request = chatRequest {
-                    model(MODEL)
-                    addMessage(input.message.toSystemMessage())
+                    val request = chatRequest {
+                        model(MODEL)
+                        addMessage(input.message.toSystemMessage())
+                    }
+                    val completion = openAI.createChatCompletion(request)[0]
+                    val content = completion.message.content
+                    ensureNotNull(content) { InvalidIntegrationResponse(content) }
+                    log.info("Chat completion succeeded model={}", MODEL)
+                    content
                 }
-                val completion = openAI.createChatCompletion(request)[0]
-                val content = completion.message.content
-                ensureNotNull(content) { InvalidIntegrationResponse(content) }
-                content
-            }
+                .onLeft { log.error("Chat completion failed model={}: {}", MODEL, it) }
         }
 
     companion object {

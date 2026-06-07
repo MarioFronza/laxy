@@ -8,6 +8,7 @@ import com.github.laxy.EmptyUpdate
 import com.github.laxy.auth.JwtToken
 import com.github.laxy.persistence.UserId
 import com.github.laxy.persistence.UserPersistence
+import com.github.laxy.util.logger
 import com.github.laxy.util.onLeftRecordSpan
 import com.github.laxy.util.withSpan
 import com.github.laxy.validation.validate
@@ -46,6 +47,7 @@ interface UserService {
 fun userService(persistence: UserPersistence, jwtService: JwtService) =
     object : UserService {
         val spanPrefix = "UserService"
+        val log = logger()
 
         override suspend fun register(input: RegisterUser): Either<DomainError, JwtToken> =
             withSpan("$spanPrefix.register") { span ->
@@ -53,9 +55,11 @@ fun userService(persistence: UserPersistence, jwtService: JwtService) =
                         val (username, email, password) = input.validate().bind()
                         val userId = persistence.insert(username, email, password).bind()
                         span.setAttribute("user.id", userId.serial)
+                        log.info("User registered: username={}", username)
                         jwtService.generateJwtToken(userId).bind()
                     }
                     .onLeftRecordSpan(span)
+                    .onLeft { log.warn("Registration failed for email={}: {}", input.email, it) }
             }
 
         override suspend fun login(input: Login): Either<DomainError, Pair<JwtToken, UserInfo>> =
@@ -64,10 +68,12 @@ fun userService(persistence: UserPersistence, jwtService: JwtService) =
                         val (email, password) = input.validate().bind()
                         val (userId, info) = persistence.verifyPassword(email, password).bind()
                         span.setAttribute("user.id", userId.serial)
+                        log.info("User logged in: email={}", email)
                         val token = jwtService.generateJwtToken(userId).bind()
                         Pair(token, info)
                     }
                     .onLeftRecordSpan(span)
+                    .onLeft { log.warn("Login failed for email={}: {}", input.email, it) }
             }
 
         override suspend fun update(input: Update): Either<DomainError, UserInfo> =
@@ -81,6 +87,7 @@ fun userService(persistence: UserPersistence, jwtService: JwtService) =
                         persistence.update(userId, username, email, password).bind()
                     }
                     .onLeftRecordSpan(span)
+                    .onLeft { log.warn("Update failed for userId={}: {}", input.userId.serial, it) }
             }
 
         override suspend fun getUser(userId: UserId): Either<DomainError, UserInfo> =
@@ -105,5 +112,6 @@ fun userService(persistence: UserPersistence, jwtService: JwtService) =
                         theme.bind()
                     }
                     .onLeftRecordSpan(span)
+                    .onLeft { log.warn("CreateTheme failed for userId={}: {}", input.userId.serial, it) }
             }
     }
