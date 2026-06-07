@@ -8,6 +8,7 @@ import com.github.laxy.service.Login
 import com.github.laxy.service.RegisterUser
 import com.github.laxy.service.Update
 import com.github.laxy.service.UserService
+import com.github.laxy.util.withSpan
 import io.ktor.http.HttpStatusCode
 import io.ktor.resources.Resource
 import io.ktor.server.resources.get
@@ -46,56 +47,70 @@ data class UsersResource(val parent: RootResource = RootResource) {
 
 @Resource("/user") data class UserResource(val parent: RootResource = RootResource)
 
+private const val spanPrefix = "route.user"
+
 fun Route.userRoutes(
     userService: UserService,
     jwtService: JwtService,
 ) {
     post<UsersResource> {
-        either {
-                val (username, email, password) =
-                    receiveCatching<UserWrapper<NewUser>>().bind().user
-                val token =
-                    userService.register(RegisterUser(username, email, password)).bind().value
-                UserWrapper(User(email, token, username))
-            }
-            .respond(this, HttpStatusCode.Created)
-    }
-    post<UsersResource.Login> {
-        either {
-                val (email, password) = receiveCatching<UserWrapper<LoginUser>>().bind().user
-                val (token, info) = userService.login(Login(email, password)).bind()
-                UserWrapper(User(email, token.value, info.username))
-            }
-            .respond(this, HttpStatusCode.OK)
-    }
-    post<UsersResource.Theme> {
-        jwtAuth(jwtService) { (_, userId) ->
+        withSpan("$spanPrefix.POST /users") {
             either {
-                    val (description) = receiveCatching<UserThemeWrapper<NewTheme>>().bind().theme
-                    val theme = userService.createTheme(CreateTheme(userId, description)).bind()
-                    UserWrapper(UserTheme(theme.description))
+                    val (username, email, password) =
+                        receiveCatching<UserWrapper<NewUser>>().bind().user
+                    val token =
+                        userService.register(RegisterUser(username, email, password)).bind().value
+                    UserWrapper(User(email, token, username))
                 }
                 .respond(this, HttpStatusCode.Created)
         }
     }
-    get<UserResource> {
-        jwtAuth(jwtService) { (token, userId) ->
+    post<UsersResource.Login> {
+        withSpan("$spanPrefix.POST /users/login") {
             either {
-                    val info = userService.getUser(userId).bind()
-                    UserWrapper(User(info.email, token.value, info.username))
+                    val (email, password) = receiveCatching<UserWrapper<LoginUser>>().bind().user
+                    val (token, info) = userService.login(Login(email, password)).bind()
+                    UserWrapper(User(email, token.value, info.username))
                 }
                 .respond(this, HttpStatusCode.OK)
         }
     }
+    post<UsersResource.Theme> {
+        withSpan("$spanPrefix.POST /users/theme") {
+            jwtAuth(jwtService) { (_, userId) ->
+                either {
+                        val (description) =
+                            receiveCatching<UserThemeWrapper<NewTheme>>().bind().theme
+                        val theme = userService.createTheme(CreateTheme(userId, description)).bind()
+                        UserWrapper(UserTheme(theme.description))
+                    }
+                    .respond(this, HttpStatusCode.Created)
+            }
+        }
+    }
+    get<UserResource> {
+        withSpan("$spanPrefix.GET /user") {
+            jwtAuth(jwtService) { (token, userId) ->
+                either {
+                        val info = userService.getUser(userId).bind()
+                        UserWrapper(User(info.email, token.value, info.username))
+                    }
+                    .respond(this, HttpStatusCode.OK)
+            }
+        }
+    }
     put<UserResource> {
-        jwtAuth(jwtService) { (token, userId) ->
-            either {
-                    val (email, username, password) =
-                        receiveCatching<UserWrapper<UpdateUser>>().bind().user
-                    val info = userService.update(Update(userId, username, email, password)).bind()
-                    UserWrapper(User(info.email, token.value, info.username))
-                }
-                .respond(this, HttpStatusCode.OK)
+        withSpan("$spanPrefix.PUT /user") {
+            jwtAuth(jwtService) { (token, userId) ->
+                either {
+                        val (email, username, password) =
+                            receiveCatching<UserWrapper<UpdateUser>>().bind().user
+                        val info =
+                            userService.update(Update(userId, username, email, password)).bind()
+                        UserWrapper(User(info.email, token.value, info.username))
+                    }
+                    .respond(this, HttpStatusCode.OK)
+            }
         }
     }
 }
