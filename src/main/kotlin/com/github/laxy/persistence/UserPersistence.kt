@@ -13,7 +13,7 @@ import com.github.laxy.service.UserInfo
 import com.github.laxy.service.UserThemeInfo
 import com.github.laxy.sqldelight.UserThemesQueries
 import com.github.laxy.sqldelight.UsersQueries
-import io.opentelemetry.instrumentation.annotations.WithSpan
+import com.github.laxy.util.withSpan
 import java.util.UUID.randomUUID
 import javax.crypto.SecretKeyFactory
 import javax.crypto.spec.PBEKeySpec
@@ -54,6 +54,8 @@ interface UserPersistence {
     ): Either<DomainError, UserInfo>
 }
 
+private const val spanPrefix = "persistence.user"
+
 fun userPersistence(
     usersQueries: UsersQueries,
     userThemesQueries: UserThemesQueries,
@@ -63,17 +65,14 @@ fun userPersistence(
 ) =
     object : UserPersistence {
 
-        @WithSpan
         override suspend fun insert(
             username: String,
             email: String,
             password: String
-        ): Either<DomainError, UserId> {
+        ): Either<DomainError, UserId> = withSpan("$spanPrefix.insert") {
             val salt = generateSalt()
             val key = generateKey(password, salt)
-            return Either.catchOrThrow<PSQLException, UserId> {
-                    usersQueries.create(username, email, salt, key)
-                }
+            Either.catchOrThrow<PSQLException, UserId> { usersQueries.create(username, email, salt, key) }
                 .mapLeft { psqlException ->
                     if (psqlException.sqlState == UNIQUE_VIOLATION.state)
                         UsernameAlreadyExists(username)
@@ -81,91 +80,99 @@ fun userPersistence(
                 }
         }
 
-        @WithSpan
         override suspend fun insertTheme(
             userId: UserId,
             description: String
-        ): Either<DomainError, UserThemeInfo> = either {
-            val userInfo =
-                usersQueries.selectById(userId) { email, username, _, _ ->
-                    UserInfo(username, email)
-                }
-            ensureNotNull(userInfo) { UserNotFound("userId=$userId") }
-            UserThemeInfo(
-                description =
-                    userThemesQueries
-                        .insertAndGetDescription(userId, description, true)
-                        .executeAsOne()
-            )
+        ): Either<DomainError, UserThemeInfo> = withSpan("$spanPrefix.insertTheme") {
+            either {
+                val userInfo =
+                    usersQueries.selectById(userId) { email, username, _, _ ->
+                        UserInfo(username, email)
+                    }
+                ensureNotNull(userInfo) { UserNotFound("userId=$userId") }
+                UserThemeInfo(
+                    description =
+                        userThemesQueries
+                            .insertAndGetDescription(userId, description, true)
+                            .executeAsOne()
+                )
+            }
         }
 
-        @WithSpan
         override suspend fun verifyPassword(
             email: String,
             password: String
-        ): Either<DomainError, Pair<UserId, UserInfo>> = either {
-            val (userId, username, salt, key) =
-                ensureNotNull(usersQueries.selectSecurityByEmail(email).executeAsOneOrNull()) {
-                    UserNotFound("email=$email")
+        ): Either<DomainError, Pair<UserId, UserInfo>> = withSpan("$spanPrefix.verifyPassword") {
+            either {
+                val (userId, username, salt, key) =
+                    ensureNotNull(usersQueries.selectSecurityByEmail(email).executeAsOneOrNull()) {
+                        UserNotFound("email=$email")
+                    }
+                val hash = generateKey(password, salt)
+                ensure(hash contentEquals key) { PasswordNotMatched }
+                Pair(userId, UserInfo(username, email))
+            }
+        }
+
+        override suspend fun select(userId: UserId): Either<DomainError, UserInfo> =
+            withSpan("$spanPrefix.selectById") {
+                either {
+                    val userInfo =
+                        usersQueries
+                            .selectById(userId) { username, email, _, _ -> UserInfo(username, email) }
+                            .executeAsOneOrNull()
+                    ensureNotNull(userInfo) { UserNotFound("userId=$userId") }
                 }
-            val hash = generateKey(password, salt)
-            ensure(hash contentEquals key) { PasswordNotMatched }
-            Pair(userId, UserInfo(username, email))
-        }
+            }
 
-        @WithSpan
-        override suspend fun select(userId: UserId): Either<DomainError, UserInfo> = either {
-            val userInfo =
-                usersQueries
-                    .selectById(userId) { username, email, _, _ -> UserInfo(username, email) }
-                    .executeAsOneOrNull()
-            ensureNotNull(userInfo) { UserNotFound("userId=$userId") }
-        }
+        override suspend fun select(username: String): Either<DomainError, UserInfo> =
+            withSpan("$spanPrefix.selectByUsername") {
+                either {
+                    val userInfo =
+                        usersQueries.selectByUsername(username, ::UserInfo).executeAsOneOrNull()
+                    ensureNotNull(userInfo) { UserNotFound("username=$username") }
+                }
+            }
 
-        @WithSpan
-        override suspend fun select(username: String): Either<DomainError, UserInfo> = either {
-            val userInfo = usersQueries.selectByUsername(username, ::UserInfo).executeAsOneOrNull()
-            ensureNotNull(userInfo) { UserNotFound("username=$username") }
-        }
-
-        @WithSpan
         override suspend fun selectCurrentTheme(
             userId: UserId
-        ): Either<DomainError, UserThemeInfo> = either {
-            val description = userThemesQueries.selectCurrentByUser(userId).executeAsOneOrNull()
-            ensureNotNull(description) { UserThemeNotFound("userId=$userId") }
-            UserThemeInfo(description)
+        ): Either<DomainError, UserThemeInfo> = withSpan("$spanPrefix.selectCurrentTheme") {
+            either {
+                val description = userThemesQueries.selectCurrentByUser(userId).executeAsOneOrNull()
+                ensureNotNull(description) { UserThemeNotFound("userId=$userId") }
+                UserThemeInfo(description)
+            }
         }
 
-        @WithSpan
-        override suspend fun setCurrent(userId: UserId, isCurrent: Boolean) {
-            userThemesQueries.setCurrent(isCurrent, userId)
-        }
+        override suspend fun setCurrent(userId: UserId, isCurrent: Boolean) =
+            withSpan("$spanPrefix.setCurrent") {
+                userThemesQueries.setCurrent(isCurrent, userId)
+            }
 
-        @WithSpan
         override suspend fun update(
             userId: UserId,
             username: String?,
             email: String?,
             password: String?
-        ): Either<DomainError, UserInfo> = either {
-            val info =
-                usersQueries.transactionWithResult {
-                    usersQueries.selectById(userId).executeAsOneOrNull()?.let {
-                        (oldUsername, oldEmail, salt, oldPassword) ->
-                        val newPassword = password?.let { generateKey(it, salt) } ?: oldPassword
-                        val newEmail = email ?: oldEmail
-                        val newUsername = username ?: oldUsername
-                        usersQueries.update(newEmail, newUsername, newPassword, userId)
-                        UserInfo(newUsername, newEmail)
+        ): Either<DomainError, UserInfo> = withSpan("$spanPrefix.update") {
+            either {
+                val info =
+                    usersQueries.transactionWithResult {
+                        usersQueries.selectById(userId).executeAsOneOrNull()?.let {
+                            (oldUsername, oldEmail, salt, oldPassword) ->
+                            val newPassword = password?.let { generateKey(it, salt) } ?: oldPassword
+                            val newEmail = email ?: oldEmail
+                            val newUsername = username ?: oldUsername
+                            usersQueries.update(newEmail, newUsername, newPassword, userId)
+                            UserInfo(newUsername, newEmail)
+                        }
                     }
-                }
-            ensureNotNull(info) { UserNotFound("userId=$userId") }
+                ensureNotNull(info) { UserNotFound("userId=$userId") }
+            }
         }
 
-        @WithSpan private fun generateSalt(): ByteArray = randomUUID().toString().toByteArray()
+        private fun generateSalt(): ByteArray = randomUUID().toString().toByteArray()
 
-        @WithSpan
         private fun generateKey(password: String, salt: ByteArray): ByteArray {
             val spec = PBEKeySpec(password.toCharArray(), salt, defaultIterations, defaultKeyLength)
             return secretKeyFactory.generateSecret(spec).encoded
