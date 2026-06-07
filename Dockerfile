@@ -13,10 +13,15 @@ COPY --chown=gradle:gradle . /home/gradle/src
 WORKDIR /home/gradle/src
 RUN gradle fatShadowJar --no-daemon
 
+FROM eclipse-temurin:21-jre AS agent
+ARG OTEL_AGENT_VERSION=2.14.0
+ADD https://github.com/open-telemetry/opentelemetry-java-instrumentation/releases/download/v${OTEL_AGENT_VERSION}/opentelemetry-javaagent.jar /opentelemetry-javaagent.jar
+
 FROM eclipse-temurin:21-jre AS runtime
 RUN useradd -r -u 1001 -g root appuser
 EXPOSE 8080
 WORKDIR /app
 COPY --from=build /home/gradle/src/build/libs/laxy-app-fat.jar /app/laxy-app.jar
+COPY --from=agent /opentelemetry-javaagent.jar /app/opentelemetry-javaagent.jar
 USER appuser
-ENTRYPOINT ["java","-jar","/app/laxy-app.jar"]
+ENTRYPOINT ["java", "-javaagent:/app/opentelemetry-javaagent.jar", "-jar", "/app/laxy-app.jar"]

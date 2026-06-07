@@ -11,7 +11,6 @@ import com.github.laxy.auth.JwtToken
 import com.github.laxy.env.Env
 import com.github.laxy.persistence.UserId
 import com.github.laxy.persistence.UserPersistence
-import com.github.laxy.util.withSpan
 import io.github.nefilim.kjwt.JWSAlgorithm
 import io.github.nefilim.kjwt.JWSHMAC512Algorithm
 import io.github.nefilim.kjwt.JWT
@@ -21,6 +20,8 @@ import io.github.nefilim.kjwt.KJWTSignError.InvalidKey
 import io.github.nefilim.kjwt.KJWTSignError.SigningError
 import io.github.nefilim.kjwt.SignedJWT
 import io.github.nefilim.kjwt.sign
+import io.opentelemetry.api.trace.Span
+import io.opentelemetry.instrumentation.annotations.WithSpan
 import java.time.Clock
 import java.time.Instant
 import kotlin.time.toJavaDuration
@@ -33,43 +34,42 @@ interface JwtService {
 
 fun jwtService(env: Env.Auth, persistence: UserPersistence) =
     object : JwtService {
-        val spanPrefix = "JwtService"
 
-        override suspend fun generateJwtToken(userId: UserId): Either<JwtGeneration, JwtToken> =
-            withSpan("$spanPrefix.generateJwtToken") {
-                JWT.hs512 {
-                        val now = Instant.now(Clock.systemUTC())
-                        issuedAt(now)
-                        expiresAt(now + env.duration.toJavaDuration())
-                        issuer(env.issuer)
-                        claim("id", userId.serial)
-                    }
-                    .sign(env.secret)
-                    .toUserServiceError()
-                    .map { jwt -> JwtToken(jwt.rendered) }
-            }
-
-        override suspend fun verifyJwtToken(token: JwtToken): Either<DomainError, UserId> = either {
-            withSpan("$spanPrefix.verifyJwtToken") { span ->
-                val jwt =
-                    JWT.decodeT(token.value, JWSHMAC512Algorithm)
-                        .mapLeft { JwtInvalid(it.toString()) }
-                        .bind()
-                val userId =
-                    ensureNotNull(jwt.claimValueAsLong("id").getOrNull()) {
-                        JwtInvalid("id missing from JWT Token")
-                    }
-                val expiresAt =
-                    ensureNotNull(jwt.expiresAt().getOrNull()) {
-                        JwtInvalid("exp missing from JWT Token")
-                    }
-                ensure(expiresAt.isAfter(Instant.now(Clock.systemUTC()))) {
-                    JwtInvalid("JWT Token expired")
+        @WithSpan("JwtService.generateJwtToken")
+        override suspend fun generateJwtToken(userId: UserId): Either<JwtGeneration, JwtToken> {
+            Span.current().setAttribute("user.id", userId.serial)
+            return JWT.hs512 {
+                    val now = Instant.now(Clock.systemUTC())
+                    issuedAt(now)
+                    expiresAt(now + env.duration.toJavaDuration())
+                    issuer(env.issuer)
+                    claim("id", userId.serial)
                 }
-                persistence.select(UserId(userId)).bind()
-                span.setAttribute("user.id", userId)
-                UserId(userId)
+                .sign(env.secret)
+                .toUserServiceError()
+                .map { jwt -> JwtToken(jwt.rendered) }
+        }
+
+        @WithSpan("JwtService.verifyJwtToken")
+        override suspend fun verifyJwtToken(token: JwtToken): Either<DomainError, UserId> = either {
+            val jwt =
+                JWT.decodeT(token.value, JWSHMAC512Algorithm)
+                    .mapLeft { JwtInvalid(it.toString()) }
+                    .bind()
+            val userId =
+                ensureNotNull(jwt.claimValueAsLong("id").getOrNull()) {
+                    JwtInvalid("id missing from JWT Token")
+                }
+            val expiresAt =
+                ensureNotNull(jwt.expiresAt().getOrNull()) {
+                    JwtInvalid("exp missing from JWT Token")
+                }
+            ensure(expiresAt.isAfter(Instant.now(Clock.systemUTC()))) {
+                JwtInvalid("JWT Token expired")
             }
+            persistence.select(UserId(userId)).bind()
+            Span.current().setAttribute("user.id", userId)
+            UserId(userId)
         }
     }
 

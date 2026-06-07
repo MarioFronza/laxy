@@ -7,7 +7,7 @@ import com.github.laxy.DomainError
 import com.github.laxy.QuestionOptionCreationError
 import com.github.laxy.service.OptionInfo
 import com.github.laxy.sqldelight.QuestionOptionsQueries
-import com.github.laxy.util.withSpan
+import io.opentelemetry.instrumentation.annotations.WithSpan
 
 @JvmInline value class QuestionOptionId(val serial: Long)
 
@@ -26,37 +26,31 @@ interface QuestionOptionsPersistence {
 
 fun questionOptionsPersistence(questionOptionsQueries: QuestionOptionsQueries) =
     object : QuestionOptionsPersistence {
-        val spanPrefix = "QuestionOptionsPersistence"
 
+        @WithSpan("QuestionOptionsPersistence.selectOptionsByQuestion")
         override suspend fun selectOptionsByQuestion(
             questionId: QuestionId
-        ): Either<DomainError, List<OptionInfo>> =
-            withSpan("$spanPrefix.selectOptionsByQuestion") {
-                either {
-                    questionOptionsQueries
-                        .selectByQuestion(questionId) { id, description, referenceNumber, isCorrect
-                            ->
-                            OptionInfo(id, description, referenceNumber, isCorrect)
-                        }
-                        .executeAsList()
+        ): Either<DomainError, List<OptionInfo>> = either {
+            questionOptionsQueries
+                .selectByQuestion(questionId) { id, description, referenceNumber, isCorrect ->
+                    OptionInfo(id, description, referenceNumber, isCorrect)
                 }
-            }
+                .executeAsList()
+        }
 
+        @WithSpan("QuestionOptionsPersistence.insertQuestionOption")
         override suspend fun insertQuestionOption(
             questionId: QuestionId,
             description: String,
             referenceNumber: Int,
             isCorrect: Boolean
-        ) =
-            withSpan("$spanPrefix.insertQuestionOption") {
-                either {
-                    val questionOptionId =
-                        questionOptionsQueries
-                            .insertAndGetId(questionId, description, referenceNumber, isCorrect)
-                            .executeAsOneOrNull()
-                    ensureNotNull(questionOptionId) {
-                        QuestionOptionCreationError("questionOptionId=$questionOptionId")
-                    }
-                }
+        ) = either {
+            val questionOptionId =
+                questionOptionsQueries
+                    .insertAndGetId(questionId, description, referenceNumber, isCorrect)
+                    .executeAsOneOrNull()
+            ensureNotNull(questionOptionId) {
+                QuestionOptionCreationError("questionOptionId=$questionOptionId")
             }
+        }
     }

@@ -7,11 +7,9 @@ import com.github.laxy.DomainError
 import com.github.laxy.SubjectNotFound
 import com.github.laxy.service.SubjectInfo
 import com.github.laxy.sqldelight.SubjectsQueries
-import com.github.laxy.util.withSpan
+import io.opentelemetry.instrumentation.annotations.WithSpan
 
 @JvmInline value class SubjectId(val serial: Long)
-
-private const val spanPrefix = "persistence.subject"
 
 interface SubjectPersistence {
     suspend fun selectAll(): Either<DomainError, List<SubjectInfo>>
@@ -24,39 +22,35 @@ interface SubjectPersistence {
 fun subjectPersistence(subjectsQueries: SubjectsQueries) =
     object : SubjectPersistence {
 
-        override suspend fun selectAll(): Either<DomainError, List<SubjectInfo>> =
-            withSpan("$spanPrefix.selectAll") {
-                either {
-                    subjectsQueries
-                        .selectAll { id, name, description, language ->
-                            SubjectInfo(id, name, description, language)
-                        }
-                        .executeAsList()
+        @WithSpan("SubjectPersistence.selectAll")
+        override suspend fun selectAll(): Either<DomainError, List<SubjectInfo>> = either {
+            subjectsQueries
+                .selectAll { id, name, description, language ->
+                    SubjectInfo(id, name, description, language)
                 }
-            }
-
-        override suspend fun selectByLanguage(
-            languageId: LanguageId
-        ): Either<DomainError, List<SubjectInfo>> = withSpan("$spanPrefix.selectByLanguage") {
-            either {
-                subjectsQueries
-                    .selectSubjectsByLanguage(languageId) { id, name, description, language ->
-                        SubjectInfo(id, name, description, language)
-                    }
-                    .executeAsList()
-            }
+                .executeAsList()
         }
 
-        override suspend fun select(subjectId: SubjectId): Either<DomainError, SubjectInfo> =
-            withSpan("$spanPrefix.selectById") {
-                either {
-                    val subjectInfo =
-                        subjectsQueries
-                            .selectById(subjectId) { id, name, description, language ->
-                                SubjectInfo(id, name, description, language)
-                            }
-                            .executeAsOneOrNull()
-                    ensureNotNull(subjectInfo) { SubjectNotFound("subjectId=${subjectId.serial}") }
+        @WithSpan("SubjectPersistence.selectByLanguage")
+        override suspend fun selectByLanguage(
+            languageId: LanguageId
+        ): Either<DomainError, List<SubjectInfo>> = either {
+            subjectsQueries
+                .selectSubjectsByLanguage(languageId) { id, name, description, language ->
+                    SubjectInfo(id, name, description, language)
                 }
+                .executeAsList()
+        }
+
+        @WithSpan("SubjectPersistence.selectById")
+        override suspend fun select(subjectId: SubjectId): Either<DomainError, SubjectInfo> =
+            either {
+                val subjectInfo =
+                    subjectsQueries
+                        .selectById(subjectId) { id, name, description, language ->
+                            SubjectInfo(id, name, description, language)
+                        }
+                        .executeAsOneOrNull()
+                ensureNotNull(subjectInfo) { SubjectNotFound("subjectId=${subjectId.serial}") }
             }
     }
