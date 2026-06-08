@@ -13,6 +13,7 @@ private const val OPENAI_TOKEN: String = "token"
 private const val AUTH_SECRET: String = "MySuperStrongSecret"
 private const val AUTH_ISSUER: String = "LaxyIssuer"
 private const val AUTH_DURATION: Int = 30
+
 data class Env(
     val http: Http = Http(),
     val dataSource: DataSource = DataSource(),
