@@ -114,6 +114,8 @@ fun userService(persistence: UserPersistence, jwtService: JwtService) =
                     persistence.insertTheme(userId, description).bind()
                 }
                 .onLeftRecordSpan()
-                .onLeft { log.warn("CreateTheme failed for userId={}: {}", input.userId.serial, it) }
+                .onLeft {
+                    log.warn("CreateTheme failed for userId={}: {}", input.userId.serial, it)
+                }
         }
     }

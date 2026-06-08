@@ -14,6 +14,7 @@ import com.github.laxy.persistence.QuestionPersistence
 import com.github.laxy.persistence.QuizId
 import com.github.laxy.persistence.QuizPersistence
 import com.github.laxy.persistence.SubjectId
+import com.github.laxy.persistence.SubjectPersistence
 import com.github.laxy.persistence.UserId
 import com.github.laxy.persistence.UserPersistence
 import com.github.laxy.route.Quiz

@@ -31,7 +31,7 @@ class DefaultGptAIService(
     override suspend fun chatCompletion(input: ChatCompletionContent): Either<DomainError, String> {
         Span.current().setAttribute("model", MODEL)
         log.info("Sending chat completion request to GPT model={}", MODEL)
-        return either {
+        return either<DomainError, String> {
                 val request = chatRequest {
                     model(MODEL)
                     addMessage(input.message.toSystemMessage())
