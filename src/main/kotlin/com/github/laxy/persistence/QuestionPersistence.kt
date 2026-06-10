@@ -41,12 +41,7 @@ fun questionPersistence(
                                 optionDescription,
                                 referenceNumber,
                                 isCorrect ->
-                                OptionInfo(
-                                    optionId,
-                                    optionDescription,
-                                    referenceNumber,
-                                    isCorrect
-                                )
+                                OptionInfo(optionId, optionDescription, referenceNumber, isCorrect)
                             }
                             .executeAsList()
 
