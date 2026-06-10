@@ -22,7 +22,7 @@ interface SubjectPersistence {
 fun subjectPersistence(subjectsQueries: SubjectsQueries) =
     object : SubjectPersistence {
 
-        @WithSpan
+        @WithSpan("SubjectPersistence.selectAll")
         override suspend fun selectAll(): Either<DomainError, List<SubjectInfo>> = either {
             subjectsQueries
                 .selectAll { id, name, description, language ->
@@ -31,7 +31,7 @@ fun subjectPersistence(subjectsQueries: SubjectsQueries) =
                 .executeAsList()
         }
 
-        @WithSpan
+        @WithSpan("SubjectPersistence.selectByLanguage")
         override suspend fun selectByLanguage(
             languageId: LanguageId
         ): Either<DomainError, List<SubjectInfo>> = either {
@@ -42,7 +42,7 @@ fun subjectPersistence(subjectsQueries: SubjectsQueries) =
                 .executeAsList()
         }
 
-        @WithSpan
+        @WithSpan("SubjectPersistence.selectById")
         override suspend fun select(subjectId: SubjectId): Either<DomainError, SubjectInfo> =
             either {
                 val subjectInfo =

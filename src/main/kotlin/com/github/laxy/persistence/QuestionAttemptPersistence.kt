@@ -2,7 +2,7 @@ package com.github.laxy.persistence
 
 import com.github.laxy.service.QuestionAttempt
 import com.github.laxy.sqldelight.QuestionAttemptsQueries
-import com.github.laxy.util.withSpan
+import io.opentelemetry.instrumentation.annotations.WithSpan
 
 @JvmInline value class QuestionAttemptId(val serial: Long)
 
@@ -18,32 +18,29 @@ interface QuestionAttemptPersistence {
 
 fun questionAttemptPersistence(questionAttemptsQueries: QuestionAttemptsQueries) =
     object : QuestionAttemptPersistence {
-        val spanPrefix = "QuestionAttemptPersistence"
 
+        @WithSpan("QuestionAttemptPersistence.selectQuestionAttemptsBy")
         override suspend fun selectQuestionAttemptsBy(questionId: QuestionId) =
-            withSpan("$spanPrefix.selectQuestionAttemptsBy") {
-                questionAttemptsQueries
-                    .selectQuestionAttemptByQuestionId(questionId) { userSelectedOption, isCorrect
-                        ->
-                        QuestionAttempt(
-                            id = questionId,
-                            selectedOptionId = userSelectedOption,
-                            isCorrect = isCorrect
-                        )
-                    }
-                    .executeAsList()
-            }
+            questionAttemptsQueries
+                .selectQuestionAttemptByQuestionId(questionId) { userSelectedOption, isCorrect ->
+                    QuestionAttempt(
+                        id = questionId,
+                        selectedOptionId = userSelectedOption,
+                        isCorrect = isCorrect
+                    )
+                }
+                .executeAsList()
 
+        @WithSpan("QuestionAttemptPersistence.insertQuestionAttempt")
         override suspend fun insertQuestionAttempt(
             questionId: QuestionId,
             userSelectedOption: QuestionOptionId,
             isCorrect: Boolean
-        ) =
-            withSpan("$spanPrefix.insertQuestionAttempt") {
-                questionAttemptsQueries.insertAttempt(
-                    questionId = questionId,
-                    userSelectedOption = userSelectedOption,
-                    isCorrect = isCorrect
-                )
-            }
+        ) {
+            questionAttemptsQueries.insertAttempt(
+                questionId = questionId,
+                userSelectedOption = userSelectedOption,
+                isCorrect = isCorrect
+            )
+        }
     }

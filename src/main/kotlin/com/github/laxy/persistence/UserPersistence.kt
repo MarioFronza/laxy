@@ -63,7 +63,7 @@ fun userPersistence(
 ) =
     object : UserPersistence {
 
-        @WithSpan
+        @WithSpan("UserPersistence.insert")
         override suspend fun insert(
             username: String,
             email: String,
@@ -81,7 +81,7 @@ fun userPersistence(
                 }
         }
 
-        @WithSpan
+        @WithSpan("UserPersistence.insertTheme")
         override suspend fun insertTheme(
             userId: UserId,
             description: String
@@ -99,7 +99,7 @@ fun userPersistence(
             )
         }
 
-        @WithSpan
+        @WithSpan("UserPersistence.verifyPassword")
         override suspend fun verifyPassword(
             email: String,
             password: String
@@ -113,7 +113,7 @@ fun userPersistence(
             Pair(userId, UserInfo(username, email))
         }
 
-        @WithSpan
+        @WithSpan("UserPersistence.selectById")
         override suspend fun select(userId: UserId): Either<DomainError, UserInfo> = either {
             val userInfo =
                 usersQueries
@@ -122,13 +122,13 @@ fun userPersistence(
             ensureNotNull(userInfo) { UserNotFound("userId=$userId") }
         }
 
-        @WithSpan
+        @WithSpan("UserPersistence.selectByUsername")
         override suspend fun select(username: String): Either<DomainError, UserInfo> = either {
             val userInfo = usersQueries.selectByUsername(username, ::UserInfo).executeAsOneOrNull()
             ensureNotNull(userInfo) { UserNotFound("username=$username") }
         }
 
-        @WithSpan
+        @WithSpan("UserPersistence.selectCurrentTheme")
         override suspend fun selectCurrentTheme(
             userId: UserId
         ): Either<DomainError, UserThemeInfo> = either {
@@ -137,12 +137,12 @@ fun userPersistence(
             UserThemeInfo(description)
         }
 
-        @WithSpan
+        @WithSpan("UserPersistence.setCurrent")
         override suspend fun setCurrent(userId: UserId, isCurrent: Boolean) {
             userThemesQueries.setCurrent(isCurrent, userId)
         }
 
-        @WithSpan
+        @WithSpan("UserPersistence.update")
         override suspend fun update(
             userId: UserId,
             username: String?,
@@ -163,9 +163,8 @@ fun userPersistence(
             ensureNotNull(info) { UserNotFound("userId=$userId") }
         }
 
-        @WithSpan private fun generateSalt(): ByteArray = randomUUID().toString().toByteArray()
+        private fun generateSalt(): ByteArray = randomUUID().toString().toByteArray()
 
-        @WithSpan
         private fun generateKey(password: String, salt: ByteArray): ByteArray {
             val spec = PBEKeySpec(password.toCharArray(), salt, defaultIterations, defaultKeyLength)
             return secretKeyFactory.generateSecret(spec).encoded

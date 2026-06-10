@@ -11,7 +11,7 @@ import com.github.laxy.service.QuestionInfo
 import com.github.laxy.sqldelight.QuestionAttemptsQueries
 import com.github.laxy.sqldelight.QuestionOptionsQueries
 import com.github.laxy.sqldelight.QuestionsQueries
-import com.github.laxy.util.withSpan
+import io.opentelemetry.instrumentation.annotations.WithSpan
 
 @JvmInline value class QuestionId(val serial: Long)
 
@@ -27,56 +27,44 @@ fun questionPersistence(
     questionAttemptsQueries: QuestionAttemptsQueries
 ) =
     object : QuestionPersistence {
-        val spanPrefix = "QuestionPersistence"
 
+        @WithSpan("QuestionPersistence.selectQuestionsByQuiz")
         override suspend fun selectQuestionsByQuiz(
             quizId: QuizId
-        ): Either<DomainError, List<QuestionInfo>> =
-            withSpan("$spanPrefix.selectQuestionsByQuiz") {
-                either {
-                    questionsQueries
-                        .selectByQuiz(quizId) { id, description ->
-                            val options =
-                                questionOptionsQueries
-                                    .selectByQuestion(id) {
-                                        optionId,
-                                        optionDescription,
-                                        referenceNumber,
-                                        isCorrect ->
-                                        OptionInfo(
-                                            optionId,
-                                            optionDescription,
-                                            referenceNumber,
-                                            isCorrect
-                                        )
-                                    }
-                                    .executeAsList()
+        ): Either<DomainError, List<QuestionInfo>> = either {
+            questionsQueries
+                .selectByQuiz(quizId) { id, description ->
+                    val options =
+                        questionOptionsQueries
+                            .selectByQuestion(id) {
+                                optionId,
+                                optionDescription,
+                                referenceNumber,
+                                isCorrect ->
+                                OptionInfo(optionId, optionDescription, referenceNumber, isCorrect)
+                            }
+                            .executeAsList()
 
-                            val lastAttempt =
-                                questionAttemptsQueries
-                                    .selectLastAttemptByQuestionId(id) {
-                                        userSelectedOption,
-                                        isCorrect ->
-                                        QuestionAttempt(
-                                            id = id,
-                                            selectedOptionId = userSelectedOption,
-                                            isCorrect = isCorrect
-                                        )
-                                    }
-                                    .executeAsOneOrNull()
+                    val lastAttempt =
+                        questionAttemptsQueries
+                            .selectLastAttemptByQuestionId(id) { userSelectedOption, isCorrect ->
+                                QuestionAttempt(
+                                    id = id,
+                                    selectedOptionId = userSelectedOption,
+                                    isCorrect = isCorrect
+                                )
+                            }
+                            .executeAsOneOrNull()
 
-                            QuestionInfo(id, description, options, lastAttempt)
-                        }
-                        .executeAsList()
+                    QuestionInfo(id, description, options, lastAttempt)
                 }
-            }
+                .executeAsList()
+        }
 
-        override suspend fun insertQuestion(quizId: QuizId, description: String) =
-            withSpan("$spanPrefix.insertQuestion") {
-                either {
-                    val questionId =
-                        questionsQueries.insertAndGetId(quizId, description).executeAsOneOrNull()
-                    ensureNotNull(questionId) { QuestionCreationError("quizId=$quizId") }
-                }
-            }
+        @WithSpan("QuestionPersistence.insertQuestion")
+        override suspend fun insertQuestion(quizId: QuizId, description: String) = either {
+            val questionId =
+                questionsQueries.insertAndGetId(quizId, description).executeAsOneOrNull()
+            ensureNotNull(questionId) { QuestionCreationError("quizId=$quizId") }
+        }
     }

@@ -5,7 +5,8 @@ import com.github.laxy.DomainError
 import com.github.laxy.persistence.LanguageId
 import com.github.laxy.persistence.SubjectId
 import com.github.laxy.persistence.SubjectPersistence
-import com.github.laxy.util.withSpan
+import io.opentelemetry.api.trace.Span
+import io.opentelemetry.instrumentation.annotations.WithSpan
 
 data class SubjectInfo(
     val id: SubjectId,
@@ -26,22 +27,22 @@ interface SubjectService {
 
 fun subjectService(persistence: SubjectPersistence) =
     object : SubjectService {
-        val spanPrefix = "SubjectService"
 
+        @WithSpan("SubjectService.getAllSubjects")
         override suspend fun getAllSubjects(): Either<DomainError, List<SubjectInfo>> =
-            withSpan("$spanPrefix.getAllSubjects") { persistence.selectAll() }
+            persistence.selectAll()
 
+        @WithSpan("SubjectService.getAllSubjectsByLanguage")
         override suspend fun getAllSubjectsByLanguage(
             languageId: LanguageId
-        ): Either<DomainError, List<SubjectInfo>> =
-            withSpan("$spanPrefix.getAllSubjectsByLanguage") { span ->
-                span.setAttribute("language.id", languageId.serial)
-                persistence.selectByLanguage(languageId)
-            }
+        ): Either<DomainError, List<SubjectInfo>> {
+            Span.current().setAttribute("language.id", languageId.serial)
+            return persistence.selectByLanguage(languageId)
+        }
 
-        override suspend fun getSubjectById(id: SubjectId): Either<DomainError, SubjectInfo> =
-            withSpan("$spanPrefix.getSubjectById") { span ->
-                span.setAttribute("subject.id", id.serial)
-                persistence.select(id)
-            }
+        @WithSpan("SubjectService.getSubjectById")
+        override suspend fun getSubjectById(id: SubjectId): Either<DomainError, SubjectInfo> {
+            Span.current().setAttribute("subject.id", id.serial)
+            return persistence.select(id)
+        }
     }

@@ -8,7 +8,7 @@ import com.github.laxy.QuizCreationError
 import com.github.laxy.QuizSelectionError
 import com.github.laxy.service.QuizInfo
 import com.github.laxy.sqldelight.QuizzesQueries
-import com.github.laxy.util.withSpan
+import io.opentelemetry.instrumentation.annotations.WithSpan
 
 @JvmInline value class QuizId(val serial: Long)
 
@@ -30,46 +30,45 @@ interface QuizPersistence {
 
 fun quizPersistence(quizzesQueries: QuizzesQueries) =
     object : QuizPersistence {
-        val spanPrefix = "QuizPersistence"
 
+        @WithSpan("QuizPersistence.selectByUser")
         override suspend fun selectByUser(userId: UserId): Either<DomainError, List<QuizInfo>> =
-            withSpan("$spanPrefix.selectByUser") {
-                either {
-                    quizzesQueries
-                        .selectAll(userId) { id, name, totalQuestions, status, createdAt ->
-                            QuizInfo(id, name, totalQuestions, status, createdAt)
-                        }
-                        .executeAsList()
-                }
+            either {
+                quizzesQueries
+                    .selectAll(userId) { id, name, totalQuestions, status, createdAt ->
+                        QuizInfo(id, name, totalQuestions, status, createdAt)
+                    }
+                    .executeAsList()
             }
 
-        override suspend fun selectById(quizId: QuizId) =
-            withSpan("$spanPrefix.selectById") {
-                either {
-                    val quiz =
-                        quizzesQueries
-                            .selectById(quizId) { id, name, totalQuestions, status, createdAt ->
-                                QuizInfo(id, name, totalQuestions, status, createdAt)
-                            }
-                            .executeAsOneOrNull()
-                    ensureNotNull(quiz) { QuizSelectionError("quizId=$quizId") }
-                }
-            }
+        @WithSpan("QuizPersistence.selectById")
+        override suspend fun selectById(quizId: QuizId) = either {
+            val quiz =
+                quizzesQueries
+                    .selectById(quizId) { id, name, totalQuestions, status, createdAt ->
+                        QuizInfo(id, name, totalQuestions, status, createdAt)
+                    }
+                    .executeAsOneOrNull()
+            ensureNotNull(quiz) { QuizSelectionError("quizId=$quizId") }
+        }
 
+        @WithSpan("QuizPersistence.insertQuiz")
         override suspend fun insertQuiz(userId: UserId, subjectId: SubjectId, totalQuestions: Int) =
-            withSpan("$spanPrefix.insertQuiz") {
-                either {
-                    val quizId =
-                        quizzesQueries
-                            .insertAndGetId(userId, subjectId, totalQuestions)
-                            .executeAsOneOrNull()
-                    ensureNotNull(quizId) { QuizCreationError("quizId=$quizId") }
-                }
+            either {
+                val quizId =
+                    quizzesQueries
+                        .insertAndGetId(userId, subjectId, totalQuestions)
+                        .executeAsOneOrNull()
+                ensureNotNull(quizId) { QuizCreationError("quizId=$quizId") }
             }
 
-        override suspend fun updateStatus(quizId: QuizId, status: String) =
-            withSpan("$spanPrefix.updateStatus") { quizzesQueries.updateStatus(status, quizId) }
+        @WithSpan("QuizPersistence.updateStatus")
+        override suspend fun updateStatus(quizId: QuizId, status: String) {
+            quizzesQueries.updateStatus(status, quizId)
+        }
 
-        override suspend fun deleteQuiz(quizId: QuizId) =
-            withSpan("$spanPrefix.deleteQuiz") { quizzesQueries.deleteById(quizId) }
+        @WithSpan("QuizPersistence.deleteQuiz")
+        override suspend fun deleteQuiz(quizId: QuizId) {
+            quizzesQueries.deleteById(quizId)
+        }
     }
